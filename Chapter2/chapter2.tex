@@ -1,0 +1,153 @@
+\chapter{Các công trình liên quan}
+\label{Chapter2}
+
+\section{Tổng quan về hệ thống hỗ trợ học tập thông minh}
+Trong môi trường giáo dục đại học, khối lượng kiến thức và cấu trúc chương trình đào tạo ngày càng trở nên phức tạp. Việc xây dựng một lộ trình học tập tối ưu không chỉ dừng lại ở việc hoàn thành các tín chỉ, mà còn phải đáp ứng đúng định hướng nghề nghiệp và năng lực cốt lõi của từng cá nhân. Các hệ thống hỗ trợ học tập thông minh (Intelligent Tutoring/Learning Support Systems) ra đời nhằm giải quyết bài toán này, đóng vai trò như một cầu nối thông tin giữa nhà trường, chương trình đào tạo và sinh viên \cite{zawacki2019systematic}.
+
+\subsection{Các hướng tiếp cận truyền thống}
+Trước khi có sự bùng nổ của Trí tuệ Nhân tạo và các Mô hình Ngôn ngữ Lớn (LLMs), các hệ thống hỗ trợ học vụ tại các trường đại học chủ yếu hoạt động dựa trên các quy tắc tĩnh (rule-based) và kiến trúc dữ liệu phẳng (flat data representations). Một số đặc điểm và hạn chế của các hệ thống này bao gồm:
+
+\begin{itemize}
+	\item Hệ thống cổng thông tin tĩnh (Static Portals): Thông tin về chương trình đào tạo, đề cương chi tiết (syllabus), môn học tiên quyết và song hành thường được cung cấp dưới dạng các tệp văn bản hoặc PDF rời rạc. Sinh viên phải tự tra cứu thủ công, dẫn đến tình trạng phân mảnh thông tin và khó hình dung được bức tranh toàn cảnh của mạng lưới môn học.
+	\item Chatbot dựa trên quy tắc (Rule-based Chatbots): Các thế hệ chatbot cũ thường hoạt động dựa trên bộ từ khóa (keywords) và các kịch bản hội thoại được lập trình sẵn. Hệ thống này gặp hạn chế lớn trong việc xử lý ngôn ngữ tự nhiên, không hiểu được ngữ cảnh tổng thể hoặc các truy vấn phức tạp của sinh viên.
+	\item Hạn chế trong việc liên kết dữ liệu: Các phương pháp truyền thống thiếu khả năng mô hình hóa các mối quan hệ đa chiều. Việc kết nối giữa điểm số, sở thích cá nhân và môn học hầu như không được tự động hóa. Điều này làm mất đi tính cá nhân hóa, khiến sinh viên dễ bị mất phương hướng khi tự lập kế hoạch học tập.
+\end{itemize}
+
+\subsection{Ứng dụng AI trong giáo dục hiện đại}
+Sự phát triển của Trí tuệ Nhân tạo (AI), đặc biệt là Xử lý Ngôn ngữ Tự nhiên (NLP) và Học máy (Machine Learning), đã tạo ra những bước nhảy vọt trong việc phát triển các hệ thống giáo dục thông minh. Thay vì chỉ cung cấp thông tin thụ động, các hệ thống hiện đại đã chuyển dịch sang hướng tương tác và cá nhân hóa sâu sắc:
+
+\begin{itemize}
+	\item Hệ thống gợi ý và cá nhân hóa (Recommender Systems in Education): AI cho phép phân tích dữ liệu lịch sử học tập (điểm số, tiến độ) kết hợp với dữ liệu phi cấu trúc (nguyện vọng, mục tiêu nghề nghiệp) để đưa ra các gợi ý môn học phù hợp nhất. Các thuật toán này giúp sinh viên vạch ra lộ trình học tập linh hoạt theo từng học kỳ, bám sát với định hướng chuyên môn.
+	\item Chuyển đổi từ Chatbot sang AI Agents (Tác nhân AI): Khác với chatbot thông thường chỉ phản hồi truy vấn đơn lẻ, AI Agents (đặc biệt là kiến trúc Multi-Agent) có khả năng tự động hóa chuỗi suy luận.
+	\item Đồ thị hóa tri thức giáo dục (Educational Knowledge Graphs): Để khắc phục tình trạng AI tạo ra thông tin sai lệch (``ảo giác'' - hallucination) và thiếu ngữ cảnh, các nghiên cứu hiện đại đang kết hợp AI với Đồ thị tri thức \cite{hogan2021knowledge}. Việc số hóa và biểu diễn cấu trúc chương trình đào tạo dưới dạng các thực thể (Môn học, Kỹ năng, Sơ thích) và mối quan hệ (Tiên quyết, Song hành, Kỹ năng đầu ra) giúp hệ thống có khả năng truy xuất thông tin đa chiều. Điều này cho phép AI giải thích được lý do tại sao một môn học lại cần thiết.
+\end{itemize}
+
+\section{Mô hình ngôn ngữ lớn (LLMs) trong giáo dục}
+
+\subsection{Ứng dụng LLM trong hệ thống hỏi đáp học tập}
+Với khả năng hiểu và sinh ngôn ngữ tự nhiên, LLMs đã nhanh chóng được tích hợp vào các hệ thống giáo dục, đặc biệt là trong các hệ thống hỏi đáp (Q\&A):
+
+\begin{itemize}
+	\item Giao tiếp bằng ngôn ngữ tự nhiên (Natural Language Interface): Thay vì phải sử dụng các từ khóa cứng nhắc hay câu lệnh phức tạp, sinh viên có thể đặt câu hỏi theo cách giao tiếp thông thường (ví dụ: ``Nếu em trượt môn Cơ sở dữ liệu thì kỳ sau em có được học Hệ quản trị cơ sở dữ liệu không?''). Hệ thống có thể hiểu chính xác ý định và đưa ra câu trả lời trực tiếp.
+	\item Hỗ trợ giải thích và tóm tắt kiến thức: LLMs có khả năng phân tích các đề cương môn học phức tạp và tóm tắt lại những kỹ năng cốt lõi mà sinh viên sẽ đạt được. Ngoài ra, nó có thể đóng vai trò như một người hướng dẫn, giải thích các khái niệm học thuật bằng nhiều cách diễn đạt khác nhau.
+	\item Hỗ trợ sinh tự động (Generative Assistance): LLMs có thể hỗ trợ sinh viên trong việc phác thảo kế hoạch học tập tạm thời, gợi ý cách viết email trao đổi học thuật với giảng viên, hoặc sinh ra các câu hỏi trắc nghiệm để sinh viên tự ôn tập dựa trên tài liệu được cung cấp.
+\end{itemize}
+
+\subsection{Hạn chế của LLM (Hallucination, thiếu context, v.v.)}
+Mặc dù sở hữu những khả năng vượt trội, việc triển khai trực tiếp các LLMs thuần túy (vanilla LLMs) vào hệ thống tư vấn học vụ gặp phải những rủi ro và rào cản, đặc biệt là trong môi trường đại học yêu cầu tính chính xác tuyệt đối:
+
+\begin{itemize}
+	\item Hiện tượng ảo giác AI (Hallucination): Đây là điểm yếu lớn nhất của LLMs. Khi không có đủ thông tin hoặc câu hỏi vượt quá dữ liệu huấn luyện, LLM có xu hướng bịa ra các câu trả lời nghe có vẻ rất hợp lý và logic nhưng thực chất là sai sự thật \cite{ji2023survey}. Trong ngữ cảnh tư vấn học tập, việc AI tự sáng tác ra một môn học tiên quyết không tồn tại hoặc cung cấp sai quy chế học vụ của Khoa Công nghệ Thông tin có thể dẫn đến hậu quả nghiêm trọng, làm sai lệch toàn bộ lộ trình học tập của sinh viên.
+	\item Thiếu ngữ cảnh chuyên biệt và tính cập nhật (Lack of Domain-specific Context \& Up-to-date Knowledge): LLMs được huấn luyện trên dữ liệu đại trà tính đến một thời điểm cắt (cut-off date) nhất định. Chúng không thể tự động biết được những thay đổi mới nhất trong chương trình đào tạo, quy định chuẩn đầu ra, hay danh sách giảng viên phụ trách của Trường Đại học Khoa học Tự nhiên.
+	\item Hạn chế trong suy luận đa bước phức tạp (Complex Multi-hop Reasoning): Để xây dựng một lộ trình học tập, hệ thống cần phải duyệt qua một mạng lưới phức tạp các điều kiện ràng buộc (môn A là tiên quyết của môn B, môn B song hành với môn C). LLMs thuần túy gặp rất nhiều khó khăn trong việc suy luận các mối quan hệ đa tầng (multi-hop) này nếu thông tin chỉ được biểu diễn dưới dạng văn bản phẳng.
+	\item Khó xác minh nguồn gốc (Lack of Traceability): LLMs trả về văn bản sinh tự động mà không cung cấp được nguồn trích dẫn rõ ràng (ví dụ: thông tin này được lấy từ văn bản quy chế nào, trang bao nhiêu). Điều này làm giảm đi độ tin cậy của hệ thống trong mắt sinh viên và giảng viên.
+\end{itemize}
+
+\section{Retrieval-Augmented Generation (RAG)}
+Để giải quyết các hạn chế chí mạng của Mô hình ngôn ngữ lớn (LLMs) như hiện tượng ``ảo giác'' (hallucination) và thiếu thông tin cập nhật (đã phân tích ở mục 2.2), kiến trúc sinh văn bản tăng cường truy xuất (Retrieval-Augmented Generation - RAG) \cite{lewis2020rag} đã được đề xuất và nhanh chóng trở thành tiêu chuẩn trong việc xây dựng các hệ thống AI chuyên biệt. Trong bối cảnh đề tài, RAG đóng vai trò là cơ chế cốt lõi giúp AI Agent truy cập vào cơ sở dữ liệu học vụ thực tế của Trường Đại học Khoa học Tự nhiên trước khi đưa ra câu trả lời cho sinh viên.
+
+\subsection{Kiến trúc RAG truyền thống}
+Kiến trúc RAG truyền thống (còn gọi là Naive RAG) là một phương pháp kết hợp giữa khả năng truy xuất thông tin và khả năng sinh ngôn ngữ (Text Generation). Thay vì ép buộc LLM phải tự nhớ mọi kiến thức trong các trọng số tham số (parametric memory) của nó, RAG cung cấp cho LLM một ``bộ nhớ ngoài'' (non-parametric memory) chứa dữ liệu thực tế.
+
+Quy trình hoạt động cơ bản của Naive RAG diễn ra qua các bước:
+\begin{itemize}
+	\item Lập chỉ mục (Indexing): Dữ liệu thô (như file PDF đề cương môn học, quy chế học vụ) được chia nhỏ thành các đoạn văn bản ngắn (chunks), sau đó được chuyển đổi thành các vector số học (embeddings) và lưu trữ vào Cơ sở dữ liệu Vector (Vector Database).
+	\item Truy xuất (Retrieval): Khi sinh viên đặt câu hỏi, hệ thống sẽ chuyển đổi câu hỏi đó thành vector và tìm kiếm các đoạn văn bản (chunks) có độ tương đồng ngữ nghĩa cao nhất trong Vector Database.
+	\item Sinh văn bản (Generation): Các đoạn văn bản tìm được sẽ được ghép nối vào câu lệnh (prompt) như một ``ngữ cảnh'' (context). LLM sẽ đọc ngữ cảnh này và sinh ra câu trả lời cuối cùng dựa trên các thông tin thực tế vừa được cung cấp.
+\end{itemize}
+
+\subsection{Các thành phần chính: Retriever – Generator}
+Hệ thống RAG truyền thống được cấu thành từ hai module độc lập nhưng phối hợp chặt chẽ với nhau:
+
+\begin{itemize}
+	\item Retriever (Bộ truy xuất): Làm nhiệm vụ tìm kiếm và trích xuất thông tin. Chất lượng của Retriever phụ thuộc hoàn toàn vào các mô hình nhúng (Embedding Models) để biểu diễn ý nghĩa của văn bản dưới dạng các điểm trong không gian vector đa chiều. Các thuật toán như Cosine Similarity (độ tương đồng Cosine) thường được sử dụng để đo lường khoảng cách giữa câu hỏi của người dùng và dữ liệu trong cơ sở dữ liệu. Trong hệ thống hỗ trợ học tập, Retriever làm nhiệm vụ tìm ra đúng đoạn văn bản mô tả về môn học hoặc quy định học vụ mà sinh viên đang thắc mắc.
+	\item Generator (Bộ sinh văn bản): Thường là một Mô hình ngôn ngữ lớn (LLM) đã được tinh chỉnh cho tác vụ làm theo chỉ dẫn (Instruction-tuned LLM). Nhiệm vụ của Generator không phải là tự nghĩ ra câu trả lời từ số không, mà là đọc hiểu các đoạn dữ liệu do Retriever cung cấp, tổng hợp, tóm tắt và diễn đạt lại thành một câu trả lời mạch lạc, tự nhiên và dễ hiểu nhất cho sinh viên.
+\end{itemize}
+
+\subsection{Ưu điểm và hạn chế của Naive RAG}
+\textbf{Ưu điểm:}
+\begin{itemize}
+	\item Giảm thiểu ảo giác (Hallucination): Bằng cách buộc LLM phải dựa vào dữ liệu học vụ nội bộ của Khoa, RAG gần như loại bỏ được tình trạng AI tự bịa ra thông tin sai lệch.
+	\item Chi phí hiệu quả và dễ cập nhật: Không cần phải huấn luyện lại (fine-tuning) LLM đắt đỏ mỗi khi chương trình đào tạo thay đổi. Nhà trường chỉ cần cập nhật các file tài liệu mới vào Vector Database.
+	\item Tính minh bạch (Traceability): RAG cho phép hệ thống trích dẫn nguồn gốc của thông tin (ví dụ: ``Theo mục 2 của Quy chế Đào tạo tín chỉ...''), giúp tăng độ tin cậy cho sinh viên.
+\end{itemize}
+
+Hạn chế chí mạng đối với dữ liệu giáo dục đại học: Dù Naive RAG hoạt động rất tốt với các tác vụ hỏi đáp thông thường (Q\&A), nhưng có nhiều điểm yếu khi xử lý với dữ liệu có tính liên kết chặt chẽ như chương trình đào tạo đại học:
+\begin{itemize}
+	\item Hạn chế của biểu diễn dữ liệu phẳng (Flat Data Representation): Naive RAG chia cắt tài liệu thành các khối (chunks) rời rạc. Khi phân tách, hệ thống vô tình cắt đứt các mối liên hệ logic phức tạp. Ví dụ: Môn A là tiên quyết của môn B, và môn B kết hợp với môn C. Vector Database chỉ lưu các đoạn văn bản rời, không ``hiểu'' được bản đồ mạng lưới của các môn học này.
+	\item Thất bại trong suy luận đa bước (Multi-hop Reasoning Failure): Naive RAG sẽ bối rối khi câu hỏi đòi hỏi phải duyệt qua và tổng hợp từ hàng chục đề cương môn học khác nhau.
+	\item Bỏ sót thông tin: Nếu từ khóa truy vấn của sinh viên không khớp hoàn toàn về mặt ngữ nghĩa cục bộ với các chunk trong database, Retriever sẽ thất bại trong việc mang về ngữ cảnh đúng, dẫn đến việc Generator không có dữ liệu để trả lời.
+\end{itemize}
+
+\section{GraphRAG và Knowledge Graph}
+Để khắc phục những yêu điểm của hệ thống RAG truyền thống (Vector RAG) trong việc xử lý các truy vấn phức tạp và thiếu nhận thức về ngữ cảnh tổng thể, hướng tiếp cận kết hợp Đồ thị tri thức (Knowledge Graph) vào quá trình truy xuất đã ra đời, được gọi chung là GraphRAG. Trong bối cảnh giáo dục đại học, nơi thông tin có tính liên kết cao.
+
+\subsection{Tổng quan về Knowledge Graph}
+Đồ thị tri thức (Knowledge Graph - KG) là một cấu trúc dữ liệu mô hình hóa thông tin dưới dạng một mạng lưới \cite{hogan2021knowledge}. Thay vì lưu trữ dữ liệu dưới dạng các bảng độc lập (như cơ sở dữ liệu quan hệ) hoặc các văn bản phẳng rời rạc, KG lưu trữ thông tin dưới dạng các Thực thể (Entities - Node) và các Mối quan hệ (Relationships - Edge) giữa chúng.
+
+Trong hệ thống hỗ trợ học tập của Khoa Công nghệ Thông tin, Đồ thị tri thức có thể được thiết kế như sau:
+\begin{itemize}
+	\item Thực thể (Nodes): Sinh viên, Môn học (vd: Nhập môn Lập trình, Cơ Sở Trí tuệ Nhân tạo), Kỹ năng (vd: Lập trình Python, Tư duy logic).
+	\item Mối quan hệ (Edges/Relations): Là tiên quyết của (IS PREREQUISITE OF), Cần thiết cho (REQUIRED FOR), Thuộc khối kiến thức (BELONGS TO),...
+\end{itemize}
+
+\section{Các hệ thống RAG dựa trên Đồ thị tri thức}
+Sự phát triển của RAG kết hợp với Đồ thị tri thức đã dẫn đến sự ra đời của nhiều hệ thống khác nhau nhằm giải quyết các bài toán về truy xuất và lập luận phức tạp. Các hệ thống này khác biệt chủ yếu ở cách mô hình hóa đồ thị, cơ chế truy vấn và khả năng cập nhật dữ liệu. Điển hình là hệ thống GraphRAG do Microsoft phát triển vào năm 2024 \cite{edge2024graphrag}. Kiến trúc này sử dụng đồ thị phân cấp dựa trên các cụm cộng đồng và thực hiện tóm tắt ở cấp độ cộng đồng để hỗ trợ tìm kiếm cục bộ lẫn toàn cục. Mặc dù thể hiện khả năng hiểu các mối quan hệ sâu và tóm tắt toàn cục rất tốt, GraphRAG đòi hỏi chi phí xây dựng chỉ mục cao và bị hạn chế trong việc cập nhật dữ liệu liên tục do phải tái cấu trúc lại các cụm mỗi khi có dữ liệu mới.
+
+Một giải pháp khác là HippoRAG2 được giới thiệu tại NeurIPS 2025 \cite{hipporag2_2025}, sử dụng kiến trúc đồ thị phức hợp bao gồm các node thực thể, node đoạn văn bản và cạnh đồng nghĩa. Hệ thống ứng dụng thuật toán PageRank cá nhân hóa để trích xuất văn bản và hỗ trợ lập luận đa bước. Điểm mạnh của HippoRAG2 là khả năng học liên tục không tham số và cập nhật tăng dần trực tuyến xuất sắc mà không cần lập chỉ mục lại toàn bộ, dù khả năng truy vấn toàn cục chỉ ở mức trung bình. Tiếp đến là PathRAG \cite{pathrag_2025}, một nghiên cứu tiếp cận bằng cách sử dụng đồ thị đường đi quan hệ kết hợp với kỹ thuật tỉa nhánh dựa trên luồng. Phương pháp này giảm bớt ngữ cảnh không cần thiết trong khi vẫn duy trì độ chính xác cao cho các truy vấn đa bước, tuy nhiên lại gặp khó khăn và tốn kém khi đồ thị thay đổi vì cần phải thực hiện lại quá trình tỉa nhánh.
+
+Các hệ thống chuyên biệt hơn bao gồm OG-RAG \cite{ograg_2024} và HyperGraphRAG \cite{hypergraphrag_2025}. OG-RAG hoạt động dựa trên đồ thị có ràng buộc lược đồ, giúp giảm đáng kể hiện tượng ảo giác và phù hợp cho các miền dữ liệu đặc thù, nhưng lại yêu cầu người dùng phải cập nhật lược đồ thủ công. Ngược lại, HyperGraphRAG ứng dụng siêu đồ thị để nắm bắt các mối quan hệ đa thực thể phức tạp vượt khỏi giới hạn quan hệ nhị phân. Hệ thống này rất thích hợp cho các nguồn dữ liệu khoa học, nhưng hiện đòi hỏi chi phí tính toán cao và chưa hoàn toàn tối ưu hóa cho môi trường vận hành thực tế \footnote{Tham khảo dữ liệu so sánh từ báo cáo đánh giá các hệ thống RAG sử dụng Knowledge Graph năm 2025.}.
+
+\section{Lý do lựa chọn hệ thống LightRAG}
+Qua quá trình phân tích chuyên sâu các kiến trúc hiện đại, LightRAG (được giới thiệu năm 2024 \cite{guo2024lightrag}) được lựa chọn làm giải pháp cốt lõi cho hệ thống tư vấn học tập. Quyết định này xuất phát từ việc LightRAG mang lại sự cân bằng hoàn hảo giữa hiệu năng truy xuất, khả năng thích ứng với dữ liệu động và tối ưu hóa chi phí vận hành, khắc phục được nhiều khuyết điểm chí mạng của các hệ thống tiền nhiệm. Những lợi ích to lớn về khả năng lập luận đa bước chính xác, hiệu suất truy vấn toàn cục nhanh chóng và chi phí tạo lập chỉ mục siêu thấp của LightRAG là yếu tố then chốt. Việc phân chia cấp độ truy vấn còn giúp đảm bảo hệ thống không bị ảo giác khi đối mặt với các câu hỏi phức hợp, đồng thời không gây lãng phí tài nguyên cho các câu hỏi đơn điệu. Tổng hợp tất cả các khía cạnh trên, LightRAG khẳng định được vị thế là lựa chọn khả thi, tiết kiệm và tối ưu nhất để xây dựng một môi trường tư vấn học thuật cá nhân hóa và đáng tin cậy.
+
+\section{Hiện trạng của LightRAG}
+Nhằm hiểu rõ hơn về tiềm năng và khả năng ứng dụng thực tế của LightRAG trong ngữ cảnh hiện tại, việc đánh giá chi tiết cả những ưu điểm nổi trội lẫn các hạn chế còn tồn đọng là vô cùng cần thiết. 
+
+Xét về ưu điểm, khác với cấu trúc phân cụm phức tạp gây tốn kém tài nguyên của GraphRAG hay mô hình lược đồ cứng nhắc của OG-RAG, LightRAG sử dụng cấu trúc đồ thị thực thể và mối quan hệ dạng phẳng kết hợp với cơ chế truy xuất đa cấp độ. Hệ thống thực hiện song song việc khớp từ khóa, tìm kiếm vector và truy vấn đồ thị cục bộ lẫn toàn cục. Nhờ chiến lược truy xuất theo hai luồng riêng biệt này, LightRAG không chỉ bao quát được toàn bộ ngữ cảnh từ diện rộng đến chi tiết mà còn đạt tốc độ phản hồi cực kỳ nhanh với độ trễ tối ưu chỉ khoảng tám mươi mili-giây \cite{guo2024lightrag}. Một lợi thế cạnh tranh mang tính quyết định khác của hệ thống nằm ở khả năng cập nhật tri thức linh hoạt. Trong môi trường học thuật, nơi quy chế đào tạo thay đổi thường xuyên, LightRAG hỗ trợ cập nhật tăng dần một cách mượt mà bằng cách trích xuất tự động và nối thêm các thực thể vào mạng lưới đồ thị hiện hữu mà không làm phá vỡ tổng thể. Sự linh hoạt này đi kèm với khả năng tương thích cao trên nhiều nền tảng lưu trữ như Neo4j hay PostgreSQL.
+
+Bên cạnh những điểm mạnh vượt trội, hệ thống hiện tại vẫn bộc lộ nhiều hạn chế cần được nghiên cứu khắc phục. Thứ nhất, quá trình trích xuất thông tin để xây dựng đồ thị phụ thuộc hoàn toàn vào chất lượng của mô hình ngôn ngữ lớn làm nền tảng. Nếu mô hình không hiểu sâu sát văn phong học vụ, hệ thống dễ nhận diện sai hoặc bỏ sót mối quan hệ. Thứ hai, hệ thống xử lý tài liệu đa định dạng của LightRAG, đặc biệt là khi chuyển đổi sang định dạng Markdown, hiện chưa hỗ trợ tốt cho Tiếng Việt. Điều này bộc lộ rõ yếu điểm khi hệ thống phải trải qua bước trung gian là chuyển các tệp văn phòng mặc định như tài liệu Word hay PowerPoint sang định dạng PDF rồi mới thực hiện dịch và xử lý, gây thất thoát hoặc sai lệch định dạng văn bản gốc. 
+
+Thứ ba, LightRAG hiện đang thiếu hụt một hệ thống thu thập dữ liệu tự động từ các nguồn trực tuyến. Việc không có sẵn các công cụ cào dữ liệu từ các trang web của trường hay khoa khiến quá trình cập nhật thông tin trở nên thủ công và mất thời gian. Thứ tư, các câu lệnh định hướng (prompt) mặc định của hệ thống được phân bổ quá chung chung. Chúng hoàn toàn không phù hợp để xử lý các tài liệu đặc thù của trường đại học, vốn chứa dày đặc các từ viết tắt, thuật ngữ chuyên ngành và các quy tắc học vụ riêng biệt. Cuối cùng, cấu trúc Đồ thị tri thức hiện tại của hệ thống vẫn còn thiếu các cơ chế ràng buộc hoặc kiểm chứng tính đúng đắn. Việc không có các quy tắc xác thực chặt chẽ khiến đồ thị dễ bị nhiễu bởi các thực thể sai lệch sinh ra từ quá trình trích xuất tự động, từ đó làm giảm đi độ tin cậy của toàn bộ hệ thống tư vấn.
+
+\section{Hệ thống Đa tác nhân (Multi-Agent Systems) và Luồng suy luận (Agentic Workflow)}
+Mặc dù sự kết hợp giữa LLM và LightRAG đã giải quyết được bài toán truy xuất thông tin học vụ chính xác, bản thân mô hình ngôn ngữ vẫn chỉ đóng vai trò thụ động (nhận câu hỏi và trả lời). Để hệ thống có thể tự động lập kế hoạch, tự kiểm tra lỗi và sử dụng các công cụ một cách linh hoạt, việc áp dụng kiến trúc AI Agent (Tác nhân AI) là thiết yếu.
+
+\subsection{Khái niệm AI Agent}
+AI Agent (Tác nhân AI) là một hệ thống sử dụng Mô hình ngôn ngữ lớn (LLM) làm trung tâm để điều khiển quá trình suy luận và đưa ra quyết định \cite{xi2023rise}. Khác với LLM truyền thống, một Agent hoàn chỉnh bao gồm 4 thành phần cốt lõi:
+\begin{itemize}
+	\item Hồ sơ (Persona/Profile): Định hình vai trò của Agent (ví dụ: Cố vấn học tập, Trợ giảng).
+	\item Bộ nhớ (Memory): Khả năng lưu trữ ngữ cảnh ngắn hạn (lịch sử chat) và dài hạn (thông tin, sở thích, điểm số của sinh viên).
+	\item Công cụ (Tools): Khả năng tương tác với môi trường bên ngoài (ví dụ: gọi API để tìm kiếm LightRAG, gọi công cụ search tool, bộ nhớ lưu trữ lịch sử trò chuyện).
+	\item Lập kế hoạch: Khả năng chia nhỏ một truy vấn phức tạp của người dùng thành nhiều bước nhỏ để giải quyết từng phần.
+\end{itemize}
+
+\subsection{Tích hợp LightRAG và Multi-Agent}
+Sự kết hợp giữa Multi-Agent và LightRAG tạo ra một hệ thống hỗ trợ học tập toàn diện. Trong đó, LightRAG đóng vai trò là ``Bộ nhớ kiến thức dài hạn'' (Long-term Knowledge Memory) với độ chính xác cao và chi phí tối ưu, còn Multi-Agent đóng vai trò là ``Trung tâm xử lý logic'' (Reasoning Engine). Tác nhân AI sẽ tự động quyết định khi nào cần sử dụng truy xuất cấp độ thấp (chỉ tìm thông tin 1 môn học) và khi nào cần truy xuất cấp độ cao (tìm lộ trình tổng thể) trên nền tảng LightRAG, từ đó mang lại trải nghiệm tư vấn cá nhân hóa và sát với thực tế nhất cho sinh viên Khoa Công nghệ Thông tin.
+
+\section{Đánh giá hệ thống RAG và Multi-Agent}
+Sau khi thiết kế và triển khai hệ thống thông minh dựa trên kiến trúc LightRAG và Multi-Agent, việc thiết lập một quy trình đánh giá chuẩn xác là vô cùng cần thiết. Đặc thù của dữ liệu giáo dục đại học yêu cầu hệ thống không chỉ trả lời tự nhiên mà phải đảm bảo tính chính xác tuyệt đối, không gây ảnh hưởng sai lệch đến quyết định đăng ký môn học của sinh viên.
+
+\subsection{Các chỉ số đánh giá RAG (RAGAS)}
+Để đánh giá chất lượng của kiến trúc RAG một cách tự động và định lượng, RAGAS (Retrieval Augmented Generation Assessment) \cite{es2023ragas} hiện là framework tiêu chuẩn được cộng đồng nghiên cứu sử dụng rộng rãi. RAGAS đánh giá hệ thống thông qua hai khía cạnh chính: khả năng truy xuất (Retrieval) và khả năng sinh văn bản (Generation), với 4 chỉ số cốt lõi:
+\begin{itemize}
+	\item Độ trung thực (Faithfulness): Đo lường mức độ câu trả lời của AI bám sát vào ngữ cảnh (context) đã được truy xuất. Nếu hệ thống trả lời về một quy định chuẩn đầu ra Tiếng Anh không hề có trong tài liệu của trường, chỉ số này sẽ bị đánh giá thấp, chỉ ra hiện tượng ``ảo giác'' (hallucination).
+	\item Độ liên quan của câu trả lời (Answer Relevance): Đánh giá xem câu trả lời có đi thẳng vào vấn đề mà sinh viên hỏi hay không, hay đang trả lời vòng vo, thừa thông tin.
+	\item Độ chính xác của ngữ cảnh (Context Precision): Đo lường xem các tài liệu (hoặc các node trên đồ thị tri thức) quan trọng nhất có được bộ truy xuất xếp hạng ở những vị trí đầu tiên hay không.
+	\item Độ bao phủ của ngữ cảnh (Context Recall): Đánh giá xem bộ truy xuất có thu thập ``đủ'' các thông tin cần thiết để giải quyết trọn vẹn câu hỏi hay không. Ví dụ: Nếu câu hỏi cần truy xuất cả đề cương môn học lẫn quy chế học vụ, hệ thống có lấy sót tài liệu nào không.
+\end{itemize}
+
+\subsection{Đánh giá hệ thống đa agent (Multi-Agent Evaluation)}
+Việc đánh giá một hệ thống Đa tác nhân (Multi-Agent) phức tạp hơn RAG thông thường, bởi nó không chỉ là đầu vào - đầu ra (input/output) mà là một quy trình suy luận gồm nhiều bước (Agentic workflow). Các tiêu chí đánh giá tập trung vào:
+\begin{itemize}
+	\item \textbf{Tỷ lệ hoàn thành nhiệm vụ (Task Completion Rate):} Đo lường tần suất các Agent phối hợp thành công để đưa ra một kế hoạch học tập hoàn chỉnh.
+	\item Hiệu suất và Chi phí (Efficiency \& Cost): Cần đánh giá độ trễ trung bình của hệ thống (Latency - thời gian từ lúc sinh viên hỏi đến khi có câu trả lời) và chi phí tài nguyên (số lượng API Token tiêu thụ cho mỗi luồng hội thoại). Việc sử dụng LightRAG được kỳ vọng sẽ tối ưu đáng kể chỉ số này so với các mô hình GraphRAG truyền thống.
+\end{itemize}
+
+\subsection{Các phương pháp benchmark hiện nay}
+Để tiến hành đo lường các chỉ số trên, nhóm dự kiến áp dụng các phương pháp benchmark (chấm điểm chuẩn) sau:
+\begin{itemize}
+	\item Xây dựng tập dữ liệu chuẩn (Golden Dataset / Ground Truth): Nhóm sẽ tự xây dựng một bộ khoảng 100-200 cặp câu hỏi - câu trả lời chuẩn xác. Các câu hỏi này bao quát nhiều kịch bản thực tế (đăng ký môn tiên quyết, tư vấn hướng chuyên ngành, quy định xét tốt nghiệp) và các câu trả lời sẽ được trích xuất thủ công, chính xác từ tài liệu của Khoa Công nghệ Thông tin. Tập dữ liệu này làm mốc để đối chiếu tự động với đầu ra của hệ thống.
+	\item LLM-as-a-Judge (Sử dụng LLM mạnh hơn để chấm điểm): Thay vì chấm điểm thủ công hàng ngàn câu trả lời, nhóm sẽ sử dụng các mô hình tiên tiến nhất (như GPT-4 hoặc Claude 3.5) đóng vai trò là ``Giám khảo'' \cite{zheng2023judging}. Giám khảo LLM này sẽ đọc câu hỏi, câu trả lời chuẩn (Ground Truth) và câu trả lời của hệ thống, từ đó chấm điểm các tiêu chí RAGAS một cách tự động và khách quan.
+	\item Đánh giá từ người dùng thực tế (Human-in-the-loop Evaluation): Đây là bước kiểm chứng cuối cùng và quan trọng nhất. Hệ thống sẽ được triển khai thử nghiệm nghiệm (Beta testing) cho một nhóm sinh viên và giảng viên cố vấn học tập của Khoa. Phản hồi sẽ được thu thập thông qua khảo sát trải nghiệm người dùng (UX) và mức độ hữu ích của thông tin hỗ trợ, làm cơ sở để tinh chỉnh các Prompt và luồng hoạt động của Agent.
+\end{itemize}
