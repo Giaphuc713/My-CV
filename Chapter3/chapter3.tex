@@ -478,6 +478,29 @@ Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hó
 	\item \textbf{Supabase Cloud:} Cung cấp hạ tầng lưu trữ tệp tin (Storage) và cơ chế tín hiệu thời gian thực dựa trên Write-Ahead Logging (WAL) của cơ sở dữ liệu.
 \end{itemize}
 
+\subsection{Hiện thực phân hệ Ứng dụng di động (Mobile Application)}
+
+\subsubsection{Tổng quan kiến trúc phân hệ di động}
+Phân hệ ứng dụng di động được xây dựng dựa trên framework Flutter, giúp tối ưu hiệu năng đồ họa native đa nền tảng và duy trì một hệ thống cơ sở mã nguồn đồng nhất (Single Codebase). Phân hệ đóng vai trò là một client cơ động độc lập, kết nối mượt mà tới máy chủ nghiệp vụ Spring Boot và máy chủ AI LightRAG. Toàn bộ thiết kế giao diện tuân thủ quy chuẩn hệ thống, áp dụng các kỹ thuật dựng bố cục thích ứng (Responsive UI) chống tràn phần tử và tối ưu hóa không gian cho các thiết bị di động có màn hình nhỏ.
+
+\subsubsection{Các phân hệ chức năng cốt lõi trên ứng dụng di động}
+Nhằm đảm bảo sự đồng nhất dữ liệu và trải nghiệm đồng bộ với phân hệ Web, ứng dụng di động hiện thực hóa các phân hệ chức năng thực tế bao gồm:
+
+\begin{itemize}
+	\item \textbf{Trợ lý ảo AI thông minh và Quản lý lịch sử (AI Assistant):} Hệ thống tự động điều phối hiển thị màn hình Chatbot ngay khi người dùng khởi động ứng dụng. Chức năng hỗ trợ hai trạng thái truy cập:
+	\begin{itemize}
+		\item \textit{Chế độ Khách (Guest Mode):} Sinh viên chưa đăng nhập có thể trò chuyện nhanh với AI, hệ thống áp dụng cơ chế bảo mật đóng và không lưu lại lịch sử tương tác cục bộ.
+		\item \textit{Chế độ Thành viên (Authenticated Mode):} Kích hoạt sau khi đăng nhập thành công. Hệ thống tự động nhận diện thông tin sinh viên, quản lý lịch sử hội thoại chi tiết theo từng phiên (Chat Sessions) lưu trữ cục bộ qua \textit{SharedPreferences}. Giao diện tích hợp thanh trình đơn trượt bên trái (Drawer Sidebar) giúp sinh viên tạo mới hoặc chuyển đổi giữa các đoạn chat cũ một cách nhanh chóng. Module cũng áp dụng thuật toán tối ưu hóa prompt bằng cách truyền kèm lịch sử hội thoại liền kề để duy trì mạch ngữ cảnh liên tục.
+	\end{itemize}
+	
+	\item \textbf{Xác thực hệ thống và Ràng buộc bảo mật (Authentication):} Xử lý chu trình đăng nhập và đăng ký tài khoản sinh viên dựa trên mã thông báo bảo mật JWT Token, thiết lập bộ lọc tự động làm mới mã truy cập (\textit{Refresh Token}). Đồng thời, hiện thực hóa luồng Quên mật khẩu (\textit{Forgot Password}) và Đặt lại mật khẩu (\textit{Reset Password}) bằng mã Token xác thực gửi về Email, áp dụng kiểm tra ràng buộc mật khẩu nghiêm ngặt bằng biểu thức chính quy (Regex) bắt buộc độ dài tối thiểu 6 ký tự chứa cả chữ và số ngay tại tầng giao diện.
+	
+	\item \textbf{Tiến trình học tập và Hệ gợi ý (Academic Dashboard):} Màn hình Trang chủ hiển thị thanh tiến độ học tập hình trực quan (Progress Bar) tính toán động số tín chỉ tích lũy hiện hành dựa trên thang chuẩn tổng số 138 tín chỉ tốt nghiệp bắt buộc. Bên cạnh đó, ứng dụng đồng bộ hóa và hiển thị các thẻ gợi ý hành động hoặc khóa học tiếp theo do AI đề xuất riêng biệt theo từng hồ sơ học vụ sinh viên.
+	
+	\item \textbf{Diễn đàn cộng đồng đa tương tác (Community Forum):} Hỗ trợ sinh viên tìm kiếm bài viết nhanh theo từ khóa, lọc bài đăng theo cấu trúc phân loại danh mục (All Discussions, My Posts, Trending, Q\&A). Người dùng có thể soạn thảo và đăng tải bài viết mới có đính kèm hình ảnh thông qua phương thức gửi dữ liệu đa phần (\textit{MultipartRequest}). Tính năng hỗ trợ tương tác Thích (Like/Unlike) thời gian thực và hệ thống bình luận đa tầng lồng nhau (Nested Comments/Replies) có tích hợp cơ chế nhận diện tag tên tài khoản dạng \texttt{@username}.
+	
+	\item \textbf{Thông báo và Quản lý hồ sơ cá nhân (Notifications \& Profile):} Cập nhật tức thời các thông báo biến động của hệ thống, cho phép người dùng đánh dấu đã đọc hoặc xóa phần tử. Màn hình hồ sơ hiển thị đầy đủ thông tin cá nhân và thông tin học vụ quan trọng (Họ tên, Mã số sinh viên, Ngành học, Khóa học, Điểm GPA tổng kết), hỗ trợ cập nhật thông tin và thay đổi ảnh đại diện đồng bộ lên kho lưu trữ đám mây.
+\end{itemize}
 
 
 
