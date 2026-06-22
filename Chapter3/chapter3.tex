@@ -4,56 +4,182 @@
 \indent Trên cơ sở phân tích lý thuyết và yêu cầu thực tiễn, đề xuất kiến trúc hệ thống hỗ trợ học tập thông minh dựa trên sự LightRAG \cite{lightrag} một mã nguồn mở được phát triển từ GraphRAG \cite{graphrag} và LangGraph.
 \section{Quy trình xử lý dữ liệu}
 
-\begin{figure}[H]
-	\centering
-	\begin{tikzpicture}[node distance=1.6cm and 1.2cm, auto, scale=0.7, transform shape]
-		% Nodes
-		\node (in) [startstop, text width=4.5cm] {Nguồn dữ liệu đầu vào \\ \footnotesize(PDF, Scan, Office, v.v.)};
-		\node (web) [process, right=2cm of in, text width=3.5cm] {Smart Scraper \\ (Nội dung Website)};
-		
-		\node (p1) [smallbox, below=1cm of in, xshift=-1.8cm] {VMiner \\ (PDF/OCR)};
-		\node (p2) [smallbox, below=1cm of in, xshift=1.8cm] {MarkItDown \\ (Office)};
-		
-		\node (text) [process, below=2.8cm of in, text width=5.5cm] {Văn bản Markdown đồng nhất};
-		
-		% Group 1: Pipeline
-		\node (pipe) [groupbox, below=1.2cm of text, minimum width=10.5cm, minimum height=4.5cm] (idx_box) {};
-		\node [above right=0.5mm of idx_box.north west, anchor=south west, font=\small\bfseries] {Quy trình lập chỉ mục LightRAG};
-		
-		\node (chunk) [process, yshift=-1.2cm] at (idx_box.north) {1. Phân mảnh văn bản (Chunking)};
-		\node (extract) [process, below=0.7cm of chunk] {2. Trích xuất tri thức bằng LLM};
-		\node (merge) [process, below=0.7cm of extract] {3. Hợp nhất đồ thị và Khử trùng};
-		
-		% Group 2: Storage (Tăng cực đại khoảng cách)
-		\node (storage) [groupbox, below=3.5cm of idx_box, minimum width=10.5cm, minimum height=2.5cm, inner sep=15pt] (store_box) {};
-		\node [above right=1mm of store_box.north west, anchor=south west, font=\small\bfseries] {Lớp lưu trữ hỗn hợp (Hybrid Storage)};
-		\node (gdb) [smallbox] at ($(store_box.west)!0.22!(store_box.east)$) {Graph DB};
-		\node (vdb) [smallbox] at ($(store_box.west)!0.5!(store_box.east)$) {Vector DB};
-		\node (kvdb) [smallbox] at ($(store_box.west)!0.78!(store_box.east)$) {KV Store};
-		
-		\node (out) [startstop, below=2cm of store_box, text width=6cm] {Đầu ra: Đồ thị tri thức tổng quát};
-		
-		% Arrows
-		\draw [arrow] (in) -- (p1);
-		\draw [arrow] (in) -- (p2);
-		\draw [arrow] (p1) -- (text);
-		\draw [arrow] (p2) -- (text);
-		\draw [arrow] (web) |- (text);
-		\draw [arrow] (text) -- (chunk);
-		\draw [arrow] (chunk) -- (extract);
-		\draw [arrow] (extract) -- (merge);
-		\draw [arrow] (merge) -- (store_box);
-		\draw [arrow] (store_box) -- (out);
-	\end{tikzpicture}
-	\caption{Quy trình tổng quát từ văn bản thô đến đồ thị tri thức}
-	\label{fig:flow_data_kg_main}
-\end{figure}
+
 
 \indent Đây là quy trình xử lý thông tin, đóng vai trò "nguyên liệu đầu vào" cho toàn bộ hệ thống. Hệ thống không chỉ lưu trữ dữ liệu thô mà còn thực hiện các phép biến đổi vector hóa phức tạp. Quản lý nguồn dữ liệu đa dạng bao gồm hồ sơ người học và các học liệu phi cấu trúc như bài giảng, tài liệu tham khảo.
 
 \indent Đồ thị tri thức (Knowledge Graph) \cite{knowledge_graphs}: đây là thành phần quan trọng nhất, lưu trữ tri thức dưới dạng cấu trúc mạng lưới. Các nút đại diện cho các khái niệm và các cạnh biểu diễn mối quan hệ sư phạm. Điều này giúp hệ thống hiểu được "vị trí" và "tầm quan trọng" của một khái niệm trong tổng thể chương trình học.
 
 \subsection{Tiền xử lý dữ liệu tri thức}
+
+\subsubsection{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}
+\indent Trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
+
+\indent Để giải quyết triệt để thách thức này, hệ thống áp dụng công cụ MinerU \cite{mineru_2024} (từ phiên bản 3.2.3 trở lên) làm giải pháp lõi cho quy trình tiền xử lý dữ liệu. Đây là một công cụ trích xuất dữ liệu đa phương thức chất lượng cao, tích hợp các mô hình tiên tiến như Vision-Language Model (VLM) cho việc phân tích bố cục (Layout Analysis), mô hình OCR để nhận diện văn bản trên ảnh, và mô hình Mathematical Formula Recognition (MFR) để chuyển đổi công thức toán học sang chuẩn LaTeX. Sự kết hợp này giúp MinerU không chỉ trích xuất chính xác văn bản mà còn bảo toàn hoàn hảo cấu trúc logic của tài liệu gốc, đặc biệt phù hợp với các giáo trình, bài báo khoa học và tài liệu lưu trữ của trường đại học.
+
+\subsubsection{Luồng xử lý tự động (Hybrid-Auto-Engine)}
+
+\indent Chế độ \texttt{-b hybrid-auto-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		>=latex,
+		every node/.style={font=\tiny},
+		box/.style={rectangle, draw=black,
+		            minimum width=3.4cm, minimum height=0.65cm,
+		            text width=3.2cm, align=center, inner sep=2pt},
+		rnd/.style={box, rounded corners=4pt},
+		ln/.style={->, thin},
+		lbl/.style={font=\tiny, inner sep=1pt, fill=white}
+	]
+
+	\def\cZ{0}
+	\def\cO{3.8}
+	\def\cT{7.6}
+	\def\cH{11.4}
+
+	\def\yZ{0}
+	\def\yO{-1.8}
+	\def\yT{-3.6}
+	\def\yH{-5.4}
+	\def\yF{-7.2}
+	\def\yI{-9.0}
+	\def\yS{-10.8}
+	\def\yE{-12.6}
+
+	%%-- ROW 0
+	\node[rnd] (start)      at (\cZ, \yZ) {Bắt đầu xử lý PDF};
+	\node[box] (checkocr)   at (\cO, \yZ) {Phân loại PDF OCR};
+	\node[box] (classify)   at (\cT, \yZ) {PDF có phải dạng scan/ảnh?};
+	\node[box] (ocrdisable) at (\cH, \yZ) {Tắt OCR};
+
+	%%-- ROW 1
+	\node[box] (ocrenable)  at (\cT, \yO) {Bật OCR};
+	\node[box] (vlmcheck)   at (\cH, \yO) {Kiểm tra điều kiện VLM\_OCR};
+
+	%%-- ROW 2
+	\node[box] (splitwin)   at (\cZ, \yT) {Chia PDF thành các Window};
+	\node[box] (calbatch)   at (\cO, \yT) {Tính toán Batch Ratio};
+	\node[box] (vlmdisable) at (\cT, \yT) {Tắt VLM\_OCR};
+	\node[box] (vlmenable)  at (\cH, \yT) {Bật VLM\_OCR};
+
+	%%-- ROW 3
+	\node[box] (loadimg)    at (\cZ, \yH) {Load PDF thành danh sách ảnh PIL};
+	\node[box] (vlmext)     at (\cO, \yH) {VLM Layout Extraction};
+	\node[box] (hasvlm)     at (\cT, \yH) {Bật VLM\_OCR?};
+	\node[box] (maskimg)    at (\cH, \yH) {Masking: Che vùng Ảnh, Bảng...};
+
+	%%-- ROW 4
+	\node[box] (ocrdet)     at (\cZ, \yF) {OCR Detector: Nhận diện vùng chữ};
+	\node[box] (mfr)        at (\cO, \yF) {MFR Model: Dịch sang LaTeX};
+	\node[box] (detectform) at (\cT, \yF) {Nhận diện vùng Công thức};
+	\node[box] (chkform)    at (\cH, \yF) {Bật nhận dạng công thức?};
+
+	%%-- ROW 5
+	\node[box] (needocr)    at (\cZ, \yI) {Cần nhận diện chữ?};
+	\node[box] (ocrrec)     at (\cO, \yI) {OCR Recognizer: Đọc chữ};
+	\node[box] (filtscore)  at (\cT, \yI) {Lọc OCR score thấp};
+	\node[box] (normbox)    at (\cH, \yI) {Chuẩn hoá toạ độ Bbox};
+
+	%%-- ROW 6
+	\node[box] (finalize)   at (\cZ, \yS) {Finalize Middle JSON};
+	\node[box] (loopnode)   at (\cO, \yS) {Còn Window nào không?};
+	\node[box] (mergejson)  at (\cT, \yS) {Nạp kết quả vào middle\_json};
+	\node[box] (mergepage)  at (\cH, \yS) {Gộp Layout, Text OCR, LaTeX};
+
+	%%-- ROW 7
+	\node[box] (cleanmem)   at (\cZ, \yE) {Dọn dẹp VRAM / Đóng PDF};
+	\node[rnd] (endnode)    at (\cO, \yE) {Hoàn tất};
+
+	%% ════════ MŨI TÊN ════════
+
+	\draw[ln] (start) -- (checkocr);
+	\draw[ln] (checkocr) -- node[lbl] {auto} (classify);
+	\draw[ln] (classify) -- node[lbl] {Không} (ocrdisable);
+	\draw[ln] (classify) -- node[lbl] {Có} (ocrenable);
+	\draw[ln] (checkocr.south) -- ++(0, -0.5) node[lbl] {ocr} |- (ocrenable.west);
+
+	\draw[ln] (ocrdisable) -- (vlmcheck);
+	\draw[ln] (ocrenable) -- (vlmcheck);
+
+	\draw[ln] (vlmcheck) -- node[lbl] {Thoả mãn} (vlmenable);
+	\draw[ln] (vlmcheck.south) -- ++(0,-0.4) node[lbl] {Không} -| (vlmdisable.north);
+
+	\draw[ln] (vlmdisable) -- (calbatch);
+	\draw[ln] (vlmenable.south) -- ++(0,-0.6) -| (calbatch.south);
+	
+	\draw[ln] (calbatch) -- (splitwin);
+	\draw[ln] (splitwin) -- (loadimg);
+	\draw[ln] (loadimg) -- (vlmext);
+	\draw[ln] (vlmext) -- (hasvlm);
+	
+	\draw[ln] (hasvlm) -- node[lbl] {Không} (maskimg);
+	\draw[ln] (hasvlm.north) -- ++(0,0.5) node[lbl] {Có} -| (13.6, -11.6) -- (7.6, -11.6) -- (mergejson.south);
+
+	\draw[ln] (maskimg) -- (chkform);
+	\draw[ln] (chkform) -- node[lbl] {Có} (detectform);
+	\draw[ln] (detectform) -- (mfr);
+	\draw[ln] (mfr) -- (ocrdet);
+	\draw[ln] (chkform.south) -- ++(0,-0.6) node[lbl] {Không} -- (-2.2, -7.8) -- (-2.2, -7.2) -- (ocrdet.west);
+
+	\draw[ln] (ocrdet) -- (needocr);
+	\draw[ln] (needocr) -- node[lbl] {Có} (ocrrec);
+	\draw[ln] (ocrrec) -- (filtscore);
+	\draw[ln] (filtscore) -- (normbox);
+	\draw[ln] (needocr.south) -- ++(0,-0.6) node[lbl] {Không} -| (normbox.south);
+
+	\draw[ln] (normbox.east) -- ++(0.4,0) |- (mergepage.east);
+	\draw[ln] (mergepage) -- (mergejson);
+	\draw[ln] (mergejson) -- (loopnode);
+	\draw[ln] (loopnode) -- node[lbl] {Hết} (finalize);
+	\draw[ln] (loopnode.south) -- ++(0,-0.7) node[lbl] {Còn} -- (-2.8, -11.5) -- (-2.8, -5.4) -- (loadimg.west);
+
+	\draw[ln] (finalize) -- (cleanmem);
+	\draw[ln] (cleanmem) -- (endnode);
+
+	\end{tikzpicture}
+	\caption{Quy trình xử lý Hybrid-Auto-Engine trong MinerU \cite{mineru_2024}}
+	\label{fig:hybrid_auto_engine}
+\end{figure}
+
+
+
+
+\indent Quy trình xử lý được thực hiện tuần tự qua các giai đoạn. Đầu tiên, hệ thống tiến hành phân loại và phân tích định dạng của tệp đầu vào để xác định là văn bản gốc hay bản quét. Dựa trên kết quả này, cơ chế nhận dạng ký tự quang học sẽ tự động được kích hoạt nếu cần thiết. Tiếp theo, hệ thống đánh giá tài nguyên phần cứng hiện có, cụ thể là dung lượng bộ nhớ đồ họa VRAM, để tính toán tỷ lệ phân lô phù hợp, đảm bảo tối ưu hóa hiệu suất mà không gây tràn bộ nhớ.
+
+\indent Sau quá trình khởi tạo, tài liệu được phân chia thành các đoạn nhỏ để xử lý dần. Tại mỗi phân đoạn, hệ thống sử dụng một mô hình đa phương thức VLM mạnh mẽ để bóc tách cấu trúc tổng thể, nhận diện các khối văn bản, bảng biểu, hình ảnh và công thức. Đối với các vùng chứa hình ảnh và bảng biểu, hệ thống sẽ tiến hành làm mờ nhằm không gây nhiễu cho các mô hình phía sau. Đồng thời, các công thức toán học nằm trong dòng văn bản sẽ được mô hình MFR chuyên biệt nhận diện và dịch đổi sang định dạng mã chuẩn LaTeX. Các khối chữ chưa xử lý được chuyển qua mô hình nhận diện ký tự quang học OCR. Nhằm đảm bảo độ chính xác, các kết quả có độ tin cậy thấp sẽ bị hệ thống tự động lọc bỏ.
+
+\indent Cuối cùng, ở giai đoạn tổng hợp, tọa độ của các khối thông tin được chuẩn hóa về một hệ quy chiếu chung. Tất cả các dữ liệu trích xuất từ mô hình đa phương thức, mô hình nhận diện chữ và mô hình công thức được gộp chung vào một cấu trúc dữ liệu trung gian. Quy trình này lặp lại cho đến khi xử lý hết các phân đoạn của tài liệu, sau đó hệ thống sẽ giải phóng tài nguyên bộ nhớ và hoàn tất việc tạo ra một văn bản đầu ra đồng nhất và giữ nguyên cấu trúc logic gốc.
+
+\indent Nhờ đường ống Hybrid này, MinerU khắc phục hoàn toàn những nhược điểm của việc đọc tệp bằng \texttt{textract} hay \texttt{pypdf} thông thường, cung cấp dòng dữ liệu đầu vào sắc nét và có độ tin cậy tuyệt đối cho mô hình ngôn ngữ phía sau.
+
+\subsection{Luồng logic xử lý và cơ chế kiểm tra trùng lặp}
+
+\indent Một trong những thành phần then chốt giúp hệ thống vận hành hiệu quả và tiết kiệm chi phí là cơ chế kiểm soát dữ liệu tại cổng vào. Sau khi văn bản được trích xuất từ các nguồn đa dạng (PDF, Office, Web) và đưa về định dạng Markdown đồng nhất, hệ thống thực hiện quy trình kiểm tra trùng lặp (Deduplication) dựa trên mã băm nội dung.
+
+\indent Cụ thể, hệ thống sử dụng thuật toán băm MD5 để tạo ra một "dấu vân tay" kỹ thuật số duy nhất cho toàn bộ nội dung văn bản. Mã băm này sau đó được đối chiếu với cơ sở dữ liệu tri thức hiện tại, dẫn đến hai kịch bản xử lý chính. Trong trường hợp trùng khớp hoàn toàn, nếu mã MD5 của tài liệu mới đã tồn tại, hệ thống sẽ ngay lập tức dừng quy trình xử lý nhằm ngăn chặn việc nạp lại dữ liệu dư thừa, bảo vệ tính toàn vẹn của đồ thị tri thức và tiết kiệm tối đa tài nguyên tính toán. Ngược lại, đối với trường hợp nội dung mới hoặc có sự thay đổi, tài liệu được coi là nguồn tri thức mới và được chuyển tiếp sang giai đoạn phân đoạn. Ngay cả khi tài liệu chỉ có một thay đổi nhỏ, hệ thống vẫn sẽ thực hiện lại quy trình để đảm bảo tính cập nhật, trong khi sự trùng lặp về mặt thực thể sẽ được tự động hợp nhất tại bước xây dựng đồ thị sau này.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.85, transform shape]
+		% Nodes
+		\node (in) [startstop] {Văn bản Markdown đồng nhất};
+		\node (md5) [process, below=of in] {Tính toán mã băm MD5};
+		\node (check) [decision, below=1.5cm of md5] {MD5 đã tồn tại?};
+		
+		\node (stop) [startstop, right=2cm of check] {Bỏ qua (Trùng lặp)};
+		\node (chunk) [process, below=1.5cm of check] {Chuyển sang phân đoạn \\ (Chunking)};
+		
+		% Arrows
+		\draw [arrow] (in) -- (md5);
+		\draw [arrow] (md5) -- (check);
+		\draw [arrow] (check) -- node[anchor=south, font=\footnotesize] {CÓ} (stop);
+		\draw [arrow] (check) -- node[anchor=west, font=\footnotesize] {KHÔNG} (chunk);
+	\end{tikzpicture}
+	\caption{Luồng logic kiểm tra trùng lặp bằng cơ chế băm nội dung}
+	\label{fig:flow_deduplication}
+\end{figure}
 
 \subsubsection{Hệ thống xử lý tài liệu đa định dạng}
 
@@ -121,16 +247,6 @@
 	\label{fig:architecture_markitdown}
 \end{figure}
 
-\subsubsection{Chiến lược phân đoạn và chuẩn hóa văn bản}
-
-\indent Quá trình xử lý khởi đầu bằng việc làm sạch dữ liệu đầu vào, loại bỏ các ký tự lỗi và đảm bảo văn bản tuân thủ chuẩn mã hóa quốc tế Unicode (UTF-8). Bước tiền xử lý này không chỉ chuẩn hóa định dạng mà còn loại bỏ các thẻ HTML dư thừa, khoảng trắng không cần thiết và các ký tự điều khiển có thể gây nhiễu cho mô hình ngôn ngữ ở các bước xử lý tiếp theo.
-
-\indent Sau khi làm sạch, LightRAG \cite{lightrag} thực hiện chia nhỏ văn bản thành các phân đoạn (chunk) ngắn nhằm tối ưu hóa khả năng tiếp nhận ngữ cảnh của mô hình ngôn ngữ. Về mặt kỹ thuật, hệ thống áp dụng hai phương pháp phân đoạn chính để bảo toàn tính toàn vẹn tri thức.
-
-\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
-
-\indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
-
 \subsubsection{Hệ thống thu thập tri thức từ trang web}
 
 \begin{figure}[H]
@@ -172,16 +288,92 @@
 
 \indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi chúng nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
 
+\subsection{Quy trình điều phối và phân đoạn dữ liệu}
+
+\indent Sau khi dữ liệu vượt qua bước kiểm tra trùng lặp, hệ thống bước vào giai đoạn điều phối và phân đoạn. Đây là quy trình then chốt nhằm chuyển đổi các văn bản Markdown dài thành những đơn vị tri thức có kích thước tối ưu, sẵn sàng cho việc trích xuất thực thể và quan hệ. Quy trình điều phối này không chỉ đơn thuần là cắt nhỏ văn bản mà còn đảm bảo tính logic và ngữ cảnh giữa các phần.
+
+\indent LightRAG \cite{lightrag} thực hiện quy trình này thông qua hai chiến lược phân đoạn chính để bảo toàn tính toàn vẹn tri thức:
+
+\indent Phương pháp thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+
+\indent Phương pháp thứ hai, phân đoạn theo cấu trúc tự nhiên (structure-aware chunking), khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.85, transform shape]
+		% Nodes
+		\node (in) [startstop] {Văn bản Markdown đồng nhất};
+		\node (clean) [process, below=of in] {Làm sạch \& Chuẩn hóa \\ \footnotesize(Unicode, Regex, Vệ sinh)};
+		\node (split) [decision, below=1.5cm of clean] {Chiến lược phân đoạn?};
+		
+		\node (fixed) [process, left=1.5cm of split, yshift=-1.5cm] {Fixed-size Chunking \\ \footnotesize(Overlap 10-20\%)};
+		\node (struct) [process, right=1.5cm of split, yshift=-1.5cm] {Structure-aware \\ \footnotesize(H1-H6, Paragraph)};
+		
+		\node (out) [startstop, below=3.5cm of split] {Danh sách phân đoạn (Chunks)};
+		
+		% Arrows
+		\draw [arrow] (in) -- (clean);
+		\draw [arrow] (clean) -- (split);
+		\draw [arrow] (split) -| node[anchor=south, xshift=-1cm, font=\footnotesize] {Kích thước cố định} (fixed);
+		\draw [arrow] (split) -| node[anchor=south, xshift=1cm, font=\footnotesize] {Cấu trúc tự nhiên} (struct);
+		\draw [arrow] (fixed) |- (out);
+		\draw [arrow] (struct) |- (out);
+	\end{tikzpicture}
+	\caption{Luồng logic xử lý từ dữ liệu thô đến giai đoạn phân đoạn}
+	\label{fig:flow_chunking_logic}
+\end{figure}
+
 \clearpage
 \subsection{Cơ chế trích xuất thực thể và xây dựng quan hệ}
 
-\indent Sau khi phân đoạn, mỗi khối thông tin (chunk) được đưa qua mô hình ngôn ngữ lớn (LLM) để trích xuất các thành phần tri thức cốt lõi thông qua một lời nhắc có cấu trúc (structured prompt). Lời nhắc này hướng dẫn mô hình thực hiện đồng thời hai nhiệm vụ trong một lần gọi API duy nhất nhằm tiết kiệm chi phí tính toán.
+\indent Sau khi văn bản được chia thành các phân đoạn (chunk), LightRAG thực hiện quy trình trích xuất tri thức để chuyển đổi dữ liệu phi cấu trúc thành các thành phần đồ thị tri thức tường minh. Khác với các hệ thống RAG truyền thống thường bỏ qua mối liên kết giữa các đoạn văn, cơ chế này tập trung vào việc nhận diện các thực thể (Entities) và thiết lập các quan hệ (Relationships) xuyên suốt tài liệu.
 
-\indent Nhiệm vụ thứ nhất là nhận dạng thực thể: mô hình không chỉ phát hiện tên gọi (name) của thực thể mà còn xác định kiểu loại (type) như PERSON, DEPARTMENT, MAJOR, TRAINNING TIME,... và tạo ra mô tả ngắn (description) giải thích vai trò hoặc ý nghĩa của thực thể trong ngữ cảnh cụ thể của đoạn văn đó. Khác với các phương pháp nhận dạng thực thể tên riêng (Named Entity Recognition - NER) truyền thống \cite{ner_survey} vốn thường chỉ tập trung vào việc gán nhãn loại cho các từ ngữ, LightRAG sử dụng sức mạnh của mô hình ngôn ngữ lớn để thu thập tri thức ngữ nghĩa phong phú và mô tả chi tiết về từng thực thể dựa trên nội dung tài liệu.
+\subsubsection{Chiến lược trích xuất đa nhiệm trong một lần gọi (One-step Extraction)}
 
-\indent Nhiệm vụ thứ hai là trích xuất quan hệ (Relation Extraction): với mỗi cặp thực thể đã nhận dạng, mô hình xác định bản chất liên kết giữa chúng — ví dụ ``tác giả của'', ``phụ thuộc vào'', ``mâu thuẫn với'' — cùng với một đoạn mô tả giải thích mối quan hệ đó dựa trên bằng chứng văn bản. Mỗi cạnh (edge) trong đồ thị tri thức do đó mang thông tin định tính, không chỉ là liên kết nhị phân.
+\indent Để tối ưu hóa chi phí tính toán và duy trì tính nhất quán ngữ nghĩa, LightRAG sử dụng một lời nhắc có cấu trúc (structured prompt) yêu cầu mô hình ngôn ngữ lớn (LLM) thực hiện đồng thời hai nhiệm vụ trích xuất trong một lần gọi API duy nhất. 
 
-\indent Để hạn chế bỏ sót thông tin, LightRAG tích hợp kỹ thuật thu nhặt bổ sung (gleaning): sau lần trích xuất đầu tiên, hệ thống gửi lại đoạn văn cùng danh sách thực thể và quan hệ đã tìm được, kèm theo câu hỏi ``Liệu còn thực thể hoặc quan hệ nào chưa được phát hiện?''. Mô hình thực hiện một hoặc nhiều vòng duyệt lại (iterative pass) cho đến khi trả lời rằng không còn thông tin bị bỏ sót, hoặc đạt đến số vòng lặp tối đa được cấu hình trước. Kỹ thuật này đặc biệt hiệu quả với các đoạn văn học thuật dày đặc khái niệm, nơi mà các mối quan hệ ngầm định thường xuất hiện giữa các câu không liền kề.
+\indent \textbf{Nhiệm vụ 1: Nhận diện thực thể (Entity Extraction).} Mô hình được yêu cầu xác định tất cả các thực thể quan trọng xuất hiện trong chunk. Đối với mỗi thực thể, LLM phải trích xuất các thuộc tính cốt lõi bao gồm tên định danh (Entity Name), loại thực thể (Entity Type) như PERSON, ORGANIZATION, CONCEPT, EVENT,... và một đoạn văn bản ngắn mô tả (Entity Description) giải thích vai trò, đặc điểm và ngữ cảnh của thực thể đó. Khác với NER truyền thống \cite{ner_survey}, phương pháp này khai thác tối đa khả năng hiểu ngữ nghĩa sâu của LLM để tạo ra các mô tả tri thức phong phú.
+
+\indent \textbf{Nhiệm vụ 2: Trích xuất quan hệ (Relation Extraction).} Sau khi xác định các thực thể, mô hình thực hiện quét các cặp thực thể để tìm kiếm các mối liên kết có ý nghĩa. Các thuộc tính trích xuất bao gồm hai thực thể tham gia (Source \& Target), các từ khóa định nghĩa bản chất liên kết (Relationship Keywords) và mô tả chi tiết (Relationship Description) lý do tại sao hai thực thể này có liên quan đến nhau dựa trên bằng chứng trong văn bản.
+
+\subsubsection{Cơ chế Gleaning: Tự chỉnh sửa và Thu nhặt bổ sung}
+
+\indent Một trong những thách thức lớn nhất của việc trích xuất tri thức bằng LLM là hiện tượng bỏ sót thông tin do giới hạn về khả năng chú ý (attention) khi xử lý các đoạn văn phức tạp. LightRAG giải quyết vấn đề này thông qua kỹ thuật \textit{Gleaning} (thu nhặt bổ sung).
+
+\indent Sau vòng trích xuất đầu tiên, hệ thống không kết thúc ngay mà thực hiện gửi lại danh sách tri thức vừa tìm được cho LLM kèm theo một yêu cầu phản biện: ``Dựa trên đoạn văn này và danh sách thực thể/quan hệ đã có, liệu còn bất kỳ chi tiết nào bị bỏ sót không?''. Nếu mô hình phát hiện thêm tri thức mới, nó sẽ trả về kết quả bổ sung để hệ thống hợp nhất vào kết quả ban đầu. Quy trình này lặp lại cho đến khi mô hình xác nhận không còn thông tin sót hoặc đạt giới hạn số vòng lặp cấu hình.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=1.6cm, auto, scale=0.85, transform shape]
+		% Nodes
+		\node (input) [startstop] {Phân đoạn văn bản (Chunk)};
+		\node (prompt) [process, below=1.1cm of input] {Tạo Prompt trích xuất \\ (NER + RE Schema)};
+		\node (llm1) [process, below=1.1cm of prompt] {LLM Trích xuất lần 1};
+		
+		\node (loop_box) [groupbox, below=1.3cm of llm1, minimum width=11cm, minimum height=4.8cm] (loop) {};
+		\node [above right=1mm of loop.north west, anchor=south west, font=\small\bfseries] {Quy trình Gleaning (Thu nhặt bổ sung)};
+		
+		\node (check) [decision, yshift=-1.2cm] at (loop.north) {Còn tri thức sót?};
+		\node (llm_extra) [process, below=0.8cm of check] {Trích xuất bổ sung};
+		
+		\node (final) [startstop, below=1.2cm of loop] {Danh sách Thực thể \& Quan hệ cuối cùng};
+		
+		% Arrows
+		\draw [arrow] (input) -- (prompt);
+		\draw [arrow] (prompt) -- (llm1);
+		\draw [arrow] (llm1) -- (check);
+		\draw [arrow] (check) -- node[anchor=west, font=\footnotesize] {CÓ} (llm_extra);
+		
+		\draw [arrow] (llm_extra.east) -- ++(1cm,0) |- (check.east);
+		
+		\draw [arrow] (check.west) -- ++(-1.5cm,0) node[anchor=south, xshift=0.8cm, font=\footnotesize] {KHÔNG} |- (final.west);
+		
+	\end{tikzpicture}
+	\caption{Luồng logic quy trình trích xuất tri thức và cơ chế Gleaning}
+	\label{fig:flow_extraction_gleaning}
+\end{figure}
+
+\indent Kết quả cuối cùng là một tập hợp các thực thể và quan hệ có cấu trúc, sẵn sàng cho bước hợp nhất đồ thị (Graph Merging). Cơ chế này đảm bảo rằng mỗi đoạn văn bản đều được khai thác triệt để tri thức, tạo tiền đề cho việc xây dựng một đồ thị tri thức dày đặc và chính xác.
 
 \subsection{Luồng xử lý Prompt linh hoạt cho đa dạng nguồn dữ liệu}
 
@@ -329,41 +521,11 @@
 \indent Chế độ truy vấn hỗn hợp (Mix Query): Đây là sự kết hợp giữa tìm kiếm cục bộ và toàn cục. Chế độ Mix đồng thời truy xuất các chi tiết cụ thể từ đồ thị lân cận và các tóm tắt tri thức vĩ mô từ cấp độ toàn cục. Quy trình xử lý này đảm bảo câu trả lời vừa có độ chính xác của dữ liệu chi tiết, vừa có chiều sâu của lập luận hệ thống, đáp ứng tốt nhất cho các nhiệm vụ phân tích tri thức đa tầng.
 
 \section{Mô hình hóa trạng thái hệ thống (Agent State)}
-Hệ thống được thiết kế dưới dạng một đồ thị trạng thái (StateGraph), trong đó mỗi nút (node) đại diện cho một tác vụ tính toán và các cạnh (edges) đại diện cho luồng điều khiển. Trạng thái của hệ thống được định nghĩa bởi tập hợp $S$:
-$$S = \{Q, U, H, A, M, D, R_{data}, R_{draft}, E, F\}$$
-Trong đó:
-\begin{itemize}
-	\item $Q$ (Query): Câu hỏi đầu vào của người dùng.
-	\item $U$ (User ID): Mã định danh người dùng để cá nhân hóa dữ liệu.
-	\item $H$ (Chat History): Lịch sử hội thoại ngắn hạn đã được tóm tắt.
-	\item $A$ (Analysis): Kết quả phân tích ý định, từ khóa và độ tin cậy.
-	\item $M$ (Long-term Memory): Hồ sơ người dùng dài hạn được trích xuất từ các phiên làm việc trước.
-	\item $D$ (Decision): Quyết định điều phối (trả lời trực tiếp hoặc truy xuất dữ liệu).
-	\item $R_{data}$ (Retrieved Data): Dữ liệu tri thức thu được từ LightRAG.
-	\item $R_{draft}$ (Draft Response): Bản thảo câu trả lời đầu tiên.
-	\item $E$ (Evaluation): Điểm số và nhận xét đánh giá chất lượng câu trả lời.
-	\item $F$ (Final Response): Câu trả lời cuối cùng trả về cho người dùng.
-\end{itemize}
+Hệ thống được thiết kế dưới dạng một đồ thị trạng thái, trong đó mỗi nút đại diện cho một tác vụ tính toán và các cạnh đại diện cho luồng điều khiển. Trạng thái của hệ thống được định nghĩa bởi tập hợp $S = \{Q, U, H, A, M, D, R_{data}, R_{draft}, E, F\}$. Trong đó, $Q$ (Query) là câu hỏi đầu vào của người dùng, $U$ (User ID) là mã định danh người dùng để cá nhân hóa dữ liệu, và $H$ (Chat History) là lịch sử hội thoại ngắn hạn đã được tóm tắt. Các thành phần khác bao gồm $A$ (Analysis) là kết quả phân tích ý định, $M$ (Long-term Memory) là hồ sơ người dùng dài hạn, và $D$ (Decision) là quyết định điều phối. Cuối cùng, $R_{data}$ (Retrieved Data) là dữ liệu tri thức thu được, $R_{draft}$ (Draft Response) là bản thảo câu trả lời, $E$ (Evaluation) là kết quả đánh giá chất lượng và $F$ (Final Response) là câu trả lời cuối cùng trả về cho người dùng.
 
 \subsection{Kiến trúc các tác vụ (Agents)}
 
-Hệ thống bao gồm 6 thực thể Agent chuyên biệt:
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{AI_Agent.png}
-	\caption{Sơ đồ quy trình xử lí query trong hệ thống ai agent}
-	\label{fig:ai-agent}
-\end{figure}
-
-
-\begin{enumerate}
-	\item \textbf{Analyze Agent}: Sử dụng mô hình ngôn ngữ lớn (LLM) để phân loại câu hỏi. Đầu ra là một cấu trúc JSON xác định: từ khóa ($keywords$), bản chất học thuật ($is\_academic$), và ý định ($intent$).
-	\item \textbf{Long-term Memory Agent}: Thực hiện quản lý hồ sơ người dùng bền vững trên MongoDB. Agent này trích xuất các sự kiện (facts), chuyên ngành và định hướng học tập để cập nhật vào chuỗi văn bản tóm tắt hồ sơ (dưới 200 từ).
-	\item \textbf{Orchestration Agent}: Đây là trung tâm điều khiển, sử dụng cơ chế \textit{Two-step Reflection}. Bước 1 (Reflection 1) đánh giá liệu bộ nhớ dài hạn có đủ thông tin trả lời không. Bước 2 (Reflection 2) quyết định chế độ truy xuất ($hybrid, local, global$) hoặc trả lời trực tiếp ($direct$).
-	\item \textbf{Generator Agent}: Tổng hợp thông tin từ $R_{data}$ và ngữ cảnh lịch sử để tạo câu trả lời theo cấu trúc Markdown quy định (Thông tin môn học, Môn tiên quyết, Lộ trình học).
-	\item \textbf{Evaluator Agent}: Đóng vai trò kiểm soát chất lượng. Agent đánh giá bản thảo dựa trên 3 tiêu chí: \textit{Factuality} (tính xác thực), \textit{Completeness} (sự đầy đủ) và \textit{Relevance} (sự liên quan). Nếu điểm số $score < 8$, hệ thống sẽ kích hoạt vòng lặp tái truy xuất (Refinement Loop).
-\end{enumerate}
+Hệ thống bao gồm 6 thực thể Agent chuyên biệt. Đầu tiên, Analyze Agent sử dụng mô hình ngôn ngữ lớn để phân loại câu hỏi và xác định từ khóa, bản chất học thuật cùng ý định của người dùng. Tiếp theo, Long-term Memory Agent thực hiện quản lý hồ sơ người dùng bền vững trên MongoDB bằng cách trích xuất các sự kiện và chuyên ngành để cập nhật vào hồ sơ tóm tắt. Orchestration Agent đóng vai trò trung tâm điều khiển, sử dụng cơ chế phản hồi hai bước để quyết định chế độ truy xuất hoặc trả lời trực tiếp. Generator Agent chịu trách nhiệm tổng hợp thông tin từ dữ liệu truy xuất và ngữ cảnh lịch sử để tạo câu trả lời theo cấu trúc Markdown. Cuối cùng, Evaluator Agent kiểm soát chất lượng bằng cách đánh giá bản thảo dựa trên tính xác thực, sự đầy đủ và sự liên quan, từ đó kích hoạt vòng lặp tái truy xuất nếu cần thiết.
 
 \subsection{Quy trình điều phối và Luồng dữ liệu}
 
@@ -373,11 +535,7 @@ Quy trình thực thi của hệ thống được mô tả qua các bước logi
 Khi nhận câu hỏi $Q$, hệ thống đồng thời thực hiện \textit{Analyze Agent} để hiểu ý định và truy vấn MongoDB để lấy bộ nhớ dài hạn $M$.
 
 \textbf{Bước 2: Ra quyết định điều phối (Routing).}
-Dựa trên phân tích, Orchestrator sẽ điều hướng:
-\begin{itemize}
-	\item Nếu câu hỏi không mang tính học thuật hoặc thông tin đã có sẵn trong $M$: Chuyển thẳng đến \textit{Generator}.
-	\item Nếu cần kiến thức chuyên sâu: Chuyển đến \textit{Retriever} (LightRAG).
-\end{itemize}
+Dựa trên kết quả phân tích, bộ điều phối sẽ thực hiện điều hướng theo hai kịch bản chính: nếu câu hỏi không mang tính học thuật hoặc thông tin đã có sẵn trong hồ sơ người dùng, yêu cầu sẽ được chuyển thẳng đến Generator Agent để phản hồi; ngược lại, nếu cần kiến thức chuyên sâu từ kho tri thức, hệ thống sẽ chuyển đến Retriever thông qua LightRAG để trích xuất ngữ cảnh phù hợp.
 
 \textbf{Bước 3: Vòng lặp phản biện (Refinement Loop).}
 Đây là điểm mới trong kiến trúc đề xuất. Sau khi \textit{Generator} tạo bản thảo, \textit{Evaluator} sẽ kiểm tra. Nếu phát hiện thiếu hụt thông tin (Knowledge Miss), hệ thống sẽ bổ sung từ khóa vào truy vấn và thực hiện truy xuất lại. Số lần lặp tối đa được giới hạn ($n=1$) để đảm bảo độ trễ của hệ thống.
@@ -443,40 +601,13 @@ Mô hình kiến trúc tổng thể của hệ thống được đề xuất d�
 Dưới đây là mô tả chi tiết về chức năng và vai trò của từng tầng trong kiến trúc:
 
 \subsubsection{Tầng Giao diện (Client Layer)}
-Tầng Giao diện được xây dựng trên nền tảng framework Next.js, cung cấp giao diện tương tác hiện đại và tối ưu trải nghiệm người dùng. Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo:
+Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo bao gồm luồng nghiệp vụ truyền thống thực hiện gọi API tới máy chủ Spring Boot qua giao thức HTTPS để quản lý tiến trình học tập, tương tác diễn đàn và thiết lập mục tiêu cá nhân. Đồng thời, luồng tư vấn thông minh kết nối trực tiếp đến máy chủ AI để xử lý các truy vấn qua cửa sổ Chat với cơ chế phản hồi dạng dòng nhằm tối ưu hóa trải nghiệm hội thoại, kết hợp với Supabase Real-time SDK để cập nhật các thông báo tức thời dựa trên biến động dữ liệu.
 
-\begin{itemize}
-	\item \textbf{Luồng nghiệp vụ truyền thống:} Thực hiện gọi API tới máy chủ Spring Boot qua giao thức HTTPS. Luồng này chịu trách nhiệm cho các tính năng cốt lõi như quản lý tiến trình học tập, tương tác diễn đàn và thiết lập mục tiêu cá nhân.
-	\item \textbf{Luồng tư vấn thông minh:} Kết nối trực tiếp đến máy chủ AI (LihgtRAG Server) để xử lý các truy vấn qua cửa sổ Chat. Việc kết nối trực tiếp này hỗ trợ cơ chế phản hồi dạng dòng (streaming), giúp tối ưu hóa tốc độ và trải nghiệm hội thoại. Ngoài ra, hệ thống tích hợp Supabase Real-time SDK để cập nhật các thông báo tức thời (Real-time Notification) dựa trên biến động của cơ sở dữ liệu.
-\end{itemize}
+Đóng vai trò là trung tâm điều phối dữ liệu, máy chủ nghiệp vụ được phát triển trên nền tảng Spring Boot với các module chính đảm nhiệm an ninh hệ thống thông qua Spring Security và JWT để thực thi quy trình xác thực chặt chẽ. Phân hệ xử lý nghiệp vụ chịu trách nhiệm quản lý các thực thể diễn đàn và dữ liệu sinh viên bằng cách ứng dụng Spring Data JPA để tương tác với PostgreSQL. Ngoài ra, luồng sự kiện sử dụng cơ chế Spring Events để xử lý các tác vụ bất đồng bộ như gửi thông báo và email mà không làm ảnh hưởng đến hiệu năng của luồng xử lý chính.
 
-\subsubsection{Tầng Nghiệp vụ (Application Layer)}
-Đóng vai trò là trung tâm điều phối dữ liệu, máy chủ nghiệp vụ được phát triển trên nền tảng Spring Boot 3.4 với các module chính:
+Đây là tầng xử lý logic thông minh, được xây dựng để khai thác sức mạnh của hệ thống đa tác nhân sử dụng framework LangGraph với các Agent chuyên biệt có khả năng tự suy luận và phối hợp. Hệ thống tích hợp cơ chế RAG tiên tiến qua LightRAG để đảm bảo tính chính xác của thông tin bằng cách truy xuất ngữ cảnh từ dữ liệu đặc thù, từ đó hạn chế hiện tượng ảo giác. Toàn bộ lịch sử hội thoại được lưu trữ tại MongoDB nhằm đảm bảo tính linh hoạt và khả năng mở rộng cho các dữ liệu có cấu trúc không cố định.
 
-\begin{itemize}
-	\item \textbf{An ninh hệ thống:} Triển khai Spring Security phối hợp cùng JWT (JSON Web Token) để thực thi các quy trình xác thực (Authentication) và phân quyền (Authorization) nghiêm ngặt.
-	\item \textbf{Xử lý nghiệp vụ (Core Services):} Chịu trách nhiệm quản lý thực thể diễn đàn, dữ liệu sinh viên và lộ trình học tập. Tầng này ứng dụng Spring Data JPA và Hibernate để tối ưu hóa việc tương tác với hệ quản trị cơ sở dữ liệu PostgreSQL.
-	\item \textbf{Luồng sự kiện (Event Engine):} Sử dụng cơ chế Spring Events để xử lý các tác vụ bất đồng bộ (Async Event). Khi có sự kiện mới (như thông báo từ P.CTSV), hệ thống sẽ tự động kích hoạt gửi Notification và Email qua Gmail SMTP Service mà không gây ảnh hưởng đến hiệu năng của luồng xử lý chính.
-\end{itemize}
-
-\subsubsection{Tầng Điều phối (AI Processing Layer)}
-Đây là tầng xử lý logic thông minh, được xây dựng để khai thác tối đa sức mạnh của hệ sinh thái AI:
-
-\begin{itemize}
-	\item \textbf{Hệ thống Đa tác nhân (Multi-Agent System):} Sử dụng framework LangGraph để vận hành các AI Agents chuyên biệt bao gồm Analyze Agent, Long-term Memory Agent, Orchestration Agent, Generator Agent, Evaluator Agent. Các tác nhân này có khả năng tự suy luận và phối hợp để đưa ra lời giải đáp tối ưu nhất.
-	\item \textbf{Cơ chế RAG tiên tiến (LightRAG):} Đảm bảo tính chính xác của thông tin thông qua việc truy xuất ngữ cảnh (RAG Retrieval) từ tập tin dữ liệu đặc thù (môn học, chương trình đào tạo), giúp hạn chế tối đa hiện tượng "ảo giác" (hallucination) của mô hình ngôn ngữ lớn.
-	\item \textbf{Lưu trữ hội thoại:} Toàn bộ lịch sử Chat được lưu trữ tại MongoDB. Việc sử dụng cơ sở dữ liệu NoSQL giúp đáp ứng tính linh hoạt và khả năng mở rộng đối với các dữ liệu hội thoại có cấu trúc không cố định.
-\end{itemize}
-
-\subsubsection{Tầng Dữ liệu và Hạ tầng (Data \& Infrastructure Layer)}
-Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hóa việc lưu trữ cho từng loại dữ liệu khác nhau:
-
-\begin{itemize}
-	\item \textbf{PostgreSQL:} Quản lý dữ liệu quan hệ có cấu trúc như hồ sơ sinh viên và nội dung diễn đàn.
-	\item \textbf{MongoDB:} Chuyên biệt cho việc lưu trữ và truy xuất nhanh lịch sử tương tác giữa người dùng và AI.
-	\item \textbf{Foundation Models:} Tích hợp các mô hình ngôn ngữ lớn (Llama 3 hoặc OpenAI) thông qua API để thực hiện quá trình suy luận dựa trên dữ liệu từ phân hệ RAG.
-	\item \textbf{Supabase Cloud:} Cung cấp hạ tầng lưu trữ tệp tin (Storage) và cơ chế tín hiệu thời gian thực dựa trên Write-Ahead Logging (WAL) của cơ sở dữ liệu.
-\end{itemize}
+Hệ thống áp dụng chiến lược lưu trữ đa mô thức với PostgreSQL dùng để quản lý dữ liệu quan hệ như hồ sơ sinh viên, và MongoDB chuyên biệt cho việc lưu trữ lịch sử tương tác. Các mô hình ngôn ngữ lớn được tích hợp thông qua API để thực hiện quá trình suy luận, trong khi Supabase Cloud cung cấp hạ tầng lưu trữ tệp tin và cơ chế tín hiệu thời gian thực dựa trên nhật ký ghi trước của cơ sở dữ liệu.
 
 
 
@@ -493,14 +624,7 @@ Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hó
 \clearpage
 \subsection{Thiết kế Cơ sở dữ liệu}
 
-\subsubsection{Tổng quan kiến trúc lưu trữ dữ liệu chuyên biệt}
-Để đáp ứng các yêu cầu phức tạp của hệ thống, bao gồm nghiệp vụ quản lý sinh viên, lưu trữ lịch sử hội thoại linh hoạt và truy xuất tri thức đồ thị cho hệ thống AI, nhóm đề xuất kiến trúc lưu trữ đa mô thức. Cụ thể, hệ thống phân chia cơ sở dữ liệu thành ba cụm chính:
-
-\begin{itemize}
-	\item \textbf{Cơ sở dữ liệu quan hệ (PostgreSQL):} Xử lý các dữ liệu có cấu trúc chặt chẽ (Thông tin sinh viên, Diễn đàn).
-	\item \textbf{Cơ sở dữ liệu phi cấu trúc (MongoDB):} Lưu trữ lịch sử trò chuyện (Chat History) giữa sinh viên và AI Agent, phù hợp với dữ liệu dạng tài liệu (Document) linh hoạt.
-	\item \textbf{Cơ sở dữ liệu đồ thị:} Lưu trữ mạng lưới Đồ thị tri thức (Knowledge Graph) phục vụ cho LightRAG.
-\end{itemize}
+Để đáp ứng các yêu cầu phức tạp, hệ thống phân chia cơ sở dữ liệu thành ba cụm chính bao gồm cơ sở dữ liệu quan hệ PostgreSQL để xử lý các dữ liệu có cấu trúc chặt chẽ, cơ sở dữ liệu phi cấu trúc MongoDB để lưu trữ lịch sử trò chuyện linh hoạt, và cơ sở dữ liệu đồ thị để lưu trữ mạng lưới tri thức phục vụ cho LightRAG.
 
 \begin{figure}[H]
 	\centering
@@ -641,19 +765,7 @@ Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học
 \textbf{Mục đích:} Giúp người dùng xem tổng quan các bài viết thảo luận, theo dõi thông tin học tập và các chủ đề thịnh hành trên diễn đàn.
 
 \textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để xem danh sách bài viết:}
-	\begin{enumerate}
-		\item Người dùng cuộn trang để xem các bài viết mới nhất hoặc nổi bật nhất.
-		\item Hệ thống sẽ tải và hiển thị danh sách bài viết tương ứng với từng người dùng.
-	\end{enumerate}
-	
-	\item \textbf{Để xem chi tiết một bài viết:}
-	\begin{enumerate}
-		\item Người dùng chọn (nhấn) vào tiêu đề của một bài viết bất kỳ.
-		\item Hệ thống sẽ chuyển sang màn hình Diễn đàn - Chi tiết bài viết.
-	\end{enumerate}
-\end{itemize}
+Để xem danh sách bài viết, người dùng thực hiện cuộn trang để duyệt qua các bài viết mới nhất hoặc nổi bật nhất, từ đó hệ thống sẽ tự động tải và hiển thị nội dung tương ứng. Khi muốn xem chi tiết một bài viết cụ thể, người dùng chỉ cần chọn vào tiêu đề của bài viết đó để hệ thống chuyển hướng sang màn hình hiển thị nội dung chi tiết.
 
 % ---- Màn hình 2 ----
 \subsubsection{Màn hình AI Chat}
@@ -668,22 +780,7 @@ Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học
 \textbf{Mục đích:} Cung cấp không gian trò chuyện trực tiếp giữa sinh viên và AI Agent (Cố vấn học tập) để được tư vấn lộ trình, tra cứu môn học cá nhân hóa.
 
 \textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để trò chuyện và nhận tư vấn từ AI:}
-	
-	\textbf{Điều kiện:} Hệ thống kết nối mạng ổn định để giao tiếp với máy chủ AI.
-	\begin{enumerate}
-		\item Người dùng nhập câu hỏi hoặc yêu cầu tư vấn (ví dụ: "Gợi ý lộ trình học ngành Hệ thống thông tin") vào khung nhập văn bản.
-		\item Chọn nút "Gửi" (hoặc biểu tượng gửi tin nhắn).
-		\item Hệ thống AI Agent phân tích dữ liệu, truy xuất Đồ thị tri thức và trả về câu trả lời chi tiết ngay trên màn hình chat.
-	\end{enumerate}
-	
-	\item \textbf{Để xem lại lịch sử tư vấn:}
-	\begin{enumerate}
-		\item Người dùng cuộn lên trên hoặc chọn các phiên trò chuyện cũ ở thanh danh sách (sidebar).
-		\item Hệ thống sẽ hiển thị lại toàn bộ nội dung của cuộc hội thoại trước đó.
-	\end{enumerate}
-\end{itemize}
+Trong quá trình trò chuyện và nhận tư vấn từ AI, với điều kiện hệ thống có kết nối mạng ổn định, người dùng nhập câu hỏi hoặc yêu cầu tư vấn vào khung văn bản và chọn gửi để AI Agent thực hiện phân tích dữ liệu và truy xuất đồ thị tri thức trước khi trả về câu trả lời chi tiết. Ngoài ra, người dùng có thể xem lại lịch sử tư vấn bằng cách cuộn lên hoặc chọn các phiên trò chuyện cũ tại thanh danh sách để hệ thống hiển thị lại toàn bộ nội dung hội thoại trước đó.
 
 % ---- Màn hình 3 ----
 \subsubsection{Màn hình Diễn đàn - Tạo bài viết}
@@ -698,19 +795,7 @@ Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học
 \textbf{Mục đích:} Cho phép sinh viên soạn thảo, đính kèm hình ảnh minh họa và đăng tải các câu hỏi hoặc bài chia sẻ kinh nghiệm học tập lên các cộng đồng trong diễn đàn.
 
 \textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để tạo và đăng bài viết mới:}
-	
-	\textbf{Điều kiện:} Người dùng phải đăng nhập thành công vào hệ thống.
-	\begin{enumerate}
-		\item Người dùng nhập tiêu đề bài viết vào ô "Tiêu đề".
-		\item Soạn thảo nội dung chi tiết của câu hỏi hoặc bài chia sẻ vào khung nhập văn bản.
-		\item Người dùng có thể nhập các "Thẻ (Tags)" để phân loại chủ đề giúp người khác dễ dàng tìm kiếm.
-		\item (Tùy chọn) Người dùng chọn tệp tin hình ảnh từ thiết bị để đính kèm vào bài viết.
-		\item Chọn nút "Post" để đăng bài.
-		\item Hệ thống sẽ lưu bài đăng và chuyển hướng người dùng sang màn hình Diễn đàn - Chi tiết bài viết vừa tạo.
-	\end{enumerate}
-\end{itemize}
+Để tạo và đăng bài viết mới, người dùng cần đăng nhập thành công vào hệ thống, sau đó thực hiện nhập tiêu đề, soạn thảo nội dung chi tiết và đính kèm các thẻ phân loại chủ đề cùng hình ảnh minh họa nếu cần thiết. Sau khi chọn nút đăng bài, hệ thống sẽ lưu trữ thông tin và tự động chuyển hướng người dùng đến màn hình chi tiết của bài viết vừa được khởi tạo.
 
 % ---- Màn hình 4 ----
 \subsubsection{Màn hình Diễn đàn - Chi tiết bài viết}
@@ -735,24 +820,7 @@ Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học
 \textbf{Mục đích:} Hiển thị toàn bộ nội dung của một bài viết cụ thể và cho phép người dùng tương tác (bình luận, like, unlike).
 
 \textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để bình luận vào bài viết:}
-	
-	\textbf{Điều kiện:} Người dùng phải đăng nhập thành công vào hệ thống.
-	\begin{enumerate}
-		\item Người dùng cuộn xuống phần bình luận ở dưới cùng của bài viết.
-		\item Nhập nội dung muốn trao đổi vào ô "Viết bình luận..." và chọn nút "Gửi".
-		\item Hệ thống ghi nhận dữ liệu, cập nhật danh sách và hiển thị bình luận mới ngay lập tức để các người dùng khác có thể theo dõi.
-	\end{enumerate}
-	
-	\item \textbf{Để đánh giá bài viết hoặc bình luận:}
-	
-	\textbf{Điều kiện:} Người dùng phải đăng nhập thành công vào hệ thống.
-	\begin{enumerate}
-		\item Người dùng chọn biểu tượng "Like" hoặc "UnLike" ngay dưới bài viết hoặc bình luận.
-		\item Hệ thống ghi nhận tương tác và cập nhật lại tổng lượt likes hiển thị trên màn hình.
-	\end{enumerate}
-\end{itemize}
+Khi có nhu cầu bình luận vào bài viết, sau khi đăng nhập, người dùng cuộn xuống phần bình luận để nhập nội dung trao đổi và gửi đi, giúp hệ thống cập nhật và hiển thị phản hồi mới cho các người dùng khác cùng theo dõi. Bên cạnh đó, việc đánh giá bài viết hoặc bình luận được thực hiện bằng cách chọn biểu tượng tương ứng để hệ thống ghi nhận tương tác và cập nhật tổng lượt đánh giá hiển thị trên giao diện.
 
 % ---- Màn hình 5 ----
 \subsubsection{Màn hình Tìm kiếm}
@@ -767,11 +835,4 @@ Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học
 \textbf{Mục đích:} Giúp người dùng tra cứu nhanh chóng và chính xác các bài viết, chủ đề thảo luận hoặc tài liệu đã có trên diễn đàn.
 
 \textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để tìm kiếm thông tin:}
-	\begin{enumerate}
-		\item Người dùng nhập từ khóa cần tìm (ví dụ: tên bài post, các chủ đề trong nội dung bài post) vào thanh tìm kiếm.
-		\item Chọn biểu tượng "Kính lúp" hoặc nhấn phím Enter.
-		\item Hệ thống sẽ truy xuất dữ liệu và trả về danh sách các kết quả khớp với từ khóa. Người dùng chọn vào một kết quả để đi đến màn hình Chi tiết bài viết.
-	\end{enumerate}
-\end{itemize}
+Để tìm kiếm thông tin, người dùng nhập từ khóa cần tra cứu vào thanh tìm kiếm và kích hoạt lệnh bằng biểu tượng kính lúp hoặc phím Enter, từ đó hệ thống sẽ truy xuất và trả về danh sách các kết quả phù hợp để người dùng lựa chọn đi đến nội dung chi tiết.
