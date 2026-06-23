@@ -125,11 +125,64 @@
 
 \indent Quá trình xử lý khởi đầu bằng việc làm sạch dữ liệu đầu vào, loại bỏ các ký tự lỗi và đảm bảo văn bản tuân thủ chuẩn mã hóa quốc tế Unicode (UTF-8). Bước tiền xử lý này không chỉ chuẩn hóa định dạng mà còn loại bỏ các thẻ HTML dư thừa, khoảng trắng không cần thiết và các ký tự điều khiển có thể gây nhiễu cho mô hình ngôn ngữ ở các bước xử lý tiếp theo.
 
-\indent Sau khi làm sạch, LightRAG \cite{lightrag} thực hiện chia nhỏ văn bản thành các phân đoạn (chunk) ngắn nhằm tối ưu hóa khả năng tiếp nhận ngữ cảnh của mô hình ngôn ngữ. Về mặt kỹ thuật, hệ thống áp dụng hai phương pháp phân đoạn chính để bảo toàn tính toàn vẹn tri thức.
+\indent Về mặt kỹ thuật, hệ thống áp dụng song song hai chiến lược phân đoạn chính nhằm phục vụ hai mục tiêu khác biệt trong kiến trúc tổng thể: chiến lược phân đoạn theo kích thước cố định phục vụ trích xuất đồ thị tri thức và chiến lược phân đoạn phân cấp đa phương thức phục vụ truy xuất ngữ cảnh chính xác.
 
-\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+\indent Chiến lược thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), được thiết kế chuyên biệt để phục vụ quy trình trích xuất thực thể và quan hệ nhằm xây dựng đồ thị tri thức trong LightRAG \cite{lightrag}. Phương pháp này chia toàn bộ văn bản đã chuẩn hóa thành các đoạn có độ dài xác định trước, thường trong khoảng từ 512 đến 1200 token, kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10--20\% kích thước đoạn giữa hai đoạn liên tiếp.
 
-\indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
+\indent Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'' (context bridge): khi mô hình ngôn ngữ xử lý đoạn thứ $i$, nó đã có sẵn phần đuôi của đoạn thứ $i-1$ làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng. Cụ thể, với kích thước đoạn mặc định là 1200 token và vùng chồng lấp 100 token, hệ thống đảm bảo rằng các thực thể và mối quan hệ nằm gần ranh giới giữa hai đoạn liên tiếp vẫn được mô hình ngôn ngữ lớn nhận diện đầy đủ trong ít nhất một đoạn.
+
+\indent Chiến lược phân đoạn kích thước cố định được lựa chọn cho tác vụ trích xuất đồ thị do quy trình trích xuất thực thể và quan hệ trong LightRAG yêu cầu mỗi đoạn văn phải đủ dài để chứa ngữ cảnh phong phú, giúp mô hình ngôn ngữ lớn nhận diện chính xác các thực thể và suy luận được mối liên hệ giữa chúng. Các đoạn quá ngắn sẽ thiếu ngữ cảnh, dẫn đến việc bỏ sót các quan hệ ngầm định giữa các câu không liền kề.
+
+\indent Chiến lược thứ hai, phân đoạn phân cấp (hierarchical chunking), được thiết kế nhằm bảo toàn tối đa cấu trúc và ngữ nghĩa của tài liệu gốc, phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống nhận truy vấn từ người dùng. Chiến lược này tham khảo từ MultiDocFusion \cite{shin-etal-2025-multidocfusion}, một hệ thống phân đoạn phân cấp được đề xuất cho các tài liệu dài và phức tạp, đã chứng minh hiệu quả vượt trội trong việc cải thiện độ chính xác truy xuất từ 8--15\% so với các phương pháp phân đoạn truyền thống.
+
+\indent Khác với phân đoạn kích thước cố định vốn xử lý văn bản như một chuỗi ký tự thuần túy, chiến lược phân cấp đa phương thức nhận diện rằng tài liệu học thuật không chỉ chứa văn bản tuyến tính mà còn bao gồm nhiều thành phần có cấu trúc và ngữ nghĩa khác nhau. Do đó, quy trình phân đoạn không thể chỉ dựa trên số lượng token mà cần xem xét ba loại cấu trúc: (i) cấu trúc phân cấp (structural), tức mối quan hệ cha-con giữa các tiêu đề, mục, đoạn văn; (ii) cấu trúc bố cục (layout), tức vị trí vật lý, cột, vùng bao đóng của các thành phần trên trang; và (iii) cấu trúc ngữ nghĩa (semantic), tức mối quan hệ về nghĩa giữa các đoạn nội dung dù không kề nhau về vị trí vật lý.
+
+\indent Quy trình phân đoạn phân cấp đa phương thức trong hệ thống được triển khai qua bốn giai đoạn tuần tự, tương ứng với bốn bước chính trong kiến trúc MultiDocFusion \cite{shin-etal-2025-multidocfusion}:
+
+\indent Giai đoạn 1: Phân tích cấu trúc tài liệu bằng thị giác máy tính (Vision-based Document Parsing). Hệ thống VMiner (đã trình bày ở mục trước) sử dụng các mô hình học sâu chuyên biệt để phân tích cấu trúc hình học của từng trang tài liệu. Quá trình này tự động phát hiện và phân loại các vùng nội dung thành các loại thành phần riêng biệt: vùng tiêu đề (heading), khối văn bản (text block), bảng biểu (table), hình ảnh và biểu đồ (figure/chart), danh sách (list), chú thích (footnote) và công thức toán học. Mỗi vùng được xác định bởi một hộp bao đóng (bounding box) chứa tọa độ chính xác trên trang, làm cơ sở cho việc sắp xếp thứ tự đọc hợp lý và phân loại nội dung ở các bước tiếp theo.
+
+\indent Giai đoạn 2: Trích xuất nội dung và phân loại thành phần đa phương thức. Sau khi nhận diện các vùng nội dung, hệ thống tiến hành trích xuất nội dung tương ứng từ từng vùng. Đối với các vùng văn bản thuần túy, nội dung được trích xuất bằng các công cụ nhận dạng ký tự quang học (OCR) đã tối ưu hóa cho tiếng Việt. Đối với bảng biểu, hệ thống tái tạo cấu trúc dữ liệu dưới dạng Markdown hoặc HTML, bảo toàn nguyên vẹn thông tin hàng, cột và tiêu đề. Đối với hình ảnh và biểu đồ, hệ thống sinh mô tả văn bản tự động thông qua mô hình ngôn ngữ thị giác (Vision Language Model, VLM), kết hợp với chú thích (caption) gốc và văn bản ngữ cảnh xung quanh hình ảnh trong tài liệu. Bước phân loại này đảm bảo mỗi thành phần được xử lý bởi chiến lược phù hợp nhất với đặc trưng dữ liệu của nó.
+
+\indent Giai đoạn 3: Xây dựng cây cấu trúc phân cấp (Hierarchical Structure Parsing). Đây là giai đoạn cốt lõi phân biệt chiến lược phân cấp với các phương pháp phân đoạn truyền thống. Hệ thống tái cấu trúc toàn bộ tài liệu thành một cây phân cấp (hierarchical tree) phản ánh tổ chức logic của nội dung, trong đó gốc cây là tài liệu, các nút trung gian là các mục (section) và tiểu mục (sub-section), còn các nút lá là các đơn vị nội dung cụ thể như đoạn văn, bảng, hình ảnh. Cấu trúc phân cấp này được suy luận từ hệ thống tiêu đề (heading hierarchy) trong tài liệu, cụ thể các cấp tiêu đề H1, H2, H3 tương ứng với các mức độ lồng nhau khác nhau trong cây. Trong trường hợp tài liệu không có tiêu đề rõ ràng hoặc cấu trúc tiêu đề bị nhiễu, hệ thống bổ sung cơ chế phân tích dựa trên mô hình ngôn ngữ lớn (tương tự kỹ thuật DSHP-LLM trong MultiDocFusion \cite{shin-etal-2025-multidocfusion}) để suy luận ranh giới ngữ nghĩa giữa các phần. Mỗi nút trong cây được gán một đường dẫn phân cấp (breadcrumb path) dạng: \texttt{[Tài liệu] > [Chương X] > [Mục X.Y] > [Tiểu mục X.Y.Z]}, cung cấp ngữ cảnh vị trí chính xác cho từng đơn vị nội dung.
+
+\indent \textit{Giai đoạn 4: Gom nhóm và sinh phân đoạn theo chiến lược DFS (DFS-based Grouping).} Giai đoạn cuối cùng thực hiện việc duyệt cây phân cấp theo chiều sâu (Depth-First Search) để gom nhóm các nút lá thành các phân đoạn hoàn chỉnh, tuân thủ giới hạn kích thước token tối đa đã được cấu hình. Thuật toán duyệt DFS đảm bảo rằng các nút con thuộc cùng một nút cha sẽ được ưu tiên gom vào cùng một phân đoạn, từ đó bảo toàn tính liên kết ngữ nghĩa theo cấu trúc phân cấp gốc. Cụ thể, quy tắc gom nhóm được áp dụng như sau:
+
+\begin{itemize}
+	\item Nếu thành phần là một đoạn văn ngắn (dưới 100 token): gộp với các đoạn văn tiếp theo thuộc cùng mục (section) cho đến khi đạt ngưỡng kích thước tối thiểu.
+	\item Nếu thành phần là một đoạn văn dài (vượt quá giới hạn token): áp dụng kỹ thuật tách nhận biết ranh giới câu (sentence-aware splitting) để tránh cắt ngang ý tưởng.
+	\item Nếu thành phần là bảng biểu: giữ nguyên toàn bộ bảng như một phân đoạn độc lập kèm theo chú thích bảng và ngữ cảnh mục chứa bảng. Đối với bảng quá lớn vượt giới hạn token, áp dụng chiến lược tách theo nhóm hàng kèm giữ nguyên hàng tiêu đề.
+	\item Nếu thành phần là hình ảnh hoặc biểu đồ: tạo phân đoạn hình ảnh chứa mô tả sinh bởi VLM, chú thích (caption) gốc và đoạn văn bản ngữ cảnh trước/sau hình ảnh, thiết lập liên kết chéo giữa các thành phần này.
+	\item Nếu thành phần là slide (đối với tài liệu PPTX): giữ nguyên toàn bộ nội dung slide gồm tiêu đề, khung văn bản, danh sách và ghi chú diễn giả làm một phân đoạn; tách khi nội dung vượt giới hạn.
+\end{itemize}
+
+\indent Mỗi phân đoạn được tạo ra sẽ được nhúng (inject) thêm thông tin đường dẫn phân cấp (breadcrumb context) vào đầu nội dung, theo định dạng:
+
+\begin{center}
+	\texttt{[Document: \{tên\_tài\_liệu\}] > [\{đường\_dẫn\_mục\}] \{nội\_dung\_gốc\}}
+\end{center}
+
+\noindent Kỹ thuật nhúng ngữ cảnh phân cấp này giúp mô hình ngôn ngữ lớn có đủ thông tin định vị ngay cả khi phân đoạn bị tách khỏi tài liệu gốc. Breadcrumb được nhúng vào đầu nội dung nhưng không được tính vào số lượng token của phần nội dung chính, nhằm không ảnh hưởng đến chất lượng biểu diễn vector nhúng (embedding) của nội dung thực.
+
+\indent Bảng~\ref{tab:so_sanh_chunking} trình bày so sánh chi tiết giữa hai chiến lược phân đoạn được áp dụng trong hệ thống.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{So sánh hai chiến lược phân đoạn trong hệ thống}
+	\label{tab:so_sanh_chunking}
+	\begin{tabular}{|p{3.5cm}|p{5.5cm}|p{5.5cm}|}
+		\hline
+		\textbf{Tiêu chí} & \textbf{Chiến lược 1: Kích thước cố định} & \textbf{Chiến lược 2: Phân cấp đa phương thức} \\ \hline
+		Mục đích chính & Trích xuất thực thể và quan hệ cho đồ thị tri thức & Truy xuất ngữ cảnh chính xác cho RAG \\ \hline
+		Đơn vị phân đoạn & Cửa sổ token cố định (1200 token) & Đơn vị ngữ nghĩa tự nhiên (đoạn văn, bảng, hình) \\ \hline
+		Bảo toàn cấu trúc & Không, xử lý văn bản thuần tuyến tính & Có, bảo toàn cấu trúc phân cấp gốc \\ \hline
+		Ngữ cảnh vị trí & Dựa vào vùng chồng lấp & Breadcrumb path nhúng vào mỗi chunk \\ \hline
+		Ưu điểm & Đơn giản, phân bổ tải đều, phù hợp cho trích xuất hàng loạt & Bảo toàn ngữ nghĩa, truy xuất chính xác, hỗ trợ đa phương thức \\ \hline
+		Hạn chế & Có thể cắt ngang ý tưởng & Phức tạp hơn, phụ thuộc vào chất lượng phân tích cấu trúc \\ \hline
+	\end{tabular}
+\end{table}
+
+\indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ.
 
 \subsubsection{Hệ thống thu thập tri thức từ trang web}
 
