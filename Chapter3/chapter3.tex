@@ -202,52 +202,15 @@
 \indent Sự kết hợp giữa SHACL và cơ chế Staging tạo ra một quy trình kiểm soát chất lượng dữ liệu chặt chẽ. Nó không chỉ giúp tự động hóa việc phát hiện sai sót của mô hình ngôn ngữ mà còn cung cấp giao diện để người quản trị có thể can thiệp, chỉnh sửa và phê duyệt dữ liệu một cách minh bạch. Điều này đảm bảo rằng đồ thị tri thức cuối cùng luôn duy trì được tính nhất quán, đầy đủ và đáng tin cậy cao.
 
 % ------------------------------------------------------------------
-\subsection{Bài toán thực thể trùng lặp trong văn bản học thuật}
+\subsection{Xử lý thực thể trùng lặp trong văn bản học thuật}
 % ------------------------------------------------------------------
 
-Trong môi trường corpus học thuật tiếng Việt, một thực thể trong thế
-giới thực thường xuất hiện với nhiều hình thức biểu diễn ngôn ngữ khác
-nhau tùy theo ngữ cảnh của từng tài liệu. Bảng~\ref{tab:entity-variants}
-minh họa một số trường hợp điển hình trong phạm vi đề tài.
-
-\begin{table}[H]
-\centering
-\caption{Ví dụ về biến thể tên thực thể trong corpus học thuật HCMUS}
-\label{tab:entity-variants}
-\begin{tabular}{p{5.2cm} p{5.2cm}}
-\toprule
-\textbf{Các biến thể xuất hiện trong tài liệu} &
-\textbf{Thực thể thực tế} \\
-\midrule
-HCMUS, Trường ĐH KHTN, Trường Đại học Khoa học Tự nhiên,
-University of Science &
-Trường Đại học Khoa học Tự nhiên TP.HCM \\
-\addlinespace
-CSDL, Database, Cơ sở dữ liệu &
-Cơ sở dữ liệu \\
-\addlinespace
-AI, Artificial Intelligence &
-Trí tuệ nhân tạo \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Cơ chế hợp nhất mặc định của LightRAG chỉ nhận diện hai thực thể là
-cùng nút khi tên của chúng khớp nhau sau khi chuẩn hóa về chữ thường.
-Điều này có nghĩa \textit{HCMUS} và \textit{Trường Đại học Khoa học
-Tự nhiên} sẽ tồn tại như hai nút hoàn toàn riêng biệt trong đồ thị.
-Hậu quả trực tiếp là tri thức về cùng một đối tượng bị phân tán, các
-quan hệ thuộc về một hình thức tên không được kết nối với các quan hệ
-thuộc hình thức tên khác, và hệ thống truy vấn không thể tổng hợp thông
-tin một cách đầy đủ.
-
 % ------------------------------------------------------------------
-\subsubsection{Giải pháp: Hệ thống phân giải thực thể hai tầng}
 \label{subsubsec:entity-resolution-solution}
 % ------------------------------------------------------------------
 
-Để khắc phục vấn đề này, đề tài đề xuất một module phân giải thực thể
-(\textit{entity resolution}) được tích hợp vào giai đoạn tiền hợp nhất,
+Để xử lý vấn đề thực thể trùng lặp đảm bảo truy xuất đầy đủ thông tin, đề tài đề xuất một module phân giải thực thể
+(\textit{entity resolution}) được tích hợp vào hai giai đoạn,
 hoạt động trước khi bất kỳ nút nào được ghi vào đồ thị. Module này
 được thiết kế theo kiến trúc hai giai đoạn xử lý nối tiếp:
 \textbf{Candidate Retrieval} (Truy hồi ứng viên) và \textbf{LLM
@@ -271,7 +234,7 @@ các knowledge graph:
     với bối cảnh corpus tiếng Việt học thuật hiện tại.
 \end{itemize}
 
-Hình~\ref{fig:entity-resolution-flow} trình bày kiến trúc tổng thể của
+Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
 module phân giải thực thể và vị trí tích hợp của nó vào pipeline hợp
 nhất đồ thị.
 
@@ -580,7 +543,7 @@ cứu tham chiếu.
 \centering
 \caption{So sánh các thành phần thiết kế với công trình liên quan}
 \label{tab:er-comparison}
-\begin{tabular}{p{4cm} p{1.6cm} p{1.6cm} p{5cm}}
+\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{2cm} >{\centering\arraybackslash}p{2cm} p{6cm}}
 \toprule
 \textbf{Thành phần} &
 \textbf{HELEA} &
