@@ -61,7 +61,6 @@ Hệ thống RAG truyền thống được cấu thành từ hai module độc l
 
 \begin{itemize}
 	\item Retriever (Bộ truy xuất): Làm nhiệm vụ tìm kiếm và trích xuất thông tin. Chất lượng của Retriever phụ thuộc hoàn toàn vào các mô hình nhúng (Embedding Models) để biểu diễn ý nghĩa của văn bản dưới dạng các điểm trong không gian vector đa chiều. Các thuật toán như Cosine Similarity (độ tương đồng Cosine) thường được sử dụng để đo lường khoảng cách giữa câu hỏi của người dùng và dữ liệu trong cơ sở dữ liệu. Trong hệ thống hỗ trợ học tập, Retriever làm nhiệm vụ tìm ra đúng đoạn văn bản mô tả về môn học hoặc quy định học vụ mà sinh viên đang thắc mắc.
-    \item Trong hệ thống đề xuất, phân hệ Retriever được tối ưu hóa bằng việc sử dụng mô hình nhúng E5-Instruct. Khác với các mô hình Embedding truyền thống, E5-Instruct áp dụng kỹ thuật học có chỉ dẫn (instruction-based embeddings), cho phép hệ thống nạp thêm các tiền tố định hướng ngữ cảnh (như 'Query:' cho câu hỏi và 'Passage:' cho tài liệu) trước khi tiến hành vector hóa. Điều này giúp nâng cao đáng kể khả năng phân tách ngữ nghĩa và tối ưu hóa chỉ số Context Recall khi thực hiện truy xuất tri thức học vụ phức tạp.
 	\item Generator (Bộ sinh văn bản): Thường là một Mô hình ngôn ngữ lớn (LLM) đã được tinh chỉnh cho tác vụ làm theo chỉ dẫn (Instruction-tuned LLM). Nhiệm vụ của Generator không phải là tự nghĩ ra câu trả lời từ số không, mà là đọc hiểu các đoạn dữ liệu do Retriever cung cấp, tổng hợp, tóm tắt và diễn đạt lại thành một câu trả lời mạch lạc, tự nhiên và dễ hiểu nhất cho sinh viên.
 \end{itemize}
 

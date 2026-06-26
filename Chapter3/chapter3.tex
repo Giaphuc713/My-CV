@@ -131,6 +131,22 @@
 
 \indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
 
+\subsubsection{Nghiên cứu lựa chọn mô hình nhúng (Embedding Model) và giải pháp triển khai Production}
+
+\indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở \texttt{intfloat/multilingual-e5-large-instruct} được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn \textit{VN-MTEB (Vietnamese Massive Text Embedding Benchmark)} công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm:
+
+\begin{itemize}
+	\item \textbf{Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning):} Điểm cải tiến cốt lõi của phiên bản \texttt{-instruct} so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query: "} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage: "} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
+	\item \textbf{Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment):} Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
+	\item \textbf{Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu:} Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (\textit{Context Window}) bị giới hạn nghiêm ngặt ở mức \textbf{512 tokens} \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức \textbf{400--500 tokens}, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+\end{itemize}
+
+\indent Về mặt kiến trúc vận hành thực tế hệ thống, mô hình nhúng mở \texttt{multilingual-e5-large-instruct} sở hữu dung lượng tham số ở mức trung bình (560 triệu tham số) \cite{multilingual_e5}, mở ra hai kịch bản triển khai linh hoạt đáp ứng hoàn hảo từng môi trường hạ tầng:
+\begin{itemize}
+	\item \textbf{Môi trường phát triển và thử nghiệm đồ án (Local Deployment):} Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện \texttt{sentence-transformers} và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (\textit{Self-contained}) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
+	\item \textbf{Môi trường vận hành thực tế (Production Hosting API):} Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống dịch chuyển sang mô hình \textit{Self-hosted API} độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (\textit{Microservice}) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như \textbf{TEI (Text Embeddings Inference)} của Hugging Face hoặc \textbf{Triton Inference Server} của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (\textit{Dynamic Batching}) và lượng hóa ma trận về định dạng Float16 để tối ưu dung lượng VRAM, giúp nén độ trễ sinh vector nhúng thời gian thực xuống dưới 10 miligiây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
+\end{itemize}
+
 \subsubsection{Hệ thống thu thập tri thức từ trang web}
 
 \begin{figure}[H]
@@ -480,27 +496,71 @@ Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hó
 
 \subsection{Hiện thực phân hệ Ứng dụng di động (Mobile Application)}
 
-\subsubsection{Tổng quan kiến trúc phân hệ di động}
-Phân hệ ứng dụng di động được xây dựng dựa trên framework Flutter, giúp tối ưu hiệu năng đồ họa native đa nền tảng và duy trì một hệ thống cơ sở mã nguồn đồng nhất (Single Codebase). Phân hệ đóng vai trò là một client cơ động độc lập, kết nối mượt mà tới máy chủ nghiệp vụ Spring Boot và máy chủ AI LightRAG. Toàn bộ thiết kế giao diện tuân thủ quy chuẩn hệ thống, áp dụng các kỹ thuật dựng bố cục thích ứng (Responsive UI) chống tràn phần tử và tối ưu hóa không gian cho các thiết bị di động có màn hình nhỏ.
+\indent Phân hệ di động được phát triển độc lập dựa trên framework Flutter, sử dụng ngôn ngữ lập trình Dart với cơ chế biên dịch trực tiếp sang mã máy native. Kiến trúc mã nguồn được tổ chức theo mô hình quản lý trạng thái tập trung thông qua bộ thư viện \textit{Provider} (gồm \texttt{MultiProvider} và \texttt{ChangeNotifierProvider}), giúp tách biệt hoàn toàn tầng giao diện (UI) và tầng xử lý logic nghiệp vụ, đồng thời duy trì một luồng dữ liệu đồng nhất trên toàn ứng dụng. Phân hệ di động loại bỏ hoàn toàn các tính năng mạng xã hội/diễn đàn, tập trung chuyên biệt vào việc hỗ trợ thông tin học vụ và cá nhân hóa lộ trình học tập của sinh viên thông qua các phân hệ chức năng thực tế sau:
 
-\subsubsection{Các phân hệ chức năng cốt lõi trên ứng dụng di động}
-Nhằm đảm bảo sự đồng nhất dữ liệu và trải nghiệm đồng bộ với phân hệ Web, ứng dụng di động hiện thực hóa các phân hệ chức năng thực tế bao gồm:
+\subsubsection{Phân hệ Trợ lý ảo AI thông minh và Quản lý ngữ cảnh hội thoại}
+\indent Đây là tính năng trung tâm của ứng dụng di động, được cấu hình tự động điều phối hiển thị ngay tại màn hình khởi động thông qua lớp \texttt{SplashScreen}. Giao diện tương tác trò chuyện trực tiếp được thiết kế linh hoạt, tự động phân tách theo trạng thái xác thực của người dùng:
+\begin{itemize}
+	\item \textbf{Chế độ truy cập ẩn danh (Guest Mode):} Dành cho người dùng chưa thực hiện đăng nhập vào hệ thống. Khi sinh viên khởi động ứng dụng, luồng điều hướng sẽ đưa thẳng vào màn hình \texttt{ChatbotScreen} ở trạng thái khách. Tại đây, sinh viên có thể tương tác trực tiếp với AI để tra cứu thông tin học vụ đại chúng mà không có thanh trình đơn trượt bên trái (Sidebar) và hệ thống tuân thủ nghiêm ngặt cơ chế bảo mật đóng, hoàn toàn không lưu lại lịch sử trò chuyện cục bộ.
+	\item \textbf{Chế độ thành viên đã xác thực (Authenticated Mode):} Trạng thái này tự động được kích hoạt ngay sau khi sinh viên đăng nhập thành công vào hệ thống. Lúc này, màn hình AI Chat sẽ trở thành Tab đầu tiên nằm dưới thanh điều hướng chính (\texttt{BottomNavigationBar} của \texttt{MainNavScreen}). Hệ thống kích hoạt một thanh Sidebar dạng \texttt{Drawer} trượt từ cạnh trái màn hình, hiển thị trực quan toàn bộ danh sách lịch sử các phiên trò chuyện cũ (\texttt{ChatSession}). Toàn bộ các phiên trò chuyện này được lưu trữ bền vững tại bộ nhớ đệm thiết bị thông qua gói \texttt{SharedPreferences}, tự động sắp xếp theo mốc thời gian tương tác gần nhất và phân tách ranh giới lịch sử theo từng mã định danh tài khoản riêng biệt (\texttt{student\_id}).
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
+		\\ \footnotesize \textit{a) Trợ lý AI ở Chế độ Khách (Không lưu lịch sử)}
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
+		\\ \footnotesize \textit{b) Trợ lý AI ở Chế độ Thành viên (Có lịch sử chat)}
+	\end{minipage}
+	\caption{Giao diện tương tác phân hệ Trợ lý ảo AI trên ứng dụng di động}
+	\label{fig:ui_mobile_chatbot}
+\end{figure}
+
+\indent Phân hệ tư vấn thông minh di động tích hợp hai giải pháp tối ưu hóa trải nghiệm hội thoại nâng cao:
+\begin{itemize}
+	\item \textbf{Cơ chế làm giàu truy vấn theo chuỗi hội thoại (Context Concatenation):} Để khắc phục hiện tượng mất ngữ cảnh khi sinh viên đặt câu hỏi quá ngắn hoặc mơ hồ ở các lượt chat sau, ứng dụng tự động kiểm tra mảng dữ liệu tin nhắn. Nếu chuỗi hội thoại đạt từ 3 lượt tương tác trở lên, hệ thống sẽ tự động trích xuất nội dung câu hỏi liền trước (\texttt{lastUser}) và câu trả lời liền trước của bot (\texttt{lastAI}) để ghép nối có cấu trúc trực tiếp vào câu hỏi hiện tại trước khi thực hiện đóng gói JSON gửi lên API máy chủ LightRAG.
+	\item \textbf{Bộ phân tích và biên dịch cú pháp Markdown dạng RichText:} Để hiển thị câu trả lời từ mô hình ngôn ngữ lớn một cách chuyên nghiệp, ứng dụng hiện thực hóa hàm quét chuỗi ký tự tự động dựa trên biểu thức chính quy. Hệ thống thực hiện băm nhỏ văn bản theo ký tự xuống dòng kép, nhận diện ký tự thẻ \texttt{\#} để phóng to cỡ chữ tiêu đề và tự động chuyển đổi màu sắc sang mã màu xanh chủ đạo của trường (\texttt{0xFF0054A6}), đồng thời nhận diện các cặp ký tự \texttt{**} để gán nhãn kiểu chữ in đậm \texttt{FontWeight.bold} cho các thuật ngữ chuyên ngành hoặc mã học phần quan trọng.
+\end{itemize}
+
+\subsubsection{Phân hệ Xác thực tài khoản và Bắt lỗi hệ thống bảo vệ (Fail-safe Auth)}
+\indent Phân hệ quản lý toàn bộ vòng đời xác thực của sinh viên bao gồm Đăng nhập (\texttt{LoginScreen}), Đăng ký (\texttt{RegisterScreen}) và Đăng xuất thông qua kết nối API RESTful mã hóa bảo mật Bearer JWT Token gửi về từ máy chủ Spring Boot. Hệ thống di động tích hợp bộ lọc tự động kích hoạt vi tiến trình \texttt{refreshAccessToken} để làm mới mã truy cập ngầm định khi hết hạn mà không gây gián đoạn trải nghiệm của sinh viên.
+
+\indent Đặc biệt, tại chức năng Quên mật khẩu và Đặt lại mật khẩu, ứng dụng tích hợp một cơ chế xử lý ngoại lệ thông minh (\textit{Fail-safe SMTP Exception Handling}):
+\begin{itemize}
+	\item Khi sinh viên nhấn nút yêu cầu link khôi phục, ứng dụng di động sẽ gọi API \texttt{POST /auth/forgot-password}. Trong trường hợp máy chủ đám mây trả về lỗi nghẽn cổng kết nối máy chủ gửi thư (\texttt{Mail server connection failed / SocketTimeoutException}), ứng dụng di động sẽ chủ động bắt lấy ngoại lệ này ngay tại tầng kết nối mạng.
+	\item Thay vì văng lỗi màn hình đỏ, ứng dụng hiển thị một hộp thoại thông báo thông minh thông tin hệ thống đang bảo trì đường truyền gửi thư và tự động kích hoạt mã Token khôi phục giả lập là \texttt{"DEMO123"} để hỗ trợ cho việc Demo báo cáo đồ án. Sinh viên sử dụng mã này điền vào ô xác nhận cùng mật khẩu mới có cấu trúc kiểm tra định dạng Regex nghiêm ngặt (tối thiểu 6 ký tự gồm cả chữ và số) để thực hiện cập nhật cơ sở dữ liệu thành công.
+\end{itemize}
+
+\subsubsection{Phân hệ Tiến trình học tập, Thông báo và Hồ sơ sinh viên}
+\indent Phân hệ này chịu trách nhiệm hiển thị thông tin trực quan hóa và đồng bộ hóa trạng thái học vụ của người học, bao gồm các thành phần:
+\begin{itemize}
+	\item \textbf{Thành phần trực quan tiến trình học tập (Academic Progress):} Tại màn hình Trang chủ (\texttt{HomeScreen}), ứng dụng thực hiện phân tích số tín chỉ tích lũy hiện hành được thu thập từ trường dữ liệu \texttt{totalCreditsEarned} trong API nghiệp vụ. Hệ thống sử dụng widget \texttt{LinearProgressIndicator} để dựng đồ thị thanh ngang, tính toán động tỷ lệ phần trăm số môn đã hoàn thành dựa trên cột mốc giới hạn \textbf{138 tín chỉ} tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên. Màn hình cũng tự động phân giải danh sách các thẻ gợi ý bước đi tiếp theo cá nhân hóa (\texttt{AiRecommendation}) gửi về từ tầng phối hợp AI Agent.
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
+	\caption{Giao diện quản lý Tiến trình tích lũy và Gợi ý học tập cá nhân hóa}
+	\label{fig:ui_mobile_home_progress}
+\end{figure}
 
 \begin{itemize}
-	\item \textbf{Trợ lý ảo AI thông minh và Quản lý lịch sử (AI Assistant):} Hệ thống tự động điều phối hiển thị màn hình Chatbot ngay khi người dùng khởi động ứng dụng. Chức năng hỗ trợ hai trạng thái truy cập:
-	\begin{itemize}
-		\item \textit{Chế độ Khách (Guest Mode):} Sinh viên chưa đăng nhập có thể trò chuyện nhanh với AI, hệ thống áp dụng cơ chế bảo mật đóng và không lưu lại lịch sử tương tác cục bộ.
-		\item \textit{Chế độ Thành viên (Authenticated Mode):} Kích hoạt sau khi đăng nhập thành công. Hệ thống tự động nhận diện thông tin sinh viên, quản lý lịch sử hội thoại chi tiết theo từng phiên (Chat Sessions) lưu trữ cục bộ qua \textit{SharedPreferences}. Giao diện tích hợp thanh trình đơn trượt bên trái (Drawer Sidebar) giúp sinh viên tạo mới hoặc chuyển đổi giữa các đoạn chat cũ một cách nhanh chóng. Module cũng áp dụng thuật toán tối ưu hóa prompt bằng cách truyền kèm lịch sử hội thoại liền kề để duy trì mạch ngữ cảnh liên tục.
-	\end{itemize}
-	
-	\item \textbf{Xác thực hệ thống và Ràng buộc bảo mật (Authentication):} Xử lý chu trình đăng nhập và đăng ký tài khoản sinh viên dựa trên mã thông báo bảo mật JWT Token, thiết lập bộ lọc tự động làm mới mã truy cập (\textit{Refresh Token}). Đồng thời, hiện thực hóa luồng Quên mật khẩu (\textit{Forgot Password}) và Đặt lại mật khẩu (\textit{Reset Password}) bằng mã Token xác thực gửi về Email, áp dụng kiểm tra ràng buộc mật khẩu nghiêm ngặt bằng biểu thức chính quy (Regex) bắt buộc độ dài tối thiểu 6 ký tự chứa cả chữ và số ngay tại tầng giao diện.
-	
-	\item \textbf{Tiến trình học tập và Hệ gợi ý (Academic Dashboard):} Màn hình Trang chủ hiển thị thanh tiến độ học tập hình trực quan (Progress Bar) tính toán động số tín chỉ tích lũy hiện hành dựa trên thang chuẩn tổng số 138 tín chỉ tốt nghiệp bắt buộc. Bên cạnh đó, ứng dụng đồng bộ hóa và hiển thị các thẻ gợi ý hành động hoặc khóa học tiếp theo do AI đề xuất riêng biệt theo từng hồ sơ học vụ sinh viên.
-	
-	\item \textbf{Diễn đàn cộng đồng đa tương tác (Community Forum):} Hỗ trợ sinh viên tìm kiếm bài viết nhanh theo từ khóa, lọc bài đăng theo cấu trúc phân loại danh mục (All Discussions, My Posts, Trending, Q\&A). Người dùng có thể soạn thảo và đăng tải bài viết mới có đính kèm hình ảnh thông qua phương thức gửi dữ liệu đa phần (\textit{MultipartRequest}). Tính năng hỗ trợ tương tác Thích (Like/Unlike) thời gian thực và hệ thống bình luận đa tầng lồng nhau (Nested Comments/Replies) có tích hợp cơ chế nhận diện tag tên tài khoản dạng \texttt{@username}.
-	
-	\item \textbf{Thông báo và Quản lý hồ sơ cá nhân (Notifications \& Profile):} Cập nhật tức thời các thông báo biến động của hệ thống, cho phép người dùng đánh dấu đã đọc hoặc xóa phần tử. Màn hình hồ sơ hiển thị đầy đủ thông tin cá nhân và thông tin học vụ quan trọng (Họ tên, Mã số sinh viên, Ngành học, Khóa học, Điểm GPA tổng kết), hỗ trợ cập nhật thông tin và thay đổi ảnh đại diện đồng bộ lên kho lưu trữ đám mây.
+	\item \textbf{Thành phần Thông báo động (Dynamic Notification Badge):} Ứng dụng kết nối lấy danh sách thông báo từ máy chủ, đếm số lượng các phần tử có trường trạng thái \texttt{isRead == false}. Số lượng thông báo chưa đọc này được hiển thị động thông qua widget \texttt{Stack} dưới dạng một hình tròn đỏ (Badge) nằm đè lên icon thông báo trên thanh \texttt{CustomAppBar}, hỗ trợ nút bấm gọi nhanh hàm \texttt{markAllNotificationsAsRead} bất đồng bộ để xóa toàn bộ badge thông báo.
+	\item \textbf{Thành phần Hồ sơ đa cấu trúc và đồng bộ dữ liệu đa phần (Multipart Profile):} Hiển thị toàn bộ thông tin cá nhân và kết quả điểm số GPA của sinh viên dưới dạng bố cục lưới các thuộc tính rõ ràng. Khi sinh viên kích hoạt chế độ chỉnh sửa (\texttt{\_isEditing = true}), ứng dụng hiển thị các ô nhập liệu chuyên biệt, tích hợp hộp thoại chọn ngày dạng lịch (\texttt{showDatePicker}) cho các trường dữ liệu thời gian. Sinh viên thay đổi ảnh đại diện thông qua gói thư viện \texttt{ImagePicker}, hệ thống tự động đóng gói tệp tin ảnh từ bộ nhớ máy thành luồng dữ liệu nhị phân đa phần (\texttt{MultipartFile}) và thực hiện lệnh \texttt{http.MultipartRequest} dạng \texttt{PUT} để truyền tải trực tiếp và cập nhật lên máy chủ lưu trữ.
 \end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
+	\caption{Giao diện Hồ sơ sinh viên và Quản lý thông tin học vụ cá nhân}
+	\label{fig:ui_mobile_profile_info}
+\end{figure}
 
 
 
