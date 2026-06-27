@@ -121,7 +121,7 @@
 	\label{fig:architecture_markitdown}
 \end{figure}
 
-\subsubsection{Chiến lược phân đoạn và chuẩn hóa văn bản}
+\subsection{Chiến lược phân đoạn và chuẩn hóa văn bản}
 
 \indent Quá trình xử lý khởi đầu bằng việc làm sạch dữ liệu đầu vào, loại bỏ các ký tự lỗi và đảm bảo văn bản tuân thủ chuẩn mã hóa quốc tế Unicode (UTF-8). Bước tiền xử lý này không chỉ chuẩn hóa định dạng mà còn loại bỏ các thẻ HTML dư thừa, khoảng trắng không cần thiết và các ký tự điều khiển có thể gây nhiễu cho mô hình ngôn ngữ ở các bước xử lý tiếp theo.
 
@@ -184,7 +184,7 @@
 
 \indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ.
 
-\subsubsection{Hệ thống thu thập tri thức từ trang web}
+\subsection{Hệ thống thu thập tri thức từ trang web}
 
 \begin{figure}[H]
 	\centering
@@ -662,21 +662,44 @@ Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hó
 \subsubsection{Thiết kế Cơ sở dữ liệu Đồ thị (Knowledge Graph)}
 Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học vụ phục vụ cho việc lưu trữ các thông tin phức tạp, liên kết qua mối quan hệ. Thay vì cấu trúc bảng (Table), dữ liệu được biểu diễn dưới dạng Thực thể (Nodes) và Mối quan hệ (Edges/Relationships).
 
+% ---------------------------------------------------------
+\subsubsection{Kiến trúc triển khai lưu trữ cho LightRAG}
 
+\indent Để vận hành hiệu quả các quy trình lập chỉ mục và truy xuất tri thức, hệ thống LightRAG được triển khai với kiến trúc lưu trữ hỗn hợp gồm bốn thành phần chuyên biệt, mỗi thành phần đảm nhận một vai trò riêng biệt trong toàn bộ luồng xử lý dữ liệu. Sơ đồ tổng quan kiến trúc lưu trữ và triển khai được thể hiện tại Hình~\ref{fig:storage_deployment}.
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/storage_deployment_overview_nobg.png}
+	\caption{Tổng quan kiến trúc lưu trữ và triển khai LightRAG}
+	\label{fig:storage_deployment}
+\end{figure}
 
+\indent Thành phần thứ nhất là \textbf{KV\_STORAGE}, được triển khai trên nền tảng Redis thông qua lớp trừu tượng RedisKVStorage. Thành phần này chịu trách nhiệm lưu trữ ba loại dữ liệu quan trọng: bộ nhớ đệm phản hồi từ mô hình ngôn ngữ lớn (LLM Response Cache) nhằm tránh gọi lại các truy vấn đã xử lý trước đó, các đoạn văn bản đã phân mảnh (Text Chunks) phục vụ cho việc đối chiếu ngữ cảnh, và thông tin siêu dữ liệu của tài liệu gốc (Document Information) bao gồm tên tài liệu, số trang và trạng thái xử lý. Việc sử dụng Redis cho tầng lưu trữ khóa giá trị mang lại tốc độ truy xuất cực nhanh nhờ cơ chế lưu trữ trực tiếp trong bộ nhớ chính (in-memory), phù hợp với yêu cầu phản hồi thời gian thực của hệ thống.
 
+\indent Thành phần thứ hai là \textbf{VECTOR\_STORAGE}, được triển khai trên Qdrant thông qua lớp QdrantVectorDBStorage. Qdrant là cơ sở dữ liệu vector chuyên dụng, chịu trách nhiệm lưu trữ và tìm kiếm tương đồng trên ba loại biểu diễn vector nhúng: vector nhúng của thực thể (Entities Vectors) biểu diễn ngữ nghĩa của các nút trong đồ thị tri thức, vector nhúng của quan hệ (Relation Vectors) biểu diễn ngữ nghĩa của các cạnh kết nối giữa các thực thể, và vector nhúng của đoạn văn bản (Chunks Vectors) biểu diễn nội dung ngữ nghĩa của các phân đoạn tài liệu gốc. Qdrant hỗ trợ tìm kiếm láng giềng gần nhất (Approximate Nearest Neighbor) với hiệu suất cao, cho phép hệ thống thực hiện truy xuất ngữ nghĩa mờ (fuzzy semantic search) một cách nhanh chóng ngay cả khi kho tri thức có quy mô lớn.
 
+\indent Thành phần thứ ba là \textbf{GRAPH\_STORAGE}, được triển khai trên Neo4j thông qua lớp Neo4JStorage. Neo4j là cơ sở dữ liệu đồ thị hàng đầu, lưu trữ toàn bộ cấu trúc quan hệ tường minh của đồ thị tri thức dưới dạng Entity Relation Graph. Mỗi nút trong Neo4j đại diện cho một thực thể (khái niệm, môn học, giảng viên, khoa), và mỗi cạnh biểu diễn mối quan hệ ngữ nghĩa giữa các thực thể đó. Neo4j cung cấp ngôn ngữ truy vấn Cypher cho phép thực hiện các phép duyệt đồ thị phức tạp, hỗ trợ trực tiếp cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG.
 
+\indent Thành phần thứ tư là \textbf{DOC\_STATUS\_STORAGE}, cũng được triển khai trên Redis thông qua lớp RedisDocStatusStorage. Thành phần này theo dõi trạng thái lập chỉ mục (Document Indexing Status) của từng tài liệu trong hệ thống, bao gồm các trạng thái như đang chờ xử lý, đang lập chỉ mục, hoàn tất hoặc lỗi. Việc tách biệt thành phần theo dõi trạng thái ra khỏi kho lưu trữ dữ liệu chính giúp hệ thống quản lý hiệu quả quy trình nạp dữ liệu gia tăng (incremental indexing), tránh xử lý trùng lặp các tài liệu đã được lập chỉ mục trước đó.
 
+\indent Bốn thành phần lưu trữ trên được liên kết thông qua hai luồng xử lý chính. \textbf{Luồng lập chỉ mục (Indexing Pipeline)} tiếp nhận tài liệu và nội dung từ người dùng, sau đó LightRAG Engine thực hiện phân mảnh văn bản, trích xuất thực thể và quan hệ, rồi phân phối dữ liệu đến từng thành phần tương ứng: các đoạn văn bản và thông tin tài liệu được ghi vào Redis (KV\_STORAGE), các vector nhúng được lập chỉ mục trong Qdrant (VECTOR\_STORAGE), đồ thị quan hệ thực thể được cập nhật trong Neo4j (GRAPH\_STORAGE), và trạng thái xử lý được ghi nhận vào Redis (DOC\_STATUS\_STORAGE). \textbf{Luồng truy xuất (Retrieval Pipeline)} hoạt động theo chiều ngược lại: khi nhận truy vấn từ người dùng, LightRAG Engine đồng thời truy vấn các thành phần lưu trữ để thu thập ngữ cảnh phù hợp, sau đó tổng hợp và chuyển tiếp đến mô hình ngôn ngữ lớn để sinh phản hồi cuối cùng.
 
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Các thành phần lưu trữ trong kiến trúc LightRAG}
+	\label{tab:storage_mapping}
+	\begin{tabular}{|p{3.5cm}|p{2.5cm}|p{4cm}|p{4.5cm}|}
+		\hline
+		\textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Lớp triển khai} & \textbf{Dữ liệu lưu trữ} \\ \hline
+		KV\_STORAGE & Redis & RedisKV \newline Storage & LLM Response Cache, Text Chunks, Document Information \\ \hline
+		VECTOR\_ \newline STORAGE & Qdrant & QdrantVectorDB \newline Storage & Entities Vectors, Relation Vectors, Chunks Vectors \\ \hline
+		GRAPH\_ \newline STORAGE & Neo4j & Neo4JStorage & Entity Relation Graph \\ \hline
+		DOC\_STATUS\_ \newline STORAGE & Redis & RedisDocStatus \newline Storage & Document Indexing Status \\ \hline
+	\end{tabular}
+\end{table}
 
-
-
-
-
-
-
+\indent Trong kiến trúc triển khai lưu trữ hỗn hợp này, Redis đảm bảo tốc độ truy xuất nhanh cho dữ liệu khóa giá trị và bộ nhớ đệm, Qdrant tối ưu hóa tìm kiếm tương đồng vector ở quy mô lớn, còn Neo4j cung cấp khả năng duyệt và truy vấn đồ thị phức tạp. Sự phối hợp giữa bốn thành phần tạo nên nền tảng vững chắc cho cả hai luồng lập chỉ mục và truy xuất của LightRAG, đảm bảo hiệu năng và tính mở rộng của toàn bộ hệ thống.
 
 \clearpage
 \subsection{Thiết kế giao diện}
