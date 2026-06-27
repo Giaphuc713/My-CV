@@ -213,8 +213,8 @@
 (\textit{entity resolution}) được tích hợp vào hai giai đoạn,
 hoạt động trước khi bất kỳ nút nào được ghi vào đồ thị. Module này
 được thiết kế theo kiến trúc hai giai đoạn xử lý nối tiếp:
-\textbf{Candidate Retrieval} (Truy hồi ứng viên) và \textbf{LLM
-Decision} (Phán quyết LLM).
+Candidate Retrieval (Truy hồi ứng viên) và LLM
+Decision(LLM đưa ra quyết định).
 
 Cách tiếp cận này được xây dựng trên nền tảng của hai công trình nghiên
 cứu trong lĩnh vực căn chỉnh thực thể (\textit{entity alignment}) giữa
@@ -230,7 +230,7 @@ các knowledge graph:
     \item \textbf{EasyEA}~\cite{easyea2024} chứng minh rằng mô hình
     ngôn ngữ lớn, khi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
     quyết định căn chỉnh thực thể chính xác theo phương thức
-    \textit{zero-shot} --- không cần dữ liệu huấn luyện nhãn, phù hợp
+    \textit{zero-shot} không cần dữ liệu huấn luyện nhãn, phù hợp
     với bối cảnh corpus tiếng Việt học thuật hiện tại.
 \end{itemize}
 
@@ -286,7 +286,7 @@ nhất đồ thị.
 
 %% STAGE 1 — Candidate Retrieval
 \node[stagebox, below=0.55cm of input] (s1) {%
-    \textbf{Giai đoạn 1 --- Candidate Retrieval}\\[6pt]
+    \textbf{Giai đoạn 1 : Candidate Retrieval}\\[6pt]
     Mỗi thực thể đầu vào được biểu diễn dưới dạng một vector embedding
     bằng cách kết hợp tên và mô tả ngữ nghĩa. Vector này được dùng
     để truy vấn vector store nhằm tìm tối đa $K$ thực thể đã tồn
@@ -307,11 +307,11 @@ nhất đồ thị.
 
 %% STAGE 2 — LLM Decision
 \node[stagebox, below=0.55cm of dec] (s2) {%
-    \textbf{Giai đoạn 2 --- LLM Decision}\\[6pt]
+    \textbf{Giai đoạn 2 : LLM Decision}\\[6pt]
     Mô hình ngôn ngữ lớn nhận đồng thời thông tin của thực thể
     mục tiêu và danh sách ứng viên. Dựa trên phân tích ngữ nghĩa
-    tổng hợp --- bao gồm so sánh tên gọi, mô tả, và các quy tắc
-    phân biệt tường minh --- LLM đưa ra phán quyết cuối cùng: hai
+    tổng hợp, bao gồm so sánh tên gọi, mô tả, và các quy tắc
+    phân biệt tường minh, LLM đưa ra phán quyết cuối cùng: hai
     thực thể có đồng nhất hay không, và nếu có, thực thể nào là
     dạng chuẩn (\textit{canonical form}).
 };
@@ -339,14 +339,12 @@ giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mớ
 \label{fig:entity-resolution-flow}
 \end{figure}
 
-\paragraph{Giai đoạn 1 --- Candidate Retrieval.}
-Mỗi thực thể cần phân giải được biểu diễn dưới dạng một vector embedding
-trong không gian ngữ nghĩa nhiều chiều, bằng cách kết hợp cả tên lẫn
+\paragraph{Giai đoạn 1 : Candidate Retrieval.}
+Mỗi thực thể cần phân giải được biểu diễn dưới dạng một vector embedding bằng cách kết hợp cả tên lẫn
 mô tả của thực thể đó thành một chuỗi đầu vào thống nhất. Cách biểu
 diễn này cho phép vector nắm bắt đồng thời hai chiều thông tin: chiều
 định danh (tên gọi) và chiều ngữ nghĩa (nội dung, thuộc tính). Sau đó,
-hệ thống thực hiện tìm kiếm láng giềng gần nhất (\textit{nearest
-neighbor search}) trong vector store để truy hồi tối đa $K$ thực thể đã
+hệ thống thực hiện tìm kiếm láng giềng gần nhất trong vector store để truy hồi tối đa $K$ thực thể đã
 tồn tại trong knowledge graph có vector gần nhất với thực thể đang xét.
 Ngưỡng tương đồng cosine $\tau$ đóng vai trò bộ lọc: chỉ những ứng
 viên có $\cos(\mathbf{v}_1, \mathbf{v}_2) \geq \tau$ mới được coi là
@@ -354,38 +352,31 @@ viên có $\cos(\mathbf{v}_1, \mathbf{v}_2) \geq \tau$ mới được coi là
 với giai đoạn truy hồi ứng viên trong kiến trúc HELEA~\cite{helea2024},
 đảm bảo không bỏ sót các cặp thực thể có ngữ nghĩa gần nhau.
 
-\paragraph{Giai đoạn 2 --- LLM Decision.}
+\paragraph{Giai đoạn 2 : LLM Decision.}
 Khi giai đoạn Candidate Retrieval xác định được ít nhất một ứng viên
 tiềm năng, mô hình ngôn ngữ lớn được kích hoạt để đưa ra phán quyết
 cuối cùng. Không giống với các phương pháp truyền thống chỉ dựa vào
 điểm số cosine similarity, LLM có khả năng suy luận ở mức ngữ nghĩa
-sâu hơn: nhận diện quan hệ viết tắt -- tên đầy đủ, tương đương dịch
-thuật đa ngôn ngữ, cũng như phân biệt các thực thể bề ngoài tương tự
+sâu hơn, cũng như phân biệt các thực thể bề ngoài tương tự
 nhưng thực chất khác biệt. Chẳng hạn, mô hình xác định
 \textit{``Nhập môn Lập trình''} và \textit{``Lập trình Hướng đối
-tượng''} là hai học phần \textbf{khác nhau} mặc dù đều thuộc nhóm
+tượng''} là hai học phần khác nhau mặc dù đều thuộc nhóm
 lập trình, trong khi \textit{``HCMUS''} và \textit{``Trường Đại học
-Khoa học Tự nhiên''} là \textbf{cùng} một tổ chức. Phương thức zero-shot này, được EasyEA~\cite{easyea2024} đề xuất
-và kiểm chứng, loại bỏ hoàn toàn nhu cầu về tập dữ liệu huấn luyện có
-nhãn --- điều đặc biệt phù hợp với corpus tiếng Việt trong lĩnh vực
-học thuật, nơi gần như không có sẵn dữ liệu căn chỉnh thực thể được
-gán nhãn thủ công.
-
+Khoa học Tự nhiên''} là cùng một tổ chức.
 % ------------------------------------------------------------------
 \subsubsection{Thiết kế quan hệ SAME\_AS: Liên kết thay vì xóa bỏ}
 \label{subsubsec:sameas-design}
 % ------------------------------------------------------------------
 
-Khi mô hình ngôn ngữ lớn xác nhận hai thực thể là đồng nhất, hệ thống
-đối mặt với một quyết định thiết kế then chốt: \textit{hợp nhất vật lý}
+Khi mô hình ngôn ngữ lớn xác nhận hai thực thể là đồng nhất, hệ thống có 2 lựa chọn: \textit{hợp nhất vật lý}
 hai nút thành một (xóa một nút, gộp toàn bộ dữ liệu vào nút còn lại),
 hay \textit{tạo quan hệ liên kết} giữa chúng và giữ nguyên cả hai? Đề
-tài lựa chọn giải pháp thứ hai thông qua quan hệ \textbf{SAME\_AS}.
+tài lựa chọn giải pháp thứ hai thông qua quan hệ SAME\_AS.
 
 Quyết định này không phải là sự thỏa hiệp mà xuất phát từ ba lý do cơ
 bản. \textit{Thứ nhất}, cả HELEA lẫn EasyEA đều tiếp cận entity
 alignment theo hướng tạo ra \textit{tập hợp cặp đồng nhất} giữa hai
-knowledge graph độc lập --- không ai trong số họ đề xuất xóa bỏ hoặc
+knowledge graph độc lập không ai trong số họ đề xuất xóa bỏ hoặc
 hợp nhất vật lý các nút. Quan hệ SAME\_AS là biểu diễn ngữ nghĩa
 chuẩn của kết quả alignment, tương đương với thuộc tính
 \textbf{owl:sameAs} trong các chuẩn ngữ nghĩa web (\textit{Semantic
