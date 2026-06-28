@@ -483,21 +483,98 @@
 
 \subsection{Luồng xử lý Prompt linh hoạt cho đa dạng nguồn dữ liệu}
 
-\indent Một thách thức lớn trong việc xây dựng đồ thị tri thức cho môi trường học thuật là sự khác biệt sâu sắc về cấu trúc và ngôn từ giữa các nguồn tài liệu. Đề cương chi tiết môn học thường mang tính quy phạm, ngắn gọn và sử dụng dày đặc các mã ký hiệu viết tắt như G1, G2 (mục tiêu môn học), CLO (chuẩn đầu ra), hay các thuật ngữ quản lý đào tạo như tích lũy, tiền quyết. Trong khi đó, dữ liệu từ hệ thống website của khoa lại mang tính chất thông tin đại chúng, chứa nhiều tin tức, sự kiện và mô tả tổng quát. Để giải quyết vấn đề này, hệ thống đã triển khai luồng xử lý lời nhắc linh hoạt (Dynamic Prompt Flow) với cơ chế tự động điều phối dựa trên miền tri thức.
+\indent Một thách thức lớn trong việc xây dựng đồ thị tri thức cho môi trường học thuật là sự khác biệt sâu sắc về cấu trúc và ngôn từ giữa các nguồn tài liệu. Đề cương chi tiết môn học thường mang tính quy phạm, ngắn gọn và sử dụng dày đặc các mã ký hiệu viết tắt như G1, G2 (mục tiêu môn học), CLO (chuẩn đầu ra), hay các thuật ngữ quản lý đào tạo như tích lũy, tiên quyết. Trong khi đó, dữ liệu từ hệ thống website của khoa lại mang tính chất thông tin đại chúng, chứa nhiều tin tức, sự kiện và mô tả tổng quát. Một lời nhắc trích xuất tổng quát duy nhất khó có thể bao quát tốt cả hai dạng tài liệu này: lời nhắc tối ưu cho đề cương sẽ bỏ sót ngữ cảnh tin tức, còn lời nhắc tối ưu cho website lại không nhận diện được các mã ký hiệu chuyên ngành. Để giải quyết vấn đề này, hệ thống triển khai mô-đun luồng xử lý lời nhắc linh hoạt (Dynamic Prompt Flow) đặt tại \texttt{lightrag/prompt\_flow}, với cơ chế tự động điều phối lời nhắc theo miền tri thức (domain) của từng phân đoạn.
 
-\indent Quy trình bắt đầu bằng bước phân loại tài liệu ngay tại tầng trích xuất. Hệ thống thực hiện quét sơ bộ các dấu hiệu định dạng để xác định tài liệu thuộc nhóm "Chương trình đào tạo" hay "Thông tin Website". Sau khi nhận diện, bộ điều phối lời nhắc (Prompt Dispatcher) sẽ kích hoạt các bản mẫu (templates) chuyên biệt. Đối với nhóm đề cương, lời nhắc tập trung vào việc giải mã các mã ký hiệu: hệ thống hướng dẫn mô hình ngôn ngữ lớn thiết lập các mối liên kết ngữ nghĩa giữa mã hiệu (G1) và nội dung thực tế mà nó đại diện, đồng thời trích xuất các thực thể đặc thù như LEARNING OUTCOME hay ASSESSMENT METHOD. Đối với nhóm website, lời nhắc lại ưu tiên việc trích xuất các thực thể về sự kiện, mốc thời gian và các thực thể vai trò người (giảng viên, cán bộ).
+\indent Về mặt thiết kế, mô-đun áp dụng đồng thời ba mẫu thiết kế phần mềm: \textit{Registry}, \textit{Strategy} và \textit{Protocol}. Mỗi miền tri thức được hiện thực thành một mô-đun chiến lược (strategy) tuân thủ giao diện \texttt{EntityExtractionModule}, bắt buộc cung cấp đúng bốn hằng số lời nhắc: lời nhắc hệ thống (\texttt{ENTITY\_EXTRACTION\_SYSTEM\_PROMPT}), tập ví dụ mẫu (\texttt{ENTITY\_EXTRACTION\_EXAMPLES}), lời nhắc người dùng (\texttt{ENTITY\_EXTRACTION\_USER\_PROMPT}) và lời nhắc thu nhặt bổ sung (\texttt{ENTITY\_CONTINUE\_EXTRACTION\_USER\_PROMPT}). Bộ điều phối (\texttt{PromptDispatcher}) duy trì một sổ đăng ký (Registry) ánh xạ tên miền sang mô-đun tương ứng; khi gặp một nhãn miền chưa được đăng ký, hệ thống tự động lùi về miền mặc định \texttt{curriculum}. Thiết kế này cho phép bổ sung một miền tri thức mới mà không phải sửa đổi mã nguồn của tầng trích xuất, đảm bảo khả năng mở rộng.
 
-\indent Chiến lược xử lý viết tắt được tích hợp trực tiếp vào trong nội dung lời nhắc thông qua kỹ thuật Few-shot Learning. Hệ thống cung cấp các ví dụ mẫu về cách chuyển đổi từ các từ viết tắt phổ biến của khoa (như FIT, HCMUS, ĐHQG) sang thực thể đầy đủ, đồng thời ép mô hình phải duy trì tính nhất quán về định danh (Entity Canonicalization) ngay từ bước sơ khởi. Việc này giúp giảm thiểu đáng kể số lượng thực thể phân mảnh trong đồ thị và đảm bảo rằng các nút trích xuất từ các nguồn khác nhau nhưng cùng chỉ về một đối tượng sẽ dễ dàng được hợp nhất ở các bước sau. Cơ chế này đóng vai trò nền tảng để biến những dữ liệu thô, rời rạc thành một mạng lưới tri thức có tính liên kết chặt chẽ và chiều sâu ngữ nghĩa.
+\indent Hệ thống hiện hỗ trợ bốn miền tri thức đặc thù cho dữ liệu đào tạo bậc đại học. Miền \texttt{curriculum} dành cho chương trình đào tạo, tập trung vào ngành, khoa, khối kiến thức, môn học, mục tiêu chương trình (PO), chuẩn đầu ra (ELO), số tín chỉ và điều kiện tiên quyết. Miền \texttt{course} dành cho đề cương chi tiết học phần, ưu tiên các chuẩn đầu ra môn học (CLO), nội dung chương, hình thức kiểm tra và tài liệu tham khảo. Miền \texttt{teacher} dành cho danh sách nhân sự giảng dạy, phân biệt giảng viên cơ hữu, thỉnh giảng và cán bộ hỗ trợ cùng học hàm, học vị. Cuối cùng, miền \texttt{resolution} dành cho các văn bản pháp lý, hành chính thuần túy như nghị quyết hội đồng trường hay quy chế tổ chức.
+
+\indent Việc xác định miền của một phân đoạn được thực hiện theo cơ chế hai tầng nhằm cân bằng giữa độ chính xác và khả năng chịu lỗi. Tầng thứ nhất sử dụng một mô hình ngôn ngữ lớn đóng vai trò bộ phân loại nhẹ (lightweight classifier): hệ thống chỉ gửi khoảng 1500 ký tự đầu của phân đoạn kèm theo một lời nhắc phân loại ngắn gọn, yêu cầu mô hình trả về đúng một nhãn miền. Do các văn bản giáo dục Việt Nam thường mở đầu bằng phần thủ tục hành chính (``QUYẾT ĐỊNH V/v Ban hành...'', ``Căn cứ...''), lời nhắc phân loại được bổ sung một quy tắc phủ quyết (critical override): nếu phần mở đầu hành chính này thực chất nhằm ban hành chương trình đào tạo hoặc đề cương môn học, văn bản phải được phân vào \texttt{curriculum} hoặc \texttt{course} thay vì bị nhầm thành \texttt{resolution}. Tầng thứ hai là một bộ phân loại dựa trên biểu thức chính quy và tính điểm theo từ khóa đặc trưng (\texttt{classify\_heuristic}), đóng vai trò phương án dự phòng khi mô hình ngôn ngữ không khả dụng hoặc trả về kết quả không hợp lệ.
+
+\indent Sau khi xác định được miền, bộ điều phối nạp các kiểu thực thể và kiểu quan hệ đặc thù từ lớp bản thể học (ontology) của miền đó vào các vị trí giữ chỗ \texttt{\{entity\_types\}} và \texttt{\{relation\_types\}} trong lời nhắc. Ví dụ, miền \texttt{curriculum} định nghĩa các kiểu thực thể như \texttt{Major}, \texttt{KnowledgeBlock}, \texttt{Course}, \texttt{LearningOutcome} (ELO), \texttt{ProgramObjective} (PO) cùng các kiểu quan hệ như \texttt{PREREQUISITE\_OF} (học trước), \texttt{CONTAINS} (khối kiến thức chứa môn học) hay \texttt{MAPS\_TO} (ELO liên kết với PO); khi miền không khai báo bản thể học, hệ thống dùng quan hệ tổng quát \texttt{RELATES\_TO} làm mặc định. Việc áp đặt sẵn bộ kiểu chuyên biệt giúp định hướng mô hình ngôn ngữ tập trung vào tri thức có giá trị nhất của miền và duy trì tính nhất quán về định danh (Entity Canonicalization) ngay từ bước sơ khởi, từ đó giảm thiểu số lượng thực thể phân mảnh và tạo điều kiện cho việc hợp nhất các nút đồng nghĩa ở các bước sau. Cần lưu ý rằng ở giai đoạn hiện tại, việc đối chiếu kết quả trích xuất với bản thể học chỉ dừng ở mức ghi cảnh báo (warn-only), còn cơ chế loại bỏ tự động dữ liệu vi phạm được để ngỏ như một điểm mở rộng trong tương lai.
+
+\indent Để kiểm soát chi phí token, mô-đun không chèn toàn bộ tập ví dụ mẫu vào mỗi lần gọi mà áp dụng cơ chế chọn ví dụ động (dynamic few-shot selection). Một bộ chỉ mục TF-IDF kết hợp độ tương đồng cosin được xây dựng thuần Python (không phụ thuộc thư viện ngoài) để xếp hạng các ví dụ theo mức độ liên quan với nội dung phân đoạn hiện tại, sau đó chỉ giữ lại hai ví dụ (top-k = 2) phù hợp nhất. Cách làm này giảm đáng kể lượng token tiêu thụ so với việc nhúng toàn bộ ví dụ, đồng thời vẫn bảo toàn chất lượng trích xuất nhờ luôn cung cấp đúng ngữ cảnh mẫu sát với phân đoạn. Trong trường hợp việc xếp hạng gặp lỗi, hệ thống tự động lùi về phương án trả về các ví dụ đầu danh sách, bảo đảm quy trình không bị gián đoạn. Hình~\ref{fig:flow_prompt_dispatch} mô tả tổng quan luồng điều phối lời nhắc từ phân đoạn đầu vào đến bộ lời nhắc trích xuất hoàn chỉnh.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=1.3cm, auto, scale=0.82, transform shape]
+		% Nodes
+		\node (in) [startstop, text width=5cm] {Đoạn đầu phân đoạn \\ \footnotesize($\le$ 1500 ký tự)};
+		\node (dec) [decision, below=1.1cm of in, text width=2.8cm] {LLM khả dụng?};
+		\node (llm) [process, below left=1.1cm and 0.3cm of dec, text width=3.6cm] {Phân loại bằng LLM \\ \footnotesize(quy tắc phủ quyết)};
+		\node (heur) [process, below right=1.1cm and 0.3cm of dec, text width=3.6cm] {Heuristic regex \\ \footnotesize(\texttt{classify\_heuristic})};
+		\node (label) [process, below=3.4cm of dec, text width=5cm] {Nhãn miền \\ \footnotesize(curriculum / course / teacher / resolution)};
+		\node (resolve) [process, below=1cm of label, text width=6cm] {Tra Registry $\rightarrow$ Module miền \\ \footnotesize(mặc định: curriculum)};
+
+		\node (build) [groupbox, below=1.2cm of resolve, minimum width=9.5cm, minimum height=2.6cm] (bbox) {};
+		\node [above right=1mm of bbox.north west, anchor=south west, font=\small\bfseries] {Dựng lời nhắc trích xuất};
+		\node (onto) [smallbox, text width=4cm] at ($(bbox.center)+(-2.4cm,0)$) {Chèn \texttt{entity\_types} / \texttt{relation\_types} từ Ontology};
+		\node (fewshot) [smallbox, text width=4cm] at ($(bbox.center)+(2.4cm,0)$) {Chọn top-k=2 ví dụ \\ \footnotesize(TF-IDF + cosin)};
+
+		\node (out) [startstop, below=1.2cm of bbox, text width=6cm] {Bộ lời nhắc (system + user + continue)};
+
+		% Arrows
+		\draw [arrow] (in) -- (dec);
+		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Có} (llm);
+		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Không} (heur);
+		\draw [arrow] (llm) |- (label);
+		\draw [arrow] (heur) |- (label);
+		\draw [arrow] (label) -- (resolve);
+		\draw [arrow] (resolve) -- (bbox);
+		\draw [arrow] (bbox) -- (out);
+	\end{tikzpicture}
+	\caption{Luồng điều phối lời nhắc linh hoạt theo miền tri thức (Dynamic Prompt Flow)}
+	\label{fig:flow_prompt_dispatch}
+\end{figure}
 
 \subsection{Kiểm chứng tri thức bằng chuẩn SHACL và cơ chế Staging}
 
-\indent Để đảm bảo tính toàn vẹn và chất lượng của dữ liệu tri thức trước khi đưa vào đồ thị chính thức, hệ thống tích hợp chuẩn SHACL (Shapes Constraint Language) \cite{shacl_w3c}. SHACL cung cấp một ngôn ngữ mạnh mẽ để mô tả các ràng buộc về cấu trúc và ngữ nghĩa của dữ liệu đồ thị, giúp tự động hóa quy trình kiểm tra các lỗi phổ biến trong quá trình trích xuất bằng mô hình ngôn ngữ lớn \cite{shacl_wikidata}.
+\indent Để đảm bảo tính toàn vẹn và chất lượng của dữ liệu tri thức trước khi đưa vào đồ thị chính thức, hệ thống tích hợp một bộ kiểm chứng lấy cảm hứng từ chuẩn SHACL (Shapes Constraint Language) \cite{shacl_w3c}. SHACL cung cấp một ngôn ngữ để mô tả các ràng buộc về cấu trúc và ngữ nghĩa của dữ liệu đồ thị, cho phép tự động hóa việc phát hiện các lỗi phổ biến trong kết quả trích xuất bằng mô hình ngôn ngữ lớn \cite{shacl_wikidata}. Toàn bộ logic kiểm chứng được hiện thực trong mô-đun \texttt{lightrag/shacl}, tổ chức thành một quy trình ba lớp bảo vệ (3-Guard) thực thi tuần tự trên kết quả trích xuất của từng phân đoạn.
 
-\indent Cơ chế kiểm chứng được tổ chức theo quy trình 3 lớp bảo vệ (3-Guard). Lớp thứ nhất thực hiện kiểm tra trùng lặp để tránh việc nạp lại các đoạn văn bản đã tồn tại trong hệ thống. Lớp thứ hai là trọng tâm của việc kiểm chứng SHACL, sử dụng các định nghĩa hình dạng (Shapes) để kiểm tra tính hợp lệ của từng thực thể và quan hệ. Các quy tắc bao gồm kiểm tra sự tồn tại của tên và kiểu thực thể, độ dài tối thiểu của mô tả, dải giá trị của trọng số và đặc biệt là kiểm tra các thực thể bị cô lập (không có quan hệ kết nối). Hệ thống phân loại mức độ vi phạm thành các cấp độ như lỗi (error), cảnh báo (warning) hoặc thông tin (info) để đưa ra các đề xuất xử lý phù hợp.
+\indent \textbf{Lớp bảo vệ thứ nhất (Guard 1) -- Khử trùng lặp.} Hệ thống đối chiếu mã định danh phân đoạn (\texttt{chunk\_id}) với kho lưu trữ hiện có. Nếu phân đoạn đã tồn tại, hệ thống chuyển sang trạng thái nạp lại (\texttt{RE\_INGEST}) và điều chỉnh cách tính bậc kết nối của thực thể để tránh cộng dồn trùng lặp; ngược lại, phân đoạn mới được cho phép tiếp tục (\texttt{PROCEED}). Lớp này ngăn việc xử lý lại dữ liệu dư thừa và bảo vệ tính toàn vẹn của đồ thị.
 
-\indent Kết quả kiểm chứng SHACL trực tiếp điều hướng dữ liệu vào vùng đệm Staging. Thay vì trực tiếp hợp nhất các thực thể và quan hệ vừa trích xuất, hệ thống lưu trữ chúng vào một cơ sở dữ liệu tạm thời kèm theo nhật ký kiểm chứng. Lớp bảo vệ thứ ba thực hiện tổng hợp báo cáo và xác định trạng thái sẵn sàng của dữ liệu. Các dữ liệu vượt qua tất cả các bài kiểm tra nghiêm ngặt sẽ được đề xuất trạng thái phê duyệt (Approved), trong khi các dữ liệu có vi phạm mức cảnh báo như thực thể cô lập sẽ được đưa vào danh sách cần xem xét (Pending Review). Các trường hợp vi phạm nghiêm trọng về cấu trúc sẽ bị đề xuất từ chối (Rejected).
+\indent \textbf{Lớp bảo vệ thứ hai (Guard 2) -- Kiểm tra cấu trúc và đối chiếu bằng chứng.} Đây là trọng tâm của quy trình. Mỗi thực thể và quan hệ được kiểm tra qua một tập các định nghĩa hình dạng (Shapes). Đối với thực thể, các quy tắc bao gồm: bắt buộc có tên hợp lệ (\texttt{missing\_name}, mức lỗi), bắt buộc có kiểu xác định khác ``UNKNOWN'' (\texttt{missing\_type}, mức lỗi), bắt buộc có siêu dữ liệu nguồn gốc \texttt{source\_id} (\texttt{no\_provenance}, mức lỗi), và cảnh báo thực thể bị cô lập khi số kết nối nhỏ hơn ngưỡng tối thiểu (\texttt{isolated\_entity}). Đáng chú ý, số kết nối của một thực thể được tính bằng cách kết hợp bậc cục bộ (trong phạm vi phân đoạn) với bậc toàn cục truy vấn đồng thời từ cơ sở dữ liệu đồ thị Neo4j, nhằm tránh báo cô lập sai đối với những thực thể đã có liên kết ở các phân đoạn trước. Đối với quan hệ, hệ thống kiểm tra sự tồn tại của thực thể nguồn và đích, phát hiện quan hệ tự trỏ (\texttt{self\_loop}), độ dài tối thiểu của mô tả (mặc định 15 ký tự) và dải giá trị hợp lệ của trọng số trong khoảng $[0, 1]$. Ngoài ra, một bộ chặn ngôn ngữ (language guard) sẽ từ chối mọi giá trị chứa ký tự nằm ngoài bảng chữ Latinh và tiếng Việt (\texttt{contains\_foreign\_script}), loại bỏ các trường hợp mô hình ngôn ngữ vô tình sinh ra ký tự ngoại lai. Mỗi vi phạm được gán một trong ba mức nghiêm trọng: lỗi (error), cảnh báo (warning) hoặc thông tin (info).
 
-\indent Sự kết hợp giữa SHACL và cơ chế Staging tạo ra một quy trình kiểm soát chất lượng dữ liệu chặt chẽ. Nó không chỉ giúp tự động hóa việc phát hiện sai sót của mô hình ngôn ngữ mà còn cung cấp giao diện để người quản trị có thể can thiệp, chỉnh sửa và phê duyệt dữ liệu một cách minh bạch. Điều này đảm bảo rằng đồ thị tri thức cuối cùng luôn duy trì được tính nhất quán, đầy đủ và đáng tin cậy cao.
+\indent Điểm khác biệt cốt lõi của bộ kiểm chứng là cơ chế đối chiếu bằng chứng văn bản một cách xác định (deterministic text-grounding). Thay vì hỏi mô hình ngôn ngữ ``thực thể này có trong văn bản không?'' rồi tin vào câu trả lời, hệ thống tự tính toán bằng chứng: trước tiên tìm khớp chính xác chuỗi con (điểm số 1.0), nếu không có thì dùng so khớp mờ (fuzzy matching qua \texttt{rapidfuzz} hoặc \texttt{difflib}) với ngưỡng chấp nhận 0.9. Kết quả trả về không phải một ý kiến mà là chính đoạn văn bản khớp được kèm theo vị trí ký tự trong phân đoạn -- đóng vai trò bằng chứng có thể kiểm tra lại. Đối với quan hệ, hệ thống yêu cầu cả hai đầu mút đều có bằng chứng và đồng xuất hiện trong cùng một cửa sổ 200 ký tự, qua đó củng cố độ tin cậy rằng quan hệ là có thật chứ không phải hai lần nhắc rời rạc.
+
+\indent Quyết định cuối cùng cho mỗi thực thể và quan hệ được tổng hợp tại một tầng quyết định thuần túy theo nguyên tắc phân cấp niềm tin: các kiểm tra xác định (cấu trúc và bằng chứng văn bản) giữ quyền quyết định, còn mô hình ngôn ngữ phản biện (critic LLM) chỉ được phép nâng mức xem xét chứ không được tự ý chấp nhận. Cụ thể, nếu vi phạm cấu trúc ở mức lỗi thì dữ liệu bị đề xuất từ chối (\texttt{REJECTED}); nếu hợp lệ về cấu trúc và có bằng chứng văn bản thì được phê duyệt (\texttt{APPROVED}); nếu hợp lệ về cấu trúc nhưng thiếu bằng chứng xác định, dữ liệu chỉ được đưa vào danh sách chờ xem xét (\texttt{PENDING\_REVIEW}) khi độ tin cậy của mô hình phản biện đạt ngưỡng 0.8, ngược lại vẫn bị từ chối. Các thực thể bị cô lập hoặc quan hệ tự trỏ cũng được tự động chuyển sang trạng thái chờ xem xét.
+
+\indent Kết quả kiểm chứng trực tiếp điều hướng dữ liệu vào vùng đệm Staging thay vì hợp nhất ngay vào đồ thị chính thức. Mỗi mục dữ liệu được lưu kèm danh sách vi phạm (\texttt{shacl\_violations}), cờ hợp lệ (\texttt{shacl\_pass}), trạng thái đề xuất (\texttt{status\_suggestion}) và bằng chứng đối chiếu (\texttt{grounding}). \textbf{Lớp bảo vệ thứ ba (Guard 3)} tổng hợp báo cáo trên toàn bộ phân đoạn và chỉ đánh dấu sẵn sàng nạp vào đồ thị (\texttt{guard3\_staging\_ready}) khi không còn bất kỳ mục nào bị từ chối. Hình~\ref{fig:flow_shacl_3guard} minh họa toàn bộ quy trình ba lớp bảo vệ. Sự kết hợp giữa kiểm chứng theo Shapes, đối chiếu bằng chứng xác định và cơ chế Staging tạo nên một quy trình kiểm soát chất lượng chặt chẽ, vừa tự động phát hiện sai sót của mô hình ngôn ngữ, vừa cung cấp nhật ký minh bạch để người quản trị can thiệp, chỉnh sửa và phê duyệt, qua đó bảo đảm đồ thị tri thức cuối cùng luôn nhất quán và đáng tin cậy.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.8, transform shape]
+		% Nodes
+		\node (in) [startstop, text width=5.5cm] {Thực thể \& Quan hệ trích xuất \\ \footnotesize(theo từng phân đoạn)};
+		\node (g1) [decision, below=1cm of in, text width=3cm] {Guard 1: \texttt{chunk\_id} đã tồn tại?};
+
+		\node (g2box) [groupbox, below=1.6cm of g1, minimum width=11cm, minimum height=2.6cm] (g2) {};
+		\node [above right=1mm of g2.north west, anchor=south west, font=\small\bfseries] {Guard 2: Kiểm tra cấu trúc + Đối chiếu bằng chứng};
+		\node (shapes) [smallbox, text width=4.6cm] at ($(g2.center)+(-2.7cm,0)$) {SHACL Shapes \\ \footnotesize(name, type, isolated, provenance, weight, foreign-script)};
+		\node (ground) [smallbox, text width=4.6cm] at ($(g2.center)+(2.7cm,0)$) {Grounding xác định \\ \footnotesize(exact + fuzzy $\ge$ 0.9, span bằng chứng)};
+
+		\node (dec) [decision, below=1.5cm of g2, text width=3.2cm] {\texttt{shacl\_pass} \& grounded?};
+
+		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=green!8] {APPROVED};
+		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=yellow!12] {PENDING\_REVIEW};
+		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=red!8] {REJECTED};
+
+		\node (staging) [process, below=1.3cm of pending, text width=5.5cm] {Vùng Staging + Nhật ký kiểm chứng \\ \footnotesize(Guard 3: staging\_ready)};
+
+		% Arrows
+		\draw [arrow] (in) -- (g1);
+		\draw [arrow] (g1) -- node[anchor=west, font=\footnotesize] {PROCEED / RE\_INGEST} (g2);
+		\draw [arrow] (g2) -- (dec);
+		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Đủ bằng chứng} (approved);
+		\draw [arrow] (dec) -- node[anchor=west, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending);
+		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Lỗi cấu trúc} (rejected);
+		\draw [arrow] (approved) |- (staging);
+		\draw [arrow] (pending) -- (staging);
+		\draw [arrow] (rejected) |- (staging);
+	\end{tikzpicture}
+	\caption{Quy trình kiểm chứng tri thức ba lớp bảo vệ (3-Guard) dựa trên SHACL và đối chiếu bằng chứng}
+	\label{fig:flow_shacl_3guard}
+\end{figure}
 
 \subsection{Hợp nhất đồ thị và chuẩn hóa kho tri thức}
 
@@ -627,64 +704,66 @@
 \indent Chế độ truy vấn hỗn hợp (Mix Query): Đây là sự kết hợp giữa tìm kiếm cục bộ và toàn cục. Chế độ Mix đồng thời truy xuất các chi tiết cụ thể từ đồ thị lân cận và các tóm tắt tri thức vĩ mô từ cấp độ toàn cục. Quy trình xử lý này đảm bảo câu trả lời vừa có độ chính xác của dữ liệu chi tiết, vừa có chiều sâu của lập luận hệ thống, đáp ứng tốt nhất cho các nhiệm vụ phân tích tri thức đa tầng.
 
 \section{Mô hình hóa trạng thái hệ thống (Agent State)}
-Hệ thống được thiết kế dưới dạng một đồ thị trạng thái, trong đó mỗi nút đại diện cho một tác vụ tính toán và các cạnh đại diện cho luồng điều khiển. Trạng thái của hệ thống được định nghĩa bởi tập hợp $S = \{Q, U, H, A, M, D, R_{data}, R_{draft}, E, F\}$. Trong đó, $Q$ (Query) là câu hỏi đầu vào của người dùng, $U$ (User ID) là mã định danh người dùng để cá nhân hóa dữ liệu, và $H$ (Chat History) là lịch sử hội thoại ngắn hạn đã được tóm tắt. Các thành phần khác bao gồm $A$ (Analysis) là kết quả phân tích ý định, $M$ (Long-term Memory) là hồ sơ người dùng dài hạn, và $D$ (Decision) là quyết định điều phối. Cuối cùng, $R_{data}$ (Retrieved Data) là dữ liệu tri thức thu được, $R_{draft}$ (Draft Response) là bản thảo câu trả lời, $E$ (Evaluation) là kết quả đánh giá chất lượng và $F$ (Final Response) là câu trả lời cuối cùng trả về cho người dùng.
+Phân hệ trợ lý ảo được xây dựng trên nền tảng LangGraph và thiết kế dưới dạng một đồ thị trạng thái có hướng (state graph), trong đó mỗi nút đại diện cho một tác vụ tính toán và các cạnh đại diện cho luồng điều khiển. Trạng thái dùng chung của hệ thống được mô hình hóa bằng kiểu \texttt{AgentState} và có thể biểu diễn bởi tập hợp $S = \{Q, U, H, A, D, K, M, G, F\}$. Trong đó, $Q$ (Query) là câu hỏi đầu vào, $U$ (User ID) là mã định danh người dùng phục vụ cá nhân hóa, và $H$ (Chat History) là lịch sử hội thoại ngắn hạn đã được tóm tắt. Thành phần $A$ (Analysis) lưu kết quả phân tích ý định, $D$ (Decision) là quyết định điều phối với ba giá trị \texttt{direct\_answer}, \texttt{retrieve} hoặc \texttt{reject}, còn $K$ (Keywords) là tập từ khóa truy xuất được tách thành hai mức cao và thấp. Cuối cùng, $M$ (Long-term Memory) là hồ sơ người dùng dài hạn, $G$ (Generation Request) là gói ngữ cảnh đầy đủ để sinh câu trả lời, và $F$ (Final Response) là câu trả lời cuối cùng trả về cho người dùng. So với các kiến trúc có vòng lặp tự đánh giá, hệ thống đề xuất chủ trương giữ luồng điều phối tuyến tính và tất định để tối ưu độ trễ phản hồi, dồn chất lượng vào khâu phân tích đầu vào và truy xuất tri thức thay vì hậu kiểm nhiều vòng.
 
 \subsection{Kiến trúc các tác vụ (Agents)}
 
-Hệ thống bao gồm 6 thực thể Agent chuyên biệt. Đầu tiên, Analyze Agent sử dụng mô hình ngôn ngữ lớn để phân loại câu hỏi và xác định từ khóa, bản chất học thuật cùng ý định của người dùng. Tiếp theo, Long-term Memory Agent thực hiện quản lý hồ sơ người dùng bền vững trên MongoDB bằng cách trích xuất các sự kiện và chuyên ngành để cập nhật vào hồ sơ tóm tắt. Orchestration Agent đóng vai trò trung tâm điều khiển, sử dụng cơ chế phản hồi hai bước để quyết định chế độ truy xuất hoặc trả lời trực tiếp. Generator Agent chịu trách nhiệm tổng hợp thông tin từ dữ liệu truy xuất và ngữ cảnh lịch sử để tạo câu trả lời theo cấu trúc Markdown. Cuối cùng, Evaluator Agent kiểm soát chất lượng bằng cách đánh giá bản thảo dựa trên tính xác thực, sự đầy đủ và sự liên quan, từ đó kích hoạt vòng lặp tái truy xuất nếu cần thiết.
+Hệ thống bao gồm năm thành phần xử lý chuyên biệt, được hiện thực dưới dạng các hàm trạng thái (stateless functions) và phối hợp theo một đồ thị có hướng do LangGraph điều phối, thay vì các tác nhân tự hành lập kế hoạch nhiều lượt.
+
+Thứ nhất, \textbf{Analyze Agent} (\texttt{analyze\_agent}) là thành phần trung tâm của khâu định tuyến. Bằng một lần gọi mô hình ngôn ngữ lớn với định dạng đầu ra JSON, agent này phân loại ý định người dùng, đưa ra quyết định điều phối (\texttt{direct\_answer}, \texttt{retrieve} hoặc \texttt{reject}), chọn chế độ truy vấn LightRAG, viết lại câu hỏi thành dạng độc lập (standalone query), và trích xuất hai tập từ khóa: từ khóa mức thấp (cụ thể, như mã môn học, tên giảng viên) và mức cao (khái quát, như chính sách, so sánh). Agent cũng đảm nhiệm vai trò kiểm duyệt: khi phát hiện nội dung không phù hợp, quyết định bị ép sang \texttt{reject}.
+
+Thứ hai, \textbf{Generator Agent} (\texttt{generator}) chịu trách nhiệm dựng ngữ cảnh sinh chứ không trực tiếp gọi mô hình. Với nhánh truy xuất, persona của trợ lý được đặt vào trường \texttt{user\_prompt} để LightRAG vẫn giữ được khuôn mẫu nội bộ và chèn ngữ cảnh tri thức \texttt{context\_data}; với nhánh trả lời trực tiếp, agent dựng một \texttt{system\_prompt} đầy đủ; còn với nhánh từ chối, agent trả về một thông điệp từ chối lịch sự đã soạn sẵn.
+
+Thứ ba, \textbf{Summarizer Agent} (\texttt{summarizer}) nén lịch sử hội thoại khi vượt quá bốn lượt thành một đến hai câu súc tích, nhằm giảm số token mà Analyze Agent phải xử lý và duy trì ngữ cảnh cốt lõi qua các phiên dài.
+
+Thứ tư, \textbf{Long-term Memory Agent} (\texttt{longterm}) quản lý hồ sơ người dùng bền vững trên MongoDB. Thay vì tóm tắt lại toàn bộ hồ sơ, agent chỉ trích xuất các sự kiện ổn định (chuyên ngành, sở thích trả lời, định hướng học tập dài hạn) dưới dạng JSON rồi hợp nhất chúng vào hồ sơ hiện có bằng mã Python có khử trùng lặp, tránh hiện tượng trôi dạt nội dung tóm tắt.
+
+Cuối cùng, \textbf{LLM Factory} (\texttt{llm}) là lớp trừu tượng hóa nhà cung cấp mô hình, cho phép chuyển đổi linh hoạt giữa OpenAI và Ollama (mô hình cục bộ) qua biến môi trường và tự chuẩn hóa các tham số khác biệt giữa hai nền tảng.
 
 \subsection{Quy trình điều phối và Luồng dữ liệu}
 
-Quy trình thực thi của hệ thống được mô tả qua các bước logic sau:
+Đồ thị điều phối được biên dịch cùng một bộ lưu điểm kiểm tra (checkpointer) trên MongoDB và gồm bốn nút thực thi tuần tự: \texttt{analyzer} $\rightarrow$ \texttt{prepare\_context} $\rightarrow$ \texttt{generate} $\rightarrow$ (có điều kiện) \texttt{update\_long\_term} $\rightarrow$ \texttt{END}. Quy trình thực thi được mô tả qua các bước logic sau:
 
-\textbf{Bước 1: Phân tích và Tải ngữ cảnh.}
-Khi nhận câu hỏi $Q$, hệ thống đồng thời thực hiện \textit{Analyze Agent} để hiểu ý định và truy vấn MongoDB để lấy bộ nhớ dài hạn $M$.
+\textbf{Bước 1: Phân tích và Định tuyến.}
+Khi nhận câu hỏi $Q$, nút \texttt{analyzer} gọi \textit{Analyze Agent} (sau khi đã tóm tắt lịch sử qua \textit{Summarizer}) để xác định ý định, quyết định điều phối, chế độ truy vấn và các từ khóa. Kết quả phân tích được chuẩn hóa: nếu nội dung không phù hợp thì quyết định bị ép sang \texttt{reject}; nếu giá trị không hợp lệ thì lùi an toàn về \texttt{retrieve}.
 
-\textbf{Bước 2: Ra quyết định điều phối (Routing).}
-Dựa trên kết quả phân tích, bộ điều phối sẽ thực hiện điều hướng theo hai kịch bản chính: nếu câu hỏi không mang tính học thuật hoặc thông tin đã có sẵn trong hồ sơ người dùng, yêu cầu sẽ được chuyển thẳng đến Generator Agent để phản hồi; ngược lại, nếu cần kiến thức chuyên sâu từ kho tri thức, hệ thống sẽ chuyển đến Retriever thông qua LightRAG để trích xuất ngữ cảnh phù hợp.
+\textbf{Bước 2: Chuẩn bị ngữ cảnh.}
+Nút \texttt{prepare\_context} không gọi mô hình ngôn ngữ. Nó chỉ nạp bộ nhớ dài hạn $M$ từ MongoDB khi khâu phân tích xác định là cần thiết, rồi dựng gói yêu cầu sinh $G$ (\texttt{generation\_request}) chứa câu hỏi, chế độ truy vấn, persona và các từ khóa. Việc tách riêng bước này giúp luồng phát trực tuyến (streaming) có thể dừng tại đây trước khi sinh.
 
-\textbf{Bước 3: Vòng lặp phản biện (Refinement Loop).}
-Đây là điểm mới trong kiến trúc đề xuất. Sau khi \textit{Generator} tạo bản thảo, \textit{Evaluator} sẽ kiểm tra. Nếu phát hiện thiếu hụt thông tin (Knowledge Miss), hệ thống sẽ bổ sung từ khóa vào truy vấn và thực hiện truy xuất lại. Số lần lặp tối đa được giới hạn ($n=1$) để đảm bảo độ trễ của hệ thống.
+\textbf{Bước 3: Sinh câu trả lời.}
+Nút \texttt{generate} phân nhánh theo quyết định điều phối: với \texttt{retrieve}, hệ thống gọi LightRAG kèm các từ khóa đã trích sẵn để truy xuất tri thức từ đồ thị; với \texttt{direct\_answer}, hệ thống gọi trực tiếp mô hình ngôn ngữ mà không truy xuất (phù hợp cho chào hỏi, trò chuyện hoặc lời khuyên học tập chung); với \texttt{reject}, hệ thống trả về thông điệp từ chối đã soạn sẵn.
 
-\textbf{Bước 4: Cập nhật bộ nhớ dài hạn.}
-Hệ thống áp dụng chiến lược cập nhật định kỳ. Cứ sau mỗi 6 lượt tương tác ($history\_len \pmod 6 == 0$), \textit{Long-term Memory Agent} sẽ được kích hoạt để nén và lưu trữ thông tin mới vào cơ sở dữ liệu, đảm bảo trợ lý ngày càng hiểu rõ lộ trình học tập của sinh viên.
+\textbf{Bước 4: Cập nhật bộ nhớ dài hạn (có điều kiện).}
+Khác với cập nhật theo chu kỳ cố định, hệ thống chỉ kích hoạt nút \texttt{update\_long\_term} khi khâu phân tích đánh dấu cờ \texttt{should\_update\_long\_term} -- tức khi người dùng cung cấp một sự kiện ổn định đáng ghi nhớ. Khi đó, \textit{Long-term Memory Agent} trích xuất và hợp nhất thông tin mới vào hồ sơ; ngược lại, đồ thị kết thúc ngay sau bước sinh để giảm độ trễ.
 
 \subsection{Cơ chế truy xuất tri thức (LightRAG Integration)}
-Khác với RAG truyền thống dựa trên vector similarity, chúng tôi sử dụng LightRAG để truy xuất trên cấu trúc đồ thị tri thức (Knowledge Graph). Truy vấn gửi đến LightRAG được làm giàu bằng cách kết hợp:
-$$Q_{RAG} = Q + \text{Keywords} + \text{Refinement Critique}$$
-Điều này giúp hệ thống khắc phục hiện tượng mất ngữ cảnh khi câu hỏi của sinh viên quá ngắn hoặc mơ hồ.
+Khác với RAG truyền thống dựa thuần túy trên độ tương đồng vector, hệ thống sử dụng LightRAG để truy xuất trên cấu trúc đồ thị tri thức (Knowledge Graph). Điểm tối ưu quan trọng là các từ khóa đã được Analyze Agent trích xuất sẵn ở mức cao và mức thấp được truyền thẳng vào LightRAG:
+$$Q_{RAG} = Q_{standalone} + K_{high} + K_{low}$$
+Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa nội bộ (vốn cần thêm một lần gọi mô hình), giúp giảm độ trễ mà vẫn định hướng truy xuất chính xác. Tùy theo độ khái quát của câu hỏi, hệ thống lựa chọn một trong các chế độ truy vấn \texttt{naive}, \texttt{local}, \texttt{global}, \texttt{hybrid} hoặc \texttt{mix} đã trình bày ở phần trên. Việc viết lại câu hỏi thành dạng độc lập kết hợp với từ khóa giúp khắc phục hiện tượng mất ngữ cảnh khi câu hỏi của sinh viên quá ngắn hoặc mơ hồ. Toàn bộ trạng thái hội thoại được lưu bền vững qua cơ chế checkpoint trên MongoDB, cho phép khôi phục đúng bước đang xử lý khi có gián đoạn.
 
 \subsection{Thuật toán điều phối (Pseudocode)}
 \begin{algorithm}
-	\caption{Quy trình điều phối Agent thông minh}\label{alg:orchestration}
+	\caption{Quy trình điều phối Agent}\label{alg:orchestration}
 	\begin{algorithmic}[1]
-		\Require $query, user\_id$ \Comment{Đầu vào từ sinh viên HCMUS}
-		\Ensure $FinalResponse$ \Comment{Câu trả lời đã qua kiểm định}
-		
-		\State $state.analysis \gets \text{AnalyzeAgent}(query)$
-		\State $state.memory \gets \text{LoadFromMongo}(user\_id)$ 
-		\State $decision \gets \text{OrchestrationAgent}(state.analysis, state.memory)$ 
-		\State $refinement\_count \gets 0$
-		
-		\Repeat
-		\If{$decision.type == \text{"retrieve"}$}
-		\State $query_{rag} \gets query + \text{refinement\_critique}$
-		\State $state.data \gets \text{LightRAG}(query_{rag}, decision.mode)$
+		\Require $query,\ user\_id$ \Comment{Đầu vào từ sinh viên}
+		\Ensure $answer$ \Comment{Câu trả lời cuối cùng}
+
+		\State $routing \gets \text{AnalyzeAgent}(query,\ \text{Summarize}(history))$
+		\State $decision \gets routing.decision$ \Comment{direct\_answer $\mid$ retrieve $\mid$ reject}
+		\If{$decision = \text{``reject''}$}
+			\State \Return $\text{REJECT\_MESSAGE}$
+		\EndIf
+		\State $memory \gets \text{LoadFromMongo}(user\_id)$ \Comment{chỉ khi $routing.needs\_lt$}
+		\State $genReq \gets \text{BuildGenerationRequest}(routing,\ memory)$
+		\If{$decision = \text{``retrieve''}$}
+			\State $answer \gets \text{LightRAG}(genReq.query,\ genReq.mode,\ K_{high},\ K_{low})$
 		\Else
-		\State $state.data \gets \text{InternalKnowledge}$
+			\State $answer \gets \text{LLM}(genReq.system\_prompt,\ query)$
 		\EndIf
-		
-		\State $state.draft \gets \text{Generator}(query, state.data)$
-		\State $eval \gets \text{Evaluator}(query, state.draft, state.data)$
-		
-		\If{$eval.score < 8$}
-		\State $refinement\_critique \gets eval.critique$
-		\State $refinement\_count \gets refinement\_count + 1$
+		\If{$routing.should\_update\_lt$}
+			\State $\text{UpdateMemory}(user\_id,\ query,\ answer)$ \Comment{trích xuất + hợp nhất hồ sơ}
 		\EndIf
-		
-		\Until{$eval.score \ge 8$ \textbf{or} $refinement\_count \ge 1$}
-		
-		\State \Return $state.draft$
+		\State \Return $answer$
 	\end{algorithmic}
 \end{algorithm}
 
