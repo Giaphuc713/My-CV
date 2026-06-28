@@ -10,13 +10,13 @@ Sinh viên Khoa Công nghệ Thông tin tại Trường Đại học Khoa học 
 
 \subsection{Các tình huống sử dụng tiêu biểu}
 
-\textbf{Tình huống 1: Tra cứu lộ trình môn học.}
+Tình huống 1: Tra cứu lộ trình môn học.
 Sinh viên năm hai đang lập kế hoạch học tập đặt câu hỏi: \textit{``Mình muốn học môn Trí tuệ Nhân tạo thì cần học những môn gì trước?''}. Hệ thống AI Agent phân tích câu hỏi, truy xuất đồ thị tri thức để xác định chuỗi môn tiên quyết, sau đó trả lời chi tiết kèm mã môn học và lộ trình học kỳ gợi ý.
 
-\textbf{Tình huống 2: Kiểm tra điều kiện tốt nghiệp.}
+Tình huống 2: Kiểm tra điều kiện tốt nghiệp.
 Sinh viên năm bốn hỏi: \textit{``Mình còn thiếu những gì để đủ điều kiện xét tốt nghiệp?''}. Hệ thống đối chiếu hồ sơ học tập cá nhân được lưu trong bộ nhớ dài hạn với quy định chuẩn đầu ra của Khoa, liệt kê các môn còn thiếu và đưa ra gợi ý đăng ký cho học kỳ tiếp theo.
 
-\textbf{Tình huống 3: Hỏi đáp về quy chế học vụ.}
+Tình huống 3: Hỏi đáp về quy chế học vụ.
 Sinh viên thắc mắc: \textit{``Nếu mình trượt môn tiên quyết thì kỳ sau có được đăng ký môn tiếp theo không?''}. Hệ thống tra cứu quy chế đào tạo tín chỉ của trường, trả lời chính xác với đoạn trích dẫn từ văn bản quy chế tương ứng.
 
 \subsection{Đối tượng người dùng mục tiêu}
@@ -187,8 +187,8 @@ Hệ thống có một phân hệ chính là \textbf{Sinh viên}, tương tác v
 	\textbf{Hậu điều kiện} & Sinh viên nhận được câu trả lời, cuộc hội thoại được lưu vào lịch sử phiên. \\ \hline
 \end{longtable}
 
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
 
 % ============================================================
 \section{Kiến trúc hệ thống}
@@ -326,7 +326,237 @@ PostgreSQL được dùng để lưu thông tin tài khoản và hồ sơ ngư�
 }
 
 \subsubsection{Cơ sở dữ liệu Đồ thị (Knowledge Graph)}
-Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học vụ phục vụ cho việc lưu trữ các thông tin phức tạp, liên kết qua mối quan hệ. Thay vì cấu trúc bảng (Table), dữ liệu được biểu diễn dưới dạng Thực thể (Nodes) và Mối quan hệ (Edges/Relationships).
+Hệ thống sử dụng LightRAG để xây dựng đồ thị tri thức học vụ, phục vụ lưu trữ thông tin phức tạp với nhiều mối quan hệ đan xen. Thay vì cấu trúc bảng (Table), dữ liệu được biểu diễn dưới dạng Thực thể (Nodes) và Mối quan hệ (Edges/Relationships), lưu trữ trong Neo4j.
+
+Cấu trúc đồ thị tri thức được phân tích theo hai lớp: lớp khái niệm (logical view) thể hiện ngữ nghĩa các loại thực thể và quan hệ, và lớp lưu trữ vật lý (physical view) phản ánh cách triển khai thực tế trong Neo4j.
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\paragraph{Lớp khái niệm (logical view)}
+Hình~\ref{fig:kg-concept-model} thể hiện mô hình khái niệm các loại thực thể và quan hệ chính trong đồ thị tri thức học vụ.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+	docnode/.style={rectangle, rounded corners=6pt,
+		draw=blue!50!violet!80, fill=blue!15!violet!25,
+		minimum width=4.3cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	coursenode/.style={rectangle, rounded corners=6pt,
+		draw=teal!80, fill=teal!30,
+		minimum width=4.2cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	outcomenode/.style={rectangle, rounded corners=6pt,
+		draw=orange!70!red!60, fill=orange!35!red!20,
+		minimum width=4.3cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	programnode/.style={rectangle, rounded corners=6pt,
+		draw=gray!65, fill=gray!20,
+		minimum width=5.2cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	rel/.style={-Stealth, thick, draw=black!65},
+	lbl/.style={fill=white, inner sep=1.5pt, font=\scriptsize},
+]
+
+% ==================== Nodes ====================
+\node[docnode]     (vbqd) at (0.0, 5.0) {\textbf{Văn bản quy định}\\{\small Quy chế, đề cương}};
+\node[outcomenode] (cdr)  at (10.0, 5.0) {\textbf{Chuẩn đầu ra}\\{\small Kỹ năng, kiến thức}};
+
+\node[coursenode]  (mhA)  at (0.0, 2.0) {\textbf{Môn học A}\\{\small Học phần tiên quyết}};
+\node[coursenode]  (mhB)  at (6.6, 2.0) {\textbf{Môn học B}\\{\small Học phần, tín chỉ}};
+
+\node[programnode] (ctdt) at (6.6, -1.0) {\textbf{Chương trình đào tạo}\\{\small Ngành, chuyên ngành}};
+
+% ==================== Relationships ====================
+\draw[rel] (vbqd.south east) -- (mhB.north west);
+\node[lbl] at (3.6, 3.65) {QUY ĐỊNH};
+
+% \draw[rel] (mhB.north east) to[out=35,in=-90] (cdr.south);
+\draw[rel] (mhB.north east) -- (cdr.south);
+\node[lbl] at (8.35, 3.55) {ĐÁP ỨNG};
+
+\draw[rel] (mhA.east) -- (mhB.west);
+\node[lbl] at (3.3, 2.45) {TIÊN QUYẾT};
+
+\draw[rel] (mhB.south) -- (ctdt.north);
+\node[lbl] at (7.5, 0.45) {THUỘC};
+
+% ==================== Legend ====================
+\begin{scope}[shift={(1.2,-3.2)}]
+	\filldraw[draw=blue!50!violet!80, fill=blue!15!violet!25] (0.0, 0.0) circle (0.18cm);
+	\node[right=0.08cm] at (0.20, 0.0) {\small Văn bản quy định};
+
+	\filldraw[draw=teal!80, fill=teal!30] (5.0, 0.0) circle (0.18cm);
+	\node[right=0.08cm] at (5.20, 0.0) {\small Môn học};
+
+	\filldraw[draw=orange!70!red!60, fill=orange!35!red!20] (0.0, -0.8) circle (0.18cm);
+	\node[right=0.08cm] at (0.20, -0.8) {\small Chuẩn đầu ra};
+
+	\filldraw[draw=gray!65, fill=gray!20] (5.0, -0.8) circle (0.18cm);
+	\node[right=0.08cm] at (5.20, -0.8) {\small Chương trình đào tạo};
+\end{scope}
+
+\end{tikzpicture}
+\caption{Mô hình khái niệm các loại thực thể và quan hệ chính trong đồ thị tri thức học vụ}
+\label{fig:kg-concept-model}
+\end{figure}
+
+Về mặt khái niệm, đồ thị gồm bốn nhóm thực thể chính. Môn học là thực thể trung tâm, lưu các học phần cùng thông tin tín chỉ, các môn có thể liên kết tiên quyết với nhau qua quan hệ TIÊN QUYẾT. Chương trình đào tạo nhóm các môn học theo ngành và chuyên ngành qua quan hệ THUỘC. Chuẩn đầu ra mô tả các kỹ năng, kiến thức cần đạt qua quan hệ ĐÁP ỨNG. Văn bản quy định gồm quy chế và đề cương là nguồn gốc tri thức của hệ thống, liên kết qua quan hệ QUY ĐỊNH.
+
+\paragraph{Lớp lưu trữ vật lý (physical view)}
+Về mặt triển khai trong Neo4j, toàn bộ các quan hệ đều được lưu dưới một relationship type duy nhất là DIRECTED, ngữ nghĩa cụ thể được mã hóa trong thuộc tính keywords do mô hình ngôn ngữ lớn sinh ra trong quá trình trích xuất.
+
+Mỗi thực thể được lưu dưới dạng một node với hai nhãn: nhãn \textit{workspace} (phân vùng dữ liệu, ví dụ base) và nhãn \textit{entity\_type} (phân loại ngữ nghĩa, ví dụ Course, Concept). Bảng~\ref{tab:kg-node-props} liệt kê các thuộc tính của node.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Thuộc tính của node thực thể trong Knowledge Graph (Neo4j)}
+	\label{tab:kg-node-props}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{8.5cm}|}
+		\hline
+		\textbf{Thuộc tính} & \textbf{Kiểu} & \textbf{Mô tả \& Ví dụ} \\ \hline
+		entity\_id   & string  & Tên thực thể (chuẩn hóa chữ thường). VD: "cơ sở dữ liệu" \\ \hline
+		entity\_type & string  & Loại thực thể do LLM phân loại. VD: "Course" \\ \hline
+		description  & string  & Mô tả tổng hợp từ nhiều tài liệu, các đoạn nối bằng <SEP>. VD: "Môn học về quản lý dữ liệu<SEP>Nghiên cứu SQL" \\ \hline
+		source\_id   & string  & Danh sách ID chunk nguồn, nối bằng <SEP>. VD: "chunk-abc123<SEP>chunk-def456" \\ \hline
+		file\_path   & string  & Tài liệu gốc chứa thực thể, nhiều giá trị nối bằng <SEP>. VD: "chuong\_trinh.pdf<SEP>decuong.pdf" \\ \hline
+		created\_at  & integer & Unix timestamp thời điểm tạo. VD: 1719571200 \\ \hline
+		truncate     & string  & Trạng thái giới hạn source\_id: "" hoặc "KEEP Old" \\ \hline
+	\end{tabular}
+\end{table}
+
+Trường hợp đặc biệt là quan hệ đồng nhất thực thể, được biểu diễn bằng cùng type DIRECTED nhưng với keywords = "SAME\_AS". Bảng~\ref{tab:kg-edge-props} mô tả các thuộc tính của relationship.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Thuộc tính của relationship trong Knowledge Graph (Neo4j)}
+	\label{tab:kg-edge-props}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{8.5cm}|}
+		\hline
+		\textbf{Thuộc tính} & \textbf{Kiểu} & \textbf{Mô tả \& Ví dụ} \\ \hline
+		keywords     & string  & Từ khóa mô tả bản chất quan hệ, do LLM sinh ra. VD: "tiên quyết, học trước" hoặc "SAME\_AS" \\ \hline
+		description  & string  & Diễn giải quan hệ theo ngữ cảnh tài liệu, nhiều mô tả nối bằng <SEP>. VD: "Nhập môn Lập trình là môn tiên quyết của Cơ sở dữ liệu" \\ \hline
+		weight       & float   & Trọng số quan hệ, tỉ lệ với số lần quan hệ xuất hiện. VD: 3.0 \\ \hline
+		source\_id   & string  & ID các chunk nguồn hỗ trợ quan hệ này. VD: "chunk-abc123" \\ \hline
+		file\_path   & string  & Tài liệu gốc của quan hệ. VD: "chuong\_trinh.pdf" \\ \hline
+		created\_at  & integer & Unix timestamp thời điểm tạo. VD: 1719571200 \\ \hline
+	\end{tabular}
+\end{table}
+
+\begin{comment}
+\paragraph{Phân loại thực thể trong corpus học thuật HCMUS.}
+Thay vì sử dụng schema cố định, hệ thống áp dụng phương pháp phân loại
+\textit{schema-free}: danh sách entity type được cấu hình riêng cho từng
+domain và truyền vào prompt của mô hình ngôn ngữ lớn khi trích xuất.
+Đối với corpus học thuật của trường Đại học Khoa học Tự nhiên, hệ thống
+sử dụng 19 loại thực thể sau:
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Danh sách entity type cấu hình cho corpus học thuật HCMUS}
+	\label{tab:entity-types-datn}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{4.5cm}|}
+		\hline
+		\multicolumn{3}{|l|}{\textbf{Các loại thực thể (entity type) được định nghĩa}} \\ \hline
+		\texttt{Course}            & \texttt{Major}              & \texttt{KnowledgeBlock} \\ \hline
+		\texttt{Program}           & \texttt{Department}         & \texttt{Concept} \\ \hline
+		\texttt{Skill}             & \texttt{Policy}             & \texttt{LearningOutcome} \\ \hline
+		\texttt{AssessmentMethod}  & \texttt{Topic}              & \texttt{Instructor} \\ \hline
+		\texttt{Semester}          & \texttt{TotalCredits}       & \texttt{SelfStudyHours} \\ \hline
+		\texttt{TrainingTime}      & \texttt{InstructionalTime}  & \texttt{author} \\ \hline
+		\texttt{yearofpublication} & \multicolumn{2}{>{\raggedright\arraybackslash}p{9.0cm}|}{\textit{(không khớp loại nào)} $\rightarrow$ \texttt{Other}} \\ \hline
+	\end{tabular}
+\end{table}
+\end{comment}
+
+Hình~\ref{fig:kg-subgraph-example} minh họa một đoạn đồ thị tri thức được
+trích xuất từ đề cương môn học, trong đó Cơ sở dữ liệu là thực thể canonical,
+CSDL và CSC10002 là alias liên kết qua quan hệ SAME\_AS,
+các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương ứng.
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    every node/.style={font=\small},
+    coursenode/.style={
+        rectangle, rounded corners=5pt,
+        draw=blue!70, fill=blue!10,
+        minimum width=4.2cm, minimum height=1.0cm,
+        align=center, inner sep=6pt
+    },
+    conceptnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=teal!70, fill=teal!8,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    deptnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=gray!60, fill=gray!8,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    aliasnode/.style={
+        rectangle, rounded corners=4pt,
+        draw=blue!40, fill=blue!4,
+        minimum width=3.4cm, minimum height=0.9cm,
+        align=center, inner sep=5pt
+    },
+    instrnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=orange!60, fill=orange!7,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    rel/.style={-Stealth, thick, draw=blue!55},
+    sameas/.style={-Stealth, thick, dashed, draw=orange!70},
+    lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
+    slbl/.style={font=\small, color=orange!80!black, fill=white, inner sep=3pt},
+]
+
+% ── Hàng trên: prerequisite courses ──
+\node[coursenode] (nlp)  at (1.0, 5.0) {Nhập môn Lập trình\\{\small :Course}};
+\node[coursenode] (ctdl) at (7.0, 5.0) {Cấu trúc dữ liệu\\{\small :Course}};
+
+% ── Hàng giữa: central node ──
+\node[coursenode, draw=blue!90, fill=blue!20, font=\small, minimum width=5.5cm]
+    (csdl) at (7.0, 2.5) {Cơ sở dữ liệu\\{\small :Course \quad entity\_id="cơ sở dữ liệu"}};
+
+% ── Alias trái: CSDL ──
+\node[aliasnode] (alias1) at (-1.5, 2.5) {CSDL\\{\small :Course}};
+
+% ── Alias phải: CSC10002 ──
+\node[aliasnode] (alias2) at (14.5, 2.5) {CSC10002\\{\small :Course}};
+
+% ── Hàng dưới: related nodes ──
+\node[instrnode]   (gv)   at (1.0, 0.0)  {Nguyễn Văn A\\{\small :Instructor}};
+\node[deptnode]    (khoa) at (7.0, 0.0)  {Khoa CNTT\\{\small :Department}};
+\node[conceptnode] (sql)  at (13.0, 0.0) {SQL\\{\small :Concept}};
+
+% ── Quan hệ ngữ nghĩa ──
+\draw[rel] (nlp.south)       -- node[lbl, left=2pt]{tiên quyết của}  (csdl.north west);
+\draw[rel] (ctdl.south)      -- node[lbl, right=2pt]{tiên quyết của} (csdl.north);
+\draw[rel] (csdl.south west) -- node[lbl, left=2pt]{giảng dạy bởi}   (gv.north);
+\draw[rel] (csdl.south)      -- node[lbl, right=2pt]{thuộc}           (khoa.north);
+\draw[rel] (csdl.south east) -- node[lbl, right=2pt]{sử dụng}         (sql.north);
+\draw[rel] (alias2.west)     -- node[lbl, above=3pt]{mã học phần của}    (csdl.east);
+
+% ── SAME_AS edge ──
+\draw[sameas] (alias1.east) -- node[slbl, above=5pt]{SAME\_AS} (csdl.west);
+
+\end{tikzpicture}
+}%
+\caption{Ví dụ subgraph trích xuất từ đề cương môn học trong Knowledge Graph}
+\label{fig:kg-subgraph-example}
+\end{figure}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
 
 \subsection{Kiến trúc triển khai lưu trữ cho LightRAG}
 \label{sec:lightrag_storage}
