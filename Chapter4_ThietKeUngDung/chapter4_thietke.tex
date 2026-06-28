@@ -199,7 +199,7 @@ Sơ lược về kiến trúc được nhóm sử dụng như sau: hệ thống 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/system_architecture_ver3.drawio.png}
+	\includegraphics[width=1\textwidth]{images/system_architecture_ver4.drawio.png}
 	\caption{Mô hình kiến trúc hệ thống tổng thể}
 	\label{fig:kien_truc_he_thong}
 \end{figure}
@@ -218,25 +218,25 @@ Tầng Nghiệp vụ được xây dựng trên Spring Boot, đảm nhận nhi�
 
 Mọi yêu cầu từ phía Client trước tiên đều phải đi qua lớp bảo mật Spring Security kết hợp với cơ chế xác thực JWT (JSON Web Token). Giúp kiểm tra tính hợp lệ của token và phân quyền truy cập trước khi cho phép yêu cầu đi tiếp vào bên trong hệ thống.
 
-Sau khi xác thực thành công, yêu cầu được định tuyến đến Controller rồi chuyển xuống lớp Services để thực thi logic nghiệp vụ. Khi cần bổ sung thông tin tư vấn từ AI vào kết quả phản hồi, lớp Services chủ động gửi yêu cầu Fetch AI Advice sang Tầng Điều phối AI và tích hợp kết quả nhận được vào phản hồi cuối cùng trả về cho Client. Cuối cùng, lớp Data Access sử dụng Spring Data JPA và Hibernate để ánh xạ đối tượng và giao tiếp với cơ sở dữ liệu PostgreSQL thông qua giao thức JPA/JDBC.
+Sau khi xác thực thành công, yêu cầu được định tuyến đến Controller rồi chuyển xuống lớp Services để thực thi logic nghiệp vụ. Lớp Data Access sử dụng Spring Data JPA và Hibernate để ánh xạ đối tượng và giao tiếp với cơ sở dữ liệu PostgreSQL thông qua giao thức JPA/JDBC.
 
 \subsection{Tầng Điều phối AI (AI Processing Layer)}
 
-Tầng Điều phối AI là trung tâm xử lý trí tuệ nhân tạo của hệ thống, tiếp nhận câu hỏi từ sinh viên thông qua hai luồng đầu vào: luồng trực tiếp từ Client qua Chat \& AI Direct Connection và luồng gián tiếp từ Tầng Nghiệp vụ qua yêu cầu Fetch AI Advice.
+Tầng Điều phối AI là trung tâm xử lý trí tuệ nhân tạo của hệ thống, tiếp nhận câu hỏi từ sinh viên qua luồng trực tiếp từ Client thông qua Chat \& AI Direct Connection.
 
 Khi nhận được câu hỏi, Multi-Agent System được xây dựng trên LangGraph Framework sẽ điều phối các tác nhân AI chuyên biệt để phân tích ý định câu hỏi, lập kế hoạch trả lời và tổng hợp kết quả. Trước khi sinh ra câu trả lời, hệ thống kích hoạt cơ chế RAG Retrieval để truy xuất các đoạn thông tin liên quan từ LightRAG Knowledge Base, kho tri thức học vụ đã được xây dựng và lập chỉ mục từ tài liệu của Khoa. Việc bổ sung ngữ cảnh từ tri thức thực tế giúp hạn chế tối đa hiện tượng ``ảo giác'' (hallucination) của mô hình ngôn ngữ, đảm bảo câu trả lời có căn cứ rõ ràng.
 
-Sau khi có đầy đủ ngữ cảnh, hệ thống gửi yêu cầu suy luận (Inference) xuống Tầng Dữ liệu để Foundation Models tạo ra câu trả lời cuối cùng và trả về cho người dùng.
+Sau khi có đầy đủ ngữ cảnh, hệ thống dùng LLM để tạo ra câu trả lời cuối cùng và trả về cho sinh viên.
 
 \subsection{Tầng Dữ liệu và Hạ tầng (Data \& Infrastructure Layer)}
 
-Tầng này gồm ba thành phần lưu trữ, mỗi thành phần phục vụ một mục đích khác nhau trong hệ thống.
+Tầng này gồm ba thành phần chính, mỗi thành phần phục vụ một mục đích riêng biệt.
 
 PostgreSQL được dùng để lưu thông tin tài khoản của sinh viên, bao gồm thông tin đăng nhập, phân quyền và hồ sơ cá nhân. Nhóm chọn PostgreSQL vì hỗ trợ tốt các ràng buộc toàn vẹn dữ liệu, phù hợp với yêu cầu bảo mật cao cho dữ liệu người dùng. Tầng Nghiệp vụ kết nối với PostgreSQL thông qua giao thức JPA/JDBC.
 
 MongoDB lưu lịch sử hội thoại giữa sinh viên và AI Agent theo từng phiên. Do dữ liệu hội thoại không có cấu trúc cố định và cần truy xuất nhanh, MongoDB với cấu trúc tài liệu linh hoạt là lựa chọn phù hợp hơn so với cơ sở dữ liệu quan hệ.
 
-Ngoài ra, hệ thống còn xây dựng một kho tri thức học vụ dưới dạng Đồ thị Tri thức (Knowledge Graph) thông qua LightRAG. Đây là thành phần cốt lõi của toàn bộ luồng tư vấn AI, mọi câu trả lời của hệ thống đều được truy xuất từ đồ thị này. Kiến trúc lưu trữ chi tiết của LightRAG được trình bày tại Phần~\ref{sec:lightrag_storage}.
+LLM (Large Language Model) là thành phần thực hiện suy luận và sinh ra câu trả lời cuối cùng. Khi Tầng Điều phối AI đã thu thập đủ ngữ cảnh từ Knowledge Graph, yêu cầu Inference được gửi đến LLM để tổng hợp và trả lời cho sinh viên.
 
 % ============================================================
 \section{Thiết kế chi tiết các thành phần}
