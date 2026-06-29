@@ -499,20 +499,392 @@
 
 \indent Sự kết hợp giữa SHACL và cơ chế Staging tạo ra một quy trình kiểm soát chất lượng dữ liệu chặt chẽ. Nó không chỉ giúp tự động hóa việc phát hiện sai sót của mô hình ngôn ngữ mà còn cung cấp giao diện để người quản trị có thể can thiệp, chỉnh sửa và phê duyệt dữ liệu một cách minh bạch. Điều này đảm bảo rằng đồ thị tri thức cuối cùng luôn duy trì được tính nhất quán, đầy đủ và đáng tin cậy cao.
 
-\subsection{Hợp nhất đồ thị và chuẩn hóa kho tri thức}
+% ------------------------------------------------------------------
+\subsection{Xử lý thực thể trùng lặp trong văn bản học thuật}
+% ------------------------------------------------------------------
 
-\indent Sau khi toàn bộ các đoạn văn được xử lý, LightRAG tiến hành hợp nhất tất cả các thực thể và quan hệ được trích xuất vào một đồ thị tri thức toàn cục duy nhất (global knowledge graph). Quá trình này đặt ra thách thức về độ trùng lặp: cùng một thực thể có thể xuất hiện với tên gọi khác nhau (ví dụ ``Mạng nơ-ron'' và ``Neural Network''), hoặc các quan hệ tương đương có thể được diễn đạt theo nhiều cách.
+% ------------------------------------------------------------------
+\label{subsubsec:entity-resolution-solution}
+% ------------------------------------------------------------------
 
-\indent LightRAG giải quyết vấn đề này thông qua cơ chế hợp nhất thực thể (entity merging): các thực thể có tên trùng khớp (sau khi chuẩn hóa chữ hoa/thường và loại bỏ khoảng trắng thừa) được gộp thành một nút duy nhất trong đồ thị. Mô tả của các phiên bản khác nhau không bị loại bỏ mà được nối lại (concatenate) để tạo ra một mô tả tổng hợp toàn diện hơn, phản ánh tất cả ngữ cảnh mà thực thể đó xuất hiện trong tài liệu gốc. Đồng thời, siêu dữ liệu nguồn gốc (provenance metadata) — bao gồm ID đoạn văn, tên tài liệu, số trang — được lưu trữ kèm theo mỗi nút và cạnh, phục vụ cho việc truy vết khi cần kiểm chứng thông tin.
+Để xử lý vấn đề thực thể trùng lặp đảm bảo truy xuất đầy đủ thông tin, đề tài đề xuất một module phân giải thực thể
+(\textit{entity resolution}) được tích hợp vào hai giai đoạn,
+hoạt động trước khi bất kỳ nút nào được ghi vào đồ thị. Module này
+được thiết kế theo kiến trúc hai giai đoạn xử lý nối tiếp:
+Candidate Retrieval (Truy hồi ứng viên) và LLM
+Decision(LLM đưa ra quyết định).
 
-\indent Một thành phần quan trọng trong quá trình này là cơ chế staging, đóng vai trò là vùng đệm trung gian trước khi dữ liệu được chính thức đưa vào đồ thị tri thức toàn cục. Thay vì trực tiếp hợp nhất các thực thể và quan hệ vừa trích xuất, hệ thống lưu trữ chúng vào một cơ sở dữ liệu tạm thời kèm theo nhật ký kiểm chứng. Điểm đặc biệt của vùng staging là khả năng thực hiện quy trình kiểm tra chéo (Reflection) thông qua một mô hình ngôn ngữ lớn đóng vai trò là Critic LLM.
+Cách tiếp cận này được xây dựng trên nền tảng của hai công trình nghiên
+cứu trong lĩnh vực căn chỉnh thực thể (\textit{entity alignment}) giữa
+các knowledge graph:
 
-\indent Khi dữ liệu được đưa vào staging, hệ thống sẽ truy xuất lại nội dung gốc của đoạn văn bản (thông qua chunk\_id) để đối chiếu với danh sách các thực thể và quan hệ đã được trích xuất. Mô hình Critic LLM sẽ phân tích ngữ cảnh một cách sâu sắc hơn để phát hiện các thông tin bị bỏ sót hoặc các mối quan hệ ngầm định mà quy trình trích xuất ban đầu chưa nhận diện được. Kỹ thuật này được gọi là thu nhặt bổ sung (gleaning), cho phép hệ thống thực hiện nhiều vòng lặp duyệt lại dữ liệu. Trong mỗi vòng lặp, Critic LLM sẽ đưa ra các đề xuất về thực thể mới hoặc các liên kết bổ sung để tăng tính đầy đủ của đồ thị.
+\begin{itemize}
+    \item \textbf{HELEA}~\cite{helea2024} chứng minh hiệu quả của
+    pipeline hai giai đoạn: đầu tiên truy hồi ứng viên bằng embedding
+    similarity, sau đó dùng mô hình ngôn ngữ lớn để xếp hạng lại
+    (\textit{reranking}). Cơ chế này vừa đảm bảo không bỏ sót ứng viên
+    tiềm năng, vừa tận dụng khả năng suy luận ngữ nghĩa sâu của LLM.
 
-\indent Ngoài việc đề xuất thông tin mới, vùng staging còn cung cấp một cơ chế kiểm soát chất lượng nghiêm ngặt. Mỗi thực thể và quan hệ đều được gán các trạng thái như đang chờ duyệt, đã chấp nhận, đã chỉnh sửa hoặc bị từ chối dựa trên điểm tin cậy và kết quả kiểm chứng SHACL. Nhật ký kiểm chứng (audit log) ghi lại chi tiết các phát hiện của Critic LLM, giúp người quản trị có cái nhìn toàn diện về tính chính xác của từng thành phần tri thức. Quy trình này đảm bảo rằng chỉ những dữ liệu đã được kiểm chứng và bổ sung đầy đủ mới được phép tham gia vào quá trình merge chính thức, từ đó tối ưu hóa tính toàn vẹn và giá trị sử dụng của kho tri thức toàn cục.
+    \item \textbf{EasyEA}~\cite{easyea2024} chứng minh rằng mô hình
+    ngôn ngữ lớn, khi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
+    quyết định căn chỉnh thực thể chính xác theo phương thức
+    \textit{zero-shot} không cần dữ liệu huấn luyện nhãn, phù hợp
+    với bối cảnh corpus tiếng Việt học thuật hiện tại.
+\end{itemize}
 
-\indent Song song với việc xây dựng đồ thị, hệ thống thực hiện đồng bộ hóa với cơ sở dữ liệu vector (vector store synchronization). Mỗi thực thể và quan hệ sau khi chuẩn hóa được chuyển đổi thành một véc-tơ nhúng (embedding vector) thông qua một mô hình nhúng chuyên dụng. Điều này tạo ra một kiến trúc lưu trữ kép (dual storage): đồ thị tri thức lưu giữ cấu trúc quan hệ tường minh (explicit relational structure), trong khi không gian vector cho phép tìm kiếm ngữ nghĩa mờ (fuzzy semantic search) dựa trên độ tương đồng cosine. Sự kết hợp này là nền tảng cho hai chế độ truy vấn đặc trưng của LightRAG.
+Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
+module phân giải thực thể và vị trí tích hợp của nó vào pipeline hợp
+nhất đồ thị.
 
+% ---- TIKZ DIAGRAM ----
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.55cm and 1.5cm,
+    every node/.style={font=\small},
+    %
+    inputbox/.style={
+        rectangle, rounded corners=4pt,
+        draw=gray!60, fill=gray!8,
+        text width=9cm, align=center,
+        minimum height=0.9cm, inner sep=6pt
+    },
+    stagebox/.style={
+        rectangle, rounded corners=5pt,
+        draw=blue!50, fill=blue!5,
+        text width=9cm, align=left,
+        inner sep=10pt
+    },
+    decisionbox/.style={
+        diamond, draw=orange!60, fill=orange!8,
+        text width=2.6cm, align=center,
+        aspect=2.8, inner sep=2pt
+    },
+    skipbox/.style={
+        rectangle, rounded corners=3pt,
+        draw=gray!50, fill=gray!6,
+        text width=3.2cm, align=center,
+        minimum height=0.8cm, inner sep=5pt
+    },
+    outputbox/.style={
+        rectangle, rounded corners=4pt,
+        draw=green!55!black, fill=green!6,
+        text width=9cm, align=center,
+        minimum height=0.9cm, inner sep=6pt
+    },
+    arrow/.style={-Stealth, thick, color=gray!70},
+    dasharrow/.style={-Stealth, thick, dashed, color=orange!60},
+]
+
+%% INPUT
+\node[inputbox] (input) {%
+    \textbf{Thực thể đầu vào từ giai đoạn trích xuất}\\
+    \small\{tên thực thể, mô tả ngữ nghĩa, loại thực thể\}
+};
+
+%% STAGE 1 — Candidate Retrieval
+\node[stagebox, below=0.55cm of input] (s1) {%
+    \textbf{Giai đoạn 1 : Candidate Retrieval}\\[6pt]
+    Mỗi thực thể đầu vào được biểu diễn dưới dạng một vector embedding
+    bằng cách kết hợp tên và mô tả ngữ nghĩa. Vector này được dùng
+    để truy vấn vector store nhằm tìm tối đa $K$ thực thể đã tồn
+    tại có ngữ nghĩa gần nhất. Chỉ những ứng viên có cosine
+    similarity vượt ngưỡng $\tau$ mới được chuyển sang giai đoạn
+    tiếp theo.
+};
+
+%% DECISION
+\node[decisionbox, below=0.55cm of s1] (dec) {
+    \footnotesize Tìm được\\ứng viên\\tiềm năng?
+};
+
+%% SKIP
+\node[skipbox, right=1.4cm of dec] (skip) {%
+    \centering\small Thực thể mới\\hoàn toàn\\$\rightarrow$ Tạo nút mới
+};
+
+%% STAGE 2 — LLM Decision
+\node[stagebox, below=0.55cm of dec] (s2) {%
+    \textbf{Giai đoạn 2 : LLM Decision}\\[6pt]
+    Mô hình ngôn ngữ lớn nhận đồng thời thông tin của thực thể
+    mục tiêu và danh sách ứng viên. Dựa trên phân tích ngữ nghĩa
+    tổng hợp, bao gồm so sánh tên gọi, mô tả, và các quy tắc
+    phân biệt tường minh, LLM đưa ra phán quyết cuối cùng: hai
+    thực thể có đồng nhất hay không, và nếu có, thực thể nào là
+    dạng chuẩn (\textit{canonical form}).
+};
+
+%% OUTPUT
+\node[outputbox, below=0.55cm of s2] (output) {%
+    \textbf{Kết quả phân giải}:
+    ánh xạ đồng nhất hoặc tạo nút mới độc lập
+};
+
+%% ARROWS
+\draw[arrow] (input)  -- (s1);
+\draw[arrow] (s1)     -- (dec);
+\draw[arrow] (dec)    -- node[left, font=\footnotesize]{Có} (s2);
+\draw[dasharrow] (dec) -- node[above, font=\footnotesize]{Không} (skip);
+\draw[arrow] (s2)     -- (output);
+\draw[arrow] (skip.south) |- (output.east);
+
+\end{tikzpicture}
+\caption{Kiến trúc hai giai đoạn của module phân giải thực thể.
+Giai đoạn Candidate Retrieval sử dụng embedding similarity để truy hồi
+các thực thể ngữ nghĩa tương đồng từ vector store. Giai đoạn LLM
+Decision chỉ được kích hoạt khi có ứng viên vượt ngưỡng $\tau$,
+giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mới.}
+\label{fig:entity-resolution-flow}
+\end{figure}
+
+\paragraph{Giai đoạn 1 : Candidate Retrieval.}
+Mỗi thực thể cần phân giải được biểu diễn dưới dạng một vector embedding bằng cách kết hợp cả tên lẫn
+mô tả của thực thể đó thành một chuỗi đầu vào thống nhất. Cách biểu
+diễn này cho phép vector nắm bắt đồng thời hai chiều thông tin: chiều
+định danh (tên gọi) và chiều ngữ nghĩa (nội dung, thuộc tính). Sau đó,
+hệ thống thực hiện tìm kiếm láng giềng gần nhất trong vector store để truy hồi tối đa $K$ thực thể đã
+tồn tại trong knowledge graph có vector gần nhất với thực thể đang xét.
+Ngưỡng tương đồng cosine $\tau$ đóng vai trò bộ lọc: chỉ những ứng
+viên có $\cos(\mathbf{v}_1, \mathbf{v}_2) \geq \tau$ mới được coi là
+\textit{ứng viên tiềm năng} và đưa vào giai đoạn tiếp theo. Cơ chế này tương đồng
+với giai đoạn truy hồi ứng viên trong kiến trúc HELEA~\cite{helea2024},
+đảm bảo không bỏ sót các cặp thực thể có ngữ nghĩa gần nhau.
+
+\paragraph{Giai đoạn 2 : LLM Decision.}
+Khi giai đoạn Candidate Retrieval xác định được ít nhất một ứng viên
+tiềm năng, mô hình ngôn ngữ lớn được kích hoạt để đưa ra phán quyết
+cuối cùng. Không giống với các phương pháp truyền thống chỉ dựa vào
+điểm số cosine similarity, LLM có khả năng suy luận ở mức ngữ nghĩa
+sâu hơn, cũng như phân biệt các thực thể bề ngoài tương tự
+nhưng thực chất khác biệt. Chẳng hạn, mô hình xác định
+\textit{``Nhập môn Lập trình''} và \textit{``Lập trình Hướng đối
+tượng''} là hai học phần khác nhau mặc dù đều thuộc nhóm
+lập trình, trong khi \textit{``HCMUS''} và \textit{``Trường Đại học
+Khoa học Tự nhiên''} là cùng một tổ chức.
+% ------------------------------------------------------------------
+\subsubsection{Thiết kế quan hệ SAME\_AS: Liên kết thay vì xóa bỏ}
+\label{subsubsec:sameas-design}
+% ------------------------------------------------------------------
+
+Khi mô hình ngôn ngữ lớn xác nhận hai thực thể là đồng nhất, hệ thống có 2 lựa chọn: \textit{hợp nhất vật lý}
+hai nút thành một (xóa một nút, gộp toàn bộ dữ liệu vào nút còn lại),
+hay \textit{tạo quan hệ liên kết} giữa chúng và giữ nguyên cả hai? Đề
+tài lựa chọn giải pháp thứ hai thông qua quan hệ SAME\_AS.
+
+Quyết định này không phải là sự thỏa hiệp mà xuất phát từ ba lý do cơ
+bản. \textit{Thứ nhất}, cả HELEA lẫn EasyEA đều tiếp cận entity
+alignment theo hướng tạo ra \textit{tập hợp cặp đồng nhất} giữa hai
+knowledge graph độc lập không ai trong số họ đề xuất xóa bỏ hoặc
+hợp nhất vật lý các nút. Quan hệ SAME\_AS là biểu diễn ngữ nghĩa
+chuẩn của kết quả alignment, tương đương với thuộc tính
+\textbf{owl:sameAs} trong các chuẩn ngữ nghĩa web (\textit{Semantic
+Web})~\cite{owlsemweb2004}. \textit{Thứ hai}, hợp nhất vật lý là
+thao tác không thể hoàn tác: nếu mô hình ngôn ngữ lớn đưa ra quyết
+định nhầm, dữ liệu của nút bị xóa không thể phục hồi.
+Ngược lại, một quan hệ SAME\_AS có thể được xóa bỏ đơn giản nếu phát
+hiện sai sót, trong khi toàn bộ thông tin gốc vẫn được bảo toàn.
+\textit{Thứ ba}, thiết kế SAME\_AS bảo toàn \textit{nguồn gốc ngữ
+nghĩa} (\textit{provenance}): mỗi nút vẫn duy trì liên kết đến đúng
+các tài liệu đã sử dụng hình thức tên đó, phục vụ cho việc truy vết
+và kiểm chứng thông tin sau này.
+
+Về mặt hành vi trong knowledge graph, thiết kế này cho phép hệ thống
+truy vấn tổng hợp thông tin từ cả hai nút thông qua phép duyệt cạnh
+SAME\_AS. Ví dụ, khi người dùng hỏi về \textit{``HCMUS''}, hệ thống
+không chỉ truy xuất thông tin gắn với nút \textit{``HCMUS''} mà còn
+có thể traverse sang nút \textit{``Trường Đại học Khoa học Tự nhiên''}
+để bổ sung thêm tri thức liên quan, cho ra câu trả lời toàn diện hơn.
+
+% ------------------------------------------------------------------
+\subsubsection{Kết quả trong knowledge graph}
+\label{subsubsec:kg-result}
+% ------------------------------------------------------------------
+
+Minh họa cấu trúc của knowledge graph sau
+khi áp dụng module phân giải thực thể với dữ liệu từ corpus học thuật.
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    every node/.style={font=\normalsize},
+    canonical/.style={
+        rectangle, rounded corners=6pt,
+        draw=blue!80, fill=blue!15,
+        minimum width=5.0cm, minimum height=1.0cm,
+        align=center, inner sep=7pt, font=\normalsize\bfseries
+    },
+    alias/.style={
+        rectangle, rounded corners=5pt,
+        draw=blue!50, fill=blue!5,
+        minimum width=3.0cm, minimum height=0.9cm,
+        align=center, inner sep=6pt
+    },
+    concept/.style={
+        rectangle, rounded corners=4pt,
+        draw=gray!55, fill=gray!7,
+        minimum width=3.2cm, minimum height=0.85cm,
+        align=center, inner sep=5pt
+    },
+    sameas/.style={-Stealth, thick, dashed, draw=orange!65},
+    rel/.style={-Stealth, thick, draw=blue!55},
+    lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
+    slbl/.style={font=\small\bfseries, color=orange!75, fill=white, inner sep=2pt},
+]
+
+% ── Hàng trên: concept nodes ───────────────────────────────────────────
+\node[concept] (ai)     at ( 0.0,  3.2) {Trí tuệ nhân tạo};
+\node[concept] (dhqg)   at ( 5.0,  3.2) {ĐHQG-HCM};
+\node[concept] (thuat)  at (11.0,  3.2) {Giải thuật};
+\node[concept] (pttkht) at (16.0,  3.2) {PT\&TK Hệ thống};
+
+% ── Hàng giữa: canonical nodes ─────────────────────────────────────────
+\node[canonical] (school) at ( 2.5,  0.0) {Trường ĐH Khoa học Tự nhiên};
+\node[canonical] (csdl_c) at (13.5,  0.0) {Cơ sở dữ liệu};
+
+% ── Hàng dưới: alias nodes ─────────────────────────────────────────────
+\node[alias] (khtn)   at (-1.0, -3.0) {Trường ĐH KHTN};
+\node[alias] (hcmus)  at ( 2.8, -3.0) {HCMUS};
+\node[alias] (uos)    at ( 6.5, -3.0) {University of Science};
+\node[alias] (csdl_a) at (11.5, -3.0) {CSDL};
+\node[alias] (db)     at (15.5, -3.0) {Database};
+
+% ── SAME_AS edges ──────────────────────────────────────────────────────
+\draw[sameas] (khtn.north)
+    to[bend left=8]
+    node[slbl, midway, left=3pt]{SAME\_AS}
+    (school.south west);
+
+\draw[sameas] (hcmus.north)
+    -- node[slbl, midway, right=3pt]{SAME\_AS}
+    (school.south);
+
+\draw[sameas] (uos.north)
+    to[bend right=15]
+    node[slbl, midway, right=4pt]{SAME\_AS}
+    (school.south east);
+
+\draw[sameas] (csdl_a.north)
+    -- node[slbl, midway, left=3pt]{SAME\_AS}
+    (csdl_c.south west);
+
+\draw[sameas] (db.north)
+    to[bend right=8]
+    node[slbl, midway, right=3pt]{SAME\_AS}
+    (csdl_c.south east);
+
+% ── Quan hệ ngữ nghĩa ──────────────────────────────────────────────────
+\draw[rel] (school.north west)
+    to[bend right=15]
+    node[lbl, midway, left=3pt]{giảng dạy}
+    (ai.south);
+
+\draw[rel] (school.north east)
+    to[bend left=15]
+    node[lbl, midway, right=3pt]{thuộc}
+    (dhqg.south);
+
+\draw[rel] (csdl_c.north west)
+    to[bend right=15]
+    node[lbl, midway, left=3pt]{tiên quyết của}
+    (thuat.south);
+
+\draw[rel] (csdl_c.north east)
+    to[bend left=15]
+    node[lbl, midway, right=3pt]{tiên quyết của}
+    (pttkht.south);
+
+\end{tikzpicture}
+}% end resizebox
+\caption{Ví dụ cấu trúc knowledge graph sau khi áp dụng phân giải thực
+thể trên corpus học thuật HCMUS. Các nút màu đậm là thực thể dạng
+chuẩn (\textit{canonical}); các nút màu nhạt là hình thức tên thay
+thế (\textit{alias}) được liên kết về nút chuẩn qua quan hệ SAME\_AS
+(đường nét đứt cam). Quan hệ ngữ nghĩa thông thường (mũi tên xanh)
+chỉ xuất phát từ nút chuẩn, đảm bảo tri thức không bị phân tán.}
+\label{fig:sameas-graph}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsubsection{Đồng bộ hóa với vector store}
+% ------------------------------------------------------------------
+
+Song song với việc xây dựng đồ thị quan hệ, hệ thống duy trì một cơ sở
+dữ liệu vector (\textit{vector store}) được đồng bộ liên tục. Sau mỗi
+thao tác hợp nhất, toàn bộ thực thể và quan hệ --- với mô tả đã được
+tổng hợp --- đều được cập nhật vào vector store. Kiến trúc lưu trữ kép
+này (\textit{dual storage}) là nền tảng cho hai chế độ truy vấn của
+LightRAG: đồ thị tri thức phục vụ duyệt cấu trúc quan hệ tường minh,
+trong khi vector store cho phép tìm kiếm ngữ nghĩa linh hoạt khi câu
+hỏi của người dùng không khớp chính xác với bất kỳ tên thực thể nào
+đã được lập chỉ mục.
+
+% ------------------------------------------------------------------
+\subsubsection{So sánh với công trình liên quan}
+\label{subsubsec:comparison-related}
+% ------------------------------------------------------------------
+
+Bảng~\ref{tab:er-comparison} tổng hợp mức độ tương đồng về mặt thiết
+kế giữa module phân giải thực thể của đề tài và hai công trình nghiên
+cứu tham chiếu.
+
+\begin{table}[H]
+\centering
+\caption{So sánh các thành phần thiết kế với công trình liên quan}
+\label{tab:er-comparison}
+\begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{2cm} >{\centering\arraybackslash}p{2cm} p{6cm}}
+\toprule
+\textbf{Thành phần} &
+\textbf{HELEA} &
+\textbf{EasyEA} &
+\textbf{Phương án đề tài} \\
+\midrule
+
+Embedding kết hợp tên \& mô tả
+& \ding{51} & \ding{51}
+& Áp dụng. Biểu diễn thực thể qua vector kết hợp hai chiều ngữ nghĩa. \\
+\addlinespace
+
+Truy hồi Top-$K$ qua vector similarity
+& \ding{51} & \ding{51}
+& Áp dụng với lọc ngưỡng cosine $\tau$. \\
+\addlinespace
+
+LLM ra quyết định cuối cùng
+& \ding{51} & \ding{51}
+& Áp dụng theo zero-shot. \\
+\addlinespace
+
+Quan hệ SAME\_AS (thay vì merge vật lý)
+& \ding{51} & \ding{51}
+& Áp dụng. Bảo toàn cả hai nút và provenance. \\
+\addlinespace
+
+Ngữ cảnh triple láng giềng trong prompt
+& $-$ & \ding{51}
+& Chưa tích hợp. Xác định là hướng phát triển tiếp theo. \\
+\addlinespace
+
+Fine-tuning encoder với hard negatives
+& \ding{51} & $-$
+& Không áp dụng (chọn hướng zero-shot). \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hai điểm khác biệt chính so với các công trình tham chiếu cần được
+làm rõ. Đối với việc không fine-tuning encoder, đây là quyết định có
+chủ ý: corpus tiếng Việt trong lĩnh vực học thuật gần như không có tập
+dữ liệu căn chỉnh thực thể được gán nhãn, khiến việc huấn luyện không
+khả thi. Phương án zero-shot mà EasyEA kiểm chứng giải quyết đúng hạn
+chế này. Đối với ngữ cảnh triple láng giềng, EasyEA chỉ ra rằng việc
+bổ sung các bộ ba quan hệ liên quan của ứng viên vào prompt giúp LLM
+phân biệt tốt hơn các trường hợp thực thể mơ hồ --- ví dụ, một thực
+thể là \textit{học phần} và một thực thể là \textit{phần mềm} có thể
+cùng mang tên ``Cơ sở dữ liệu'' nhưng có bộ quan hệ hoàn toàn khác
+nhau trong knowledge graph. Việc tích hợp thành phần này được xác định
+là hướng phát triển ưu tiên trong giai đoạn tiếp theo.
 \subsection{Quản lý và duy trì bền vững hệ thống}
 
 \indent LightRAG thiết kế hệ thống quản trị với triết lý nhất quán tăng dần (incremental consistency): thay vì xây dựng lại toàn bộ đồ thị mỗi khi có tài liệu mới, hệ thống chỉ xử lý các đoạn văn mới hoặc đã thay đổi, sau đó hợp nhất kết quả vào đồ thị hiện có. Cơ chế làm sạch tự động (auto-cleaning) thường xuyên kiểm tra tính nhất quán giữa đồ thị tri thức và nội dung tài liệu gốc: nếu một tài liệu bị xóa khỏi kho dữ liệu, tất cả các nút và cạnh có nguồn gốc duy nhất từ tài liệu đó sẽ tự động bị loại bỏ, trong khi các nút được hỗ trợ bởi nhiều nguồn sẽ chỉ được cập nhật lại mô tả.

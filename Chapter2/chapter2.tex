@@ -147,7 +147,19 @@ Xét về ưu điểm, khác với cấu trúc phân cụm phức tạp gây t�
 Bên cạnh những điểm mạnh vượt trội, hệ thống hiện tại (phiên bản 1.4.11) vẫn bộc lộ nhiều hạn chế cần được nghiên cứu khắc phục. Thứ nhất, quá trình trích xuất thông tin để xây dựng đồ thị phụ thuộc hoàn toàn vào chất lượng của mô hình ngôn ngữ lớn làm nền tảng. Nếu mô hình không hiểu sâu sát văn phong học vụ, hệ thống dễ nhận diện sai hoặc bỏ sót mối quan hệ. Thứ hai, cơ chế trích xuất nội dung văn bản mặc định của LightRAG chủ yếu dựa trên các thư viện đọc trực tiếp (như \texttt{pypdf}, \texttt{python-docx}, hoặc \texttt{docling}) để xử lý các tài liệu PDF, Word. Phương pháp này bộc lộ yếu điểm lớn khi áp dụng vào kho tài liệu thực tế của trường đại học, vốn chứa rất nhiều tài liệu dạng ảnh, các file PDF được scan từ văn bản giấy, hoặc các slide bài giảng có cấu trúc phức tạp. Do thiếu cơ chế Nhận dạng Ký tự Quang học (OCR) chuyên sâu được tối ưu hóa cho tài liệu Tiếng Việt dạng này, hệ thống không thể đọc được hoặc đọc sai lệch nội dung từ các hình ảnh, dẫn đến việc mất mát lượng lớn thông tin quan trọng trước khi đưa vào mô hình học.
 >>>>>>> 1994009 (sửa lỗi viết phần 2 và cập nhập mineru chương 3 và chương 4)
 
-Thứ ba, LightRAG hiện đang thiếu hụt một hệ thống thu thập dữ liệu tự động từ các nguồn trực tuyến. Việc không có sẵn các công cụ cào dữ liệu từ các trang web của trường hay khoa khiến quá trình cập nhật thông tin trở nên thủ công và mất thời gian. Thứ tư, các câu lệnh định hướng (prompt) mặc định của hệ thống được phân bổ quá chung chung. Chúng hoàn toàn không phù hợp để xử lý các tài liệu đặc thù của trường đại học, vốn chứa dày đặc các từ viết tắt, thuật ngữ chuyên ngành và các quy tắc học vụ riêng biệt. Cuối cùng, cấu trúc Đồ thị tri thức hiện tại của hệ thống vẫn còn thiếu các cơ chế ràng buộc hoặc kiểm chứng tính đúng đắn. Việc không có các quy tắc xác thực chặt chẽ khiến đồ thị dễ bị nhiễu bởi các thực thể sai lệch sinh ra từ quá trình trích xuất tự động, từ đó làm giảm đi độ tin cậy của toàn bộ hệ thống tư vấn.
+Thứ ba, LightRAG hiện đang thiếu hụt một hệ thống thu thập dữ liệu tự động từ các nguồn trực tuyến. Việc không có sẵn các công cụ cào dữ liệu từ các trang web của trường hay khoa khiến quá trình cập nhật thông tin trở nên thủ công và mất thời gian. Thứ tư, các câu lệnh định hướng (prompt) mặc định của hệ thống được phân bổ quá chung chung. Chúng hoàn toàn không phù hợp để xử lý các tài liệu đặc thù của trường đại học, vốn chứa dày đặc các từ viết tắt, thuật ngữ chuyên ngành và các quy tắc học vụ riêng biệt.  Thứ năm, 
+cơ chế hợp nhất mặc định của LightRAG chỉ nhận diện hai thực thể là
+cùng nút khi tên của chúng khớp nhau sau khi chuẩn hóa về chữ thường.
+Điều này có nghĩa \textit{HCMUS} và \textit{Trường Đại học Khoa học
+Tự nhiên} sẽ tồn tại như hai nút hoàn toàn riêng biệt trong đồ thị.
+Hậu quả trực tiếp là tri thức về cùng một đối tượng bị phân tán, các
+quan hệ thuộc về một hình thức tên không được kết nối với các quan hệ
+thuộc hình thức tên khác, và hệ thống truy vấn không thể tổng hợp thông
+tin một cách đầy đủ. Cuối cùng, cấu trúc Đồ thị tri thức hiện tại của hệ thống vẫn còn thiếu các cơ chế ràng buộc hoặc kiểm chứng tính đúng đắn. Việc không có các quy tắc xác thực chặt chẽ khiến đồ thị dễ bị nhiễu bởi các thực thể sai lệch sinh ra từ quá trình trích xuất tự động, từ đó làm giảm đi độ tin cậy của toàn bộ hệ thống tư vấn.
+Trong môi trường corpus học thuật tiếng Việt, một thực thể trong thế
+giới thực thường xuất hiện với nhiều hình thức biểu diễn ngôn ngữ khác
+nhau tùy theo ngữ cảnh của từng tài liệu. 
+
 
 \section{Hệ thống Đa tác nhân (Multi-Agent Systems) và Luồng suy luận (Agentic Workflow)}
 Mặc dù sự kết hợp giữa LLM và LightRAG đã giải quyết được bài toán truy xuất thông tin học vụ chính xác, bản thân mô hình ngôn ngữ vẫn chỉ đóng vai trò thụ động (nhận câu hỏi và trả lời). Để hệ thống có thể tự động lập kế hoạch, tự kiểm tra lỗi và sử dụng các công cụ một cách linh hoạt, việc áp dụng kiến trúc AI Agent (Tác nhân AI) là thiết yếu.
