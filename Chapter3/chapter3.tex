@@ -1375,13 +1375,6 @@ Hệ thống được triển khai thực nghiệm trên hạ tầng máy chủ 
 
 \subsubsection{Độ đo để đánh giá (Performance Metrics)}
 Phương pháp đánh giá được thực hiện thông qua việc đối sánh kết quả trích xuất tự động với nhãn chuẩn (Ground Truth). Để đánh giá mức độ chính xác cơ bản, nghiên cứu sử dụng CER (Character Error Rate) và WER (Word Error Rate) nhằm phản ánh tỷ lệ sai sót ở cấp độ ký tự và từ. Tương tự, Edit Distance Sim (Độ tương đồng khoảng cách sửa đổi) được áp dụng để đo lường sự sai khác chuỗi tổng thể. Nhằm định lượng mức độ trùng khớp văn bản sâu hơn, BLEU và METEOR được sử dụng để đánh giá độ bảo toàn n-gram. Đặc biệt, đối với cấu trúc dữ liệu phức tạp, TEDS-Struct và TEDS-Content (Tree-Edit-Distance-based Similarity) đóng vai trò đo lường chuyên biệt cho mức độ bảo toàn cấu trúc bảng biểu. 
-\subsubsection{Tầng Giao diện (Client Layer)}
-Tầng Giao diện được thiết kế tối ưu hóa trải nghiệm người dùng đa nền tảng, bao gồm hai thành phần Client hoạt động đồng bộ:
-\begin{itemize}
-	\item \textbf{Web Client (Nền tảng framework Next.js):} cung cấp giao diện tương tác hiện đại và tối ưu trải nghiệm người dùng.
-	\item \textbf{Mobile Client (Nền tảng Flutter và ngôn ngữ Dart):} Được phát triển độc lập cho thiết bị di động, tổ chức mã nguồn theo mô hình quản lý trạng thái tập trung thông qua bộ thư viện Provider (gồm MultiProvider và ChangeNotifierProvider) giúp tách biệt hoàn toàn tầng giao diện (UI) và tầng xử lý logic nghiệp vụ, duy trì luồng dữ liệu đồng nhất trên toàn bộ ứng dụng.
-\end{itemize}
-Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo:
 
 Biện luận về độ quan trọng của các chỉ số: Đối với kiến trúc truy xuất tăng cường đồ thị, các chỉ số BLEU, TEDS-Struct, TEDS-Content và Edit Distance Sim đóng vai trò then chốt nhất. Nếu mô hình bóc tách thất bại trong việc tái tạo cấu trúc bảng (TEDS-Struct thấp), lượng tri thức sẽ bị suy biến. Chỉ số BLEU cao minh chứng văn bản bảo toàn chính xác các cụm từ gốc, giúp LLM không sai lệch ngữ cảnh. Edit Distance Sim đảm bảo tính nguyên vẹn của mã học phần, tạo tiền đề để thuật toán đối soát và hợp nhất thực thể hoạt động ổn định.
 
@@ -1406,11 +1399,6 @@ Khi triển khai kiến trúc LightRAG vào bài toán dữ liệu có tính h�
 - Nhóm 1 - Đánh giá cấu trúc đồ thị (SHACL): Chuẩn SHACL của W3C được lựa chọn vì có thể kiểm tra ràng buộc cấu trúc đồ thị mà không yêu cầu tập dữ liệu nhãn thủ công. Nó giúp tìm kiếm các Nút mồ côi (Dangling Nodes) thông qua duyệt đồ thị có hướng để phát hiện các đỉnh không có mối quan hệ kết nối, ngăn chặn tình trạng tri thức bị phân mảnh. Đồng thời, Độ phủ văn bản (Chunk Coverage) được đo lường để đảm bảo không bỏ sót thông tin trọng yếu.
 
 - Nhóm 2 - Đánh giá độ hữu cơ của quan hệ (LLM-as-a-Judge): Phương pháp này đánh giá độ lắng đọng trích xuất, với tiêu chí cốt lõi là Độ có cơ sở (Groundedness). Nó bắt buộc mọi mối quan hệ phải tồn tại chứng cứ tường minh từ các đoạn văn bản gốc, ngăn chặn hiện tượng âm tính giả và ảo giác của LLM.
-\indent Phân hệ di động chỉ tập trung giải quyết các bài toán kỹ thuật đặc thù tầng Client trên thiết bị di động bao gồm:
-\begin{itemize}
-	\item \textbf{Quản lý trạng thái và bối cảnh hội thoại cục bộ:} Tích hợp lớp SplashScreen để tự động điều phối phân ranh luồng hiển thị giao diện giữa Chế độ khách (Guest Mode) và Chế độ thành viên (Authenticated Mode). Hệ thống thực hiện lưu trữ phiên và nén chuỗi ngữ cảnh tin nhắn liền kề (Context Concatenation) trước khi gọi API LightRAG, đồng thời hiện thực bộ dịch cú pháp Markdown dạng RichText bằng Regex để kết xuất bối cảnh hiển thị câu trả lời từ LLM.
-	\item \textbf{Đóng gói dữ liệu nhị phân đa phần (Multipart Request):} Định nghĩa luồng truyền tải tệp tin hình ảnh từ bộ nhớ thiết bị thông qua gói thư viện ImagePicker kết hợp với kiểu dữ liệu MultipartFile, cho phép truyền tải bất đồng bộ luồng nhị phân để cập nhật ảnh đại diện sinh viên trực tiếp lên hạ tầng lưu trữ đám mây qua phương thức PUT của http.MultipartRequest.
-\end{itemize}
 
 - Nhóm 3 - Đánh giá hợp nhất thực thể (V-Measure): Đo lường hiệu quả việc hợp nhất các thực thể trùng lặp, giải quyết bài toán deduplication. Hệ thống theo dõi tỷ lệ Bỏ sót gộp (C1 Rate - Under-merge) nhằm giảm thiểu tình trạng một thực thể bị phân tách thành nhiều nút. Trái lại, Độ thuần khiết (C2 Rate - Purity - Over-merge) được duy trì để ngăn chặn việc đồng nhất hóa sai lầm các thực thể mang bản chất riêng biệt. Từ sự kết hợp của những yếu tố trên, Overall V-Measure được tính toán như một chỉ số tổng quát đại diện cho sự cân bằng hoàn hảo. 
 

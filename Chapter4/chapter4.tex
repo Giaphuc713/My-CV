@@ -88,24 +88,26 @@ Phân tích kết quả thực nghiệm cho thấy một sự cải thiện vư�
 \section{Đánh giá chất lượng truy xuất và sinh văn bản (RAG Metrics)}
 \label{sec:rag_metrics}
 
-Để đánh giá chất lượng của phân hệ sinh câu trả lời và hiệu quả của tầng truy xuất bối cảnh, nhóm thực hiện đã thực thi tệp kịch bản tự động trên bộ dữ liệu kiểm thử dataset bao gồm 40 câu hỏi chuyên sâu xoay quanh quy chế học vụ và thông tin các môn học thuộc chương trình đào tạo. Quy trình đánh giá áp dụng phương pháp LLM-as-a-Judge với mô hình giám khảo Qwen2.5-14B hoạt động trên môi trường điện toán đám mây GPU Vast.ai. Hệ thống được cấu hình các kỹ thuật tối ưu hóa cốt lõi bao gồm mở rộng câu hỏi (Query Expansion) và truy xuất kết hợp (Hybrid Retrieval).
+Để đánh giá chất lượng của phân hệ sinh câu trả lời và hiệu quả của tầng truy xuất bối cảnh, nhóm thực hiện đã thực thi tệp kịch bản tự động trên bộ dữ liệu kiểm thử bao gồm 40 câu hỏi chuyên sâu xoay quanh quy chế học vụ và thông tin các môn học thuộc chương trình đào tạo. Quy trình đánh giá áp dụng phương pháp LLM-as-a-Judge với mô hình giám khảo Qwen2.5-14B hoạt động trên môi trường điện toán đám mây GPU của Vast.ai. Hệ thống được cấu hình với các kỹ thuật tối ưu hóa cốt lõi bao gồm mở rộng câu hỏi (Query Expansion) và truy xuất kết hợp (Hybrid Retrieval).
 
-Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas} được áp dụng để tính toán các chỉ số dựa trên mối quan hệ phân tích giữa bốn thành phần: câu hỏi đầu vào, ngữ cảnh truy xuất từ đồ thị tri thức, câu trả lời do hệ thống sinh ra và đáp án mẫu chuẩn (Ground Truth). Cơ chế xác định các giá trị định lượng cụ thể được thực hiện như sau:
+Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas} được áp dụng để tính toán các chỉ số dựa trên mối quan hệ phân tích giữa bốn thành phần: câu hỏi đầu vào, ngữ cảnh truy xuất từ đồ thị tri thức, câu trả lời do hệ thống sinh ra và đáp án mẫu chuẩn (Ground Truth). Cơ chế xác định các giá trị định lượng cụ thể được thực hiện thông qua việc biện luận các tiêu chí cốt lõi.
 
-\begin{itemize}
-    \item \textbf{Độ liên quan của câu trả lời (Answer Relevance):} Đạt tỷ lệ 79.12\%. Chỉ số này đo lường mức độ đáp ứng đúng trọng tâm và bám sát ý định ban đầu của người dùng trong truy vấn \cite{lewis2020rag}. Thuật toán sử dụng mô hình giám khảo để sinh ngược lại một tập hợp câu hỏi giả định dựa trên câu trả lời thực tế, sau đó tính toán giá trị độ tương đồng ngữ nghĩa bằng khoảng cách cosine giữa vector nhúng của câu hỏi sinh ngược này với câu hỏi gốc của sinh viên.
-    \item \textbf{Độ chính xác của câu trả lời (Answer Correctness):} Đạt tỷ lệ 67.15\%. Chỉ số đánh giá mức độ trùng khớp về mặt dữ kiện thực tế và ngữ nghĩa cốt lõi giữa câu trả lời của hệ thống so với đáp án chuẩn. Quá trình chấm điểm kết hợp việc so khớp các cặp thông tin đúng/sai (Factual Overlap) cùng với việc đo lường sự tương đồng về mặt cấu trúc văn bản.
-    \item \textbf{Độ trung thực (Faithfulness):} Đạt tỷ lệ 67.25\%. Chỉ số đo lường tính căn cứ của nội dung được tạo ra, đảm bảo câu trả lời dựa hoàn toàn trên tài liệu bối cảnh được cung cấp từ đồ thị tri thức nhằm hạn chế hiện tượng ảo giác thông tin \cite{ji2023survey}. Mô hình giám khảo bóc tách câu trả lời thành các mệnh đề độc lập, sau đó kiểm tra xem từng mệnh đề đó có thể được suy ra một cách hợp lệ từ các phân đoạn ngữ cảnh hay không.
-    \item \textbf{Độ gọi ngữ cảnh (Context Recall):} Đạt tỷ lệ 74.15\%. Tiêu chí này xác định tỷ lệ các sự thật cốt lõi xuất hiện trong đáp án chuẩn được bao phủ đầy đủ bởi phần ngữ cảnh mà thuật toán trích xuất từ đồ thị tri thức \cite{edge2024graphrag}. Nhờ cơ chế duyệt tìm cấu trúc thực thể liên kết, tầng truy xuất định vị hiệu quả các khái niệm phân tán để cung cấp thông tin nền đầy đủ cho mô hình sinh văn bản.
-\end{itemize}
+- Độ liên quan của câu trả lời (Answer Relevance): Đạt tỷ lệ 79.12\%. Chỉ số này đo lường mức độ đáp ứng đúng trọng tâm và bám sát ý định ban đầu của người dùng trong truy vấn \cite{lewis2020rag}. Thuật toán sử dụng mô hình giám khảo để sinh ngược lại một tập hợp câu hỏi giả định dựa trên câu trả lời thực tế, sau đó tính toán giá trị độ tương đồng ngữ nghĩa bằng khoảng cách cosine giữa vector nhúng của câu hỏi sinh ngược này với câu hỏi gốc của sinh viên.
+
+- Độ chính xác của câu trả lời (Answer Correctness): Đạt tỷ lệ 67.15\%. Chỉ số đánh giá mức độ trùng khớp về mặt dữ kiện thực tế và ngữ nghĩa cốt lõi giữa câu trả lời của hệ thống so với đáp án chuẩn. Quá trình chấm điểm kết hợp việc so khớp các cặp thông tin đúng/sai (Factual Overlap) cùng với việc đo lường sự tương đồng về mặt cấu trúc văn bản.
+
+- Độ trung thực (Faithfulness): Đạt tỷ lệ 67.25\%. Chỉ số đo lường tính căn cứ của nội dung được tạo ra, đảm bảo câu trả lời dựa hoàn toàn trên tài liệu bối cảnh được cung cấp từ đồ thị tri thức nhằm hạn chế hiện tượng ảo giác thông tin \cite{ji2023survey}. Mô hình giám khảo bóc tách câu trả lời thành các mệnh đề độc lập, sau đó kiểm tra xem từng mệnh đề đó có thể được suy ra một cách hợp lệ từ các phân đoạn ngữ cảnh hay không.
+
+- Độ gọi ngữ cảnh (Context Recall): Đạt tỷ lệ 74.15\%. Tiêu chí này xác định tỷ lệ các sự thật cốt lõi xuất hiện trong đáp án chuẩn được bao phủ đầy đủ bởi phần ngữ cảnh mà thuật toán trích xuất từ đồ thị tri thức \cite{edge2024graphrag}. Nhờ cơ chế duyệt tìm cấu trúc thực thể liên kết, tầng truy xuất định vị hiệu quả các khái niệm phân tán để cung cấp thông tin nền đầy đủ cho mô hình sinh văn bản.
 
 Các thông số định lượng đo lường từ quá trình thực nghiệm trên bộ mẫu 40 câu hỏi được tổng hợp cụ thể trong Bảng \ref{tab:ragas_results}.
 
 \begin{table}[H]
     \centering
+    \renewcommand{\arraystretch}{1.4}
     \caption{Kết quả thực nghiệm chất lượng truy xuất và sinh văn bản theo khung RAGAS}
     \label{tab:ragas_results}
-    \begin{tabular}{|l|c|l|}
+    \begin{tabular}{|p{4.7cm}|p{1.75cm}|p{6cm}|}
         \hline
         \textbf{Chỉ số đánh giá} & \textbf{Kết quả} & \textbf{Ý nghĩa chỉ số trong hệ thống} \\ \hline
         Độ liên quan (Answer Relevance) & 79.12\% & Mức độ đáp ứng và bám sát ý định của người dùng \\ \hline
@@ -115,20 +117,17 @@ Các thông số định lượng đo lường từ quá trình thực nghiệm 
     \end{tabular}
 \end{table}
 
-\section{Đánh giá hiệu năng điều phối Đa tác nhân (Agentic Metrics)}
+\section{Đánh giá hiệu năng điều phối đa tác nhân (Agentic Metrics)}
 \label{sec:agentic_metrics}
 
-Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý nhưng cấu trúc này cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Quá trình kiểm định ghi nhận các thông số hiệu năng sau:
+Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý, nhưng cấu trúc này cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Quá trình kiểm định ghi nhận các thông số hiệu năng sau:
 
-\begin{itemize}
-    \item \textbf{Tỷ lệ điều phối đúng công cụ (Routing Accuracy):} Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng công cụ truy xuất (Local, Global hoặc Hybrid).
-    \item \textbf{Tốc độ phản hồi (Average Latency):} Thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG, và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
-\end{itemize}
+- Tỷ lệ điều phối đúng công cụ (Routing Accuracy): Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng công cụ truy xuất (Local, Global hoặc Hybrid).
+
+- Tốc độ phản hồi (Average Latency): Thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG, và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
 
 \section{Đánh giá hệ thống từ phía người dùng cuối}
-Quá trình thử nghiệm thực tế (Beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru 40 câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
-
-Đặc biệt, hệ thống xử lý hiệu quả các truy vấn phức tạp trên diễn đàn (Forum) chứa từ khóa lóng và văn phong tự do. Các câu hỏi vi phạm chính sách hoặc mang tính chất spam đều bị Tác nhân phân tích nhận diện và từ chối phản hồi ngay lập tức, đảm bảo môi trường học thuật lành mạnh.
+Quá trình thử nghiệm thực tế (beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru 40 câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
 
 \section{Thiết kế và xây dựng ứng dụng}
 \label{Chapter4-ThietKe}
