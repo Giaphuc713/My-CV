@@ -352,6 +352,25 @@
 \end{table}
 
 \indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ.
+\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+
+\indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
+
+\subsubsection{Nghiên cứu lựa chọn mô hình nhúng (Embedding Model) và giải pháp triển khai Production}
+
+\indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở intfloat/multilingual-e5-large-instruct được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn VN-MTEB (Vietnamese Massive Text Embedding Benchmark) công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm:
+
+\begin{itemize}
+	\item \textbf{Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning):} Điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
+	\item \textbf{Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment):} Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
+	\item \textbf{Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu:} Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+\end{itemize}
+
+\indent Về mặt kiến trúc vận hành thực tế hệ thống, mô hình nhúng mở multilingual-e5-large-instruct sở hữu dung lượng tham số ở mức trung bình (560 triệu tham số) \cite{multilingual_e5}, mở ra hai kịch bản triển khai linh hoạt đáp ứng hoàn hảo từng môi trường hạ tầng:
+\begin{itemize}
+	\item \textbf{Môi trường phát triển và thử nghiệm (Local Deployment):} Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện sentence-transformers và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (Self-contained) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
+	\item \textbf{Môi trường vận hành thực tế (Production Hosting API):} Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống chuyển sang mô hình Self-hosted API độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (Microservice) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như TEI (Text Embeddings Inference) của Hugging Face hoặc Triton Inference Server của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (Dynamic Batching) và lượng hóa ma trận về định dạng Float16, giúp nén tối đa độ trễ sinh vector nhúng thời gian thực xuống dưới 10 mili giây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
+\end{itemize}
 
 \subsection{Hệ thống thu thập tri thức từ trang web}
 
@@ -1323,14 +1342,50 @@ Mô hình kiến trúc tổng thể của hệ thống được đề xuất d�
 Dưới đây là mô tả chi tiết về chức năng và vai trò của từng tầng trong kiến trúc:
 
 \subsubsection{Tầng Giao diện (Client Layer)}
-Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo bao gồm luồng nghiệp vụ truyền thống thực hiện gọi API tới máy chủ Spring Boot qua giao thức HTTPS để quản lý tiến trình học tập, tương tác diễn đàn và thiết lập mục tiêu cá nhân. Đồng thời, luồng tư vấn thông minh kết nối trực tiếp đến máy chủ AI để xử lý các truy vấn qua cửa sổ Chat với cơ chế phản hồi dạng dòng nhằm tối ưu hóa trải nghiệm hội thoại, kết hợp với Supabase Real-time SDK để cập nhật các thông báo tức thời dựa trên biến động dữ liệu.
+Tầng Giao diện được xây dựng trên nền tảng framework Next.js, cung cấp giao diện tương tác hiện đại và tối ưu trải nghiệm người dùng. Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo:
 
-Đóng vai trò là trung tâm điều phối dữ liệu, máy chủ nghiệp vụ được phát triển trên nền tảng Spring Boot với các module chính đảm nhiệm an ninh hệ thống thông qua Spring Security và JWT để thực thi quy trình xác thực chặt chẽ. Phân hệ xử lý nghiệp vụ chịu trách nhiệm quản lý các thực thể diễn đàn và dữ liệu sinh viên bằng cách ứng dụng Spring Data JPA để tương tác với PostgreSQL. Ngoài ra, luồng sự kiện sử dụng cơ chế Spring Events để xử lý các tác vụ bất đồng bộ như gửi thông báo và email mà không làm ảnh hưởng đến hiệu năng của luồng xử lý chính.
+\begin{itemize}
+	\item \textbf{Luồng nghiệp vụ truyền thống:} Thực hiện gọi API tới máy chủ Spring Boot qua giao thức HTTPS. Luồng này chịu trách nhiệm cho các tính năng cốt lõi như quản lý tiến trình học tập, tương tác diễn đàn và thiết lập mục tiêu cá nhân.
+	\item \textbf{Luồng tư vấn thông minh:} Kết nối trực tiếp đến máy chủ AI (LihgtRAG Server) để xử lý các truy vấn qua cửa sổ Chat. Việc kết nối trực tiếp này hỗ trợ cơ chế phản hồi dạng dòng (streaming), giúp tối ưu hóa tốc độ và trải nghiệm hội thoại. Ngoài ra, hệ thống tích hợp Supabase Real-time SDK để cập nhật các thông báo tức thời (Real-time Notification) dựa trên biến động của cơ sở dữ liệu.
+\end{itemize}
 
-Đây là tầng xử lý logic thông minh, được xây dựng để khai thác sức mạnh của hệ thống đa tác nhân sử dụng framework LangGraph với các Agent chuyên biệt có khả năng tự suy luận và phối hợp. Hệ thống tích hợp cơ chế RAG tiên tiến qua LightRAG để đảm bảo tính chính xác của thông tin bằng cách truy xuất ngữ cảnh từ dữ liệu đặc thù, từ đó hạn chế hiện tượng ảo giác. Toàn bộ lịch sử hội thoại được lưu trữ tại MongoDB nhằm đảm bảo tính linh hoạt và khả năng mở rộng cho các dữ liệu có cấu trúc không cố định.
+\subsubsection{Tầng Nghiệp vụ (Application Layer)}
+Đóng vai trò là trung tâm điều phối dữ liệu, máy chủ nghiệp vụ được phát triển trên nền tảng Spring Boot 3.4 với các module chính:
 
-Hệ thống áp dụng chiến lược lưu trữ đa mô thức với PostgreSQL dùng để quản lý dữ liệu quan hệ như hồ sơ sinh viên, và MongoDB chuyên biệt cho việc lưu trữ lịch sử tương tác. Các mô hình ngôn ngữ lớn được tích hợp thông qua API để thực hiện quá trình suy luận, trong khi Supabase Cloud cung cấp hạ tầng lưu trữ tệp tin và cơ chế tín hiệu thời gian thực dựa trên nhật ký ghi trước của cơ sở dữ liệu.
+\begin{itemize}
+	\item \textbf{An ninh hệ thống:} Triển khai Spring Security phối hợp cùng JWT (JSON Web Token) để thực thi các quy trình xác thực (Authentication) và phân quyền (Authorization) nghiêm ngặt.
+	\item \textbf{Xử lý nghiệp vụ (Core Services):} Chịu trách nhiệm quản lý thực thể diễn đàn, dữ liệu sinh viên và lộ trình học tập. Tầng này ứng dụng Spring Data JPA và Hibernate để tối ưu hóa việc tương tác với hệ quản trị cơ sở dữ liệu PostgreSQL.
+	\item \textbf{Luồng sự kiện (Event Engine):} Sử dụng cơ chế Spring Events để xử lý các tác vụ bất đồng bộ (Async Event). Khi có sự kiện mới (như thông báo từ P.CTSV), hệ thống sẽ tự động kích hoạt gửi Notification và Email qua Gmail SMTP Service mà không gây ảnh hưởng đến hiệu năng của luồng xử lý chính.
+\end{itemize}
 
+\subsubsection{Tầng Điều phối (AI Processing Layer)}
+Đây là tầng xử lý logic thông minh, được xây dựng để khai thác tối đa sức mạnh của hệ sinh thái AI:
+
+\begin{itemize}
+	\item \textbf{Hệ thống Đa tác nhân (Multi-Agent System):} Sử dụng framework LangGraph để vận hành các AI Agents chuyên biệt bao gồm Analyze Agent, Long-term Memory Agent, Orchestration Agent, Generator Agent, Evaluator Agent. Các tác nhân này có khả năng tự suy luận và phối hợp để đưa ra lời giải đáp tối ưu nhất.
+	\item \textbf{Cơ chế RAG tiên tiến (LightRAG):} Đảm bảo tính chính xác của thông tin thông qua việc truy xuất ngữ cảnh (RAG Retrieval) từ tập tin dữ liệu đặc thù (môn học, chương trình đào tạo), giúp hạn chế tối đa hiện tượng "ảo giác" (hallucination) của mô hình ngôn ngữ lớn.
+	\item \textbf{Lưu trữ hội thoại:} Toàn bộ lịch sử Chat được lưu trữ tại MongoDB. Việc sử dụng cơ sở dữ liệu NoSQL giúp đáp ứng tính linh hoạt và khả năng mở rộng đối với các dữ liệu hội thoại có cấu trúc không cố định.
+\end{itemize}
+
+\subsubsection{Tầng Dữ liệu và Hạ tầng (Data \& Infrastructure Layer)}
+Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hóa việc lưu trữ cho từng loại dữ liệu khác nhau:
+
+\begin{itemize}
+	\item \textbf{PostgreSQL:} Quản lý dữ liệu quan hệ có cấu trúc như hồ sơ sinh viên và nội dung diễn đàn.
+	\item \textbf{MongoDB:} Chuyên biệt cho việc lưu trữ và truy xuất nhanh lịch sử tương tác giữa người dùng và AI.
+	\item \textbf{Foundation Models:} Tích hợp các mô hình ngôn ngữ lớn (Llama 3 hoặc OpenAI) thông qua API để thực hiện quá trình suy luận dựa trên dữ liệu từ phân hệ RAG.
+	\item \textbf{Supabase Cloud:} Cung cấp hạ tầng lưu trữ tệp tin (Storage) và cơ chế tín hiệu thời gian thực dựa trên Write-Ahead Logging (WAL) của cơ sở dữ liệu.
+\end{itemize}
+
+\subsection{Hiện thực phân hệ ứng dụng di động (Mobile Application)}
+
+\indent Phân hệ di động được phát triển độc lập trên nền tảng framework Flutter và ngôn ngữ lập trình Dart, đóng vai trò là lớp Client di động kết nối đồng bộ dữ liệu với hệ thống máy chủ trung tâm qua các RESTful API. Kiến trúc mã nguồn ứng dụng mô hình quản lý trạng thái tập trung thông qua bộ thư viện Provider (gồm MultiProvider và ChangeNotifierProvider) nhằm tách biệt hoàn toàn tầng giao diện (UI) và logic xử lý nghiệp vụ. Do các chức năng nghiệp vụ chính tương đồng với phân hệ Web, phân hệ di động tập trung triển khai và cấu hình các thành phần kỹ thuật đặc thù trên thiết bị di động bao gồm:
+
+\begin{itemize}
+	\item \textbf{Thành phần trợ lý ảo AI:} Hiện thực hóa lớp ChatbotScreen kết nối với máy chủ LightRAG. Phân hệ tích hợp giải pháp xử lý nối chuỗi văn bản (Context Concatenation) để bảo toàn bối cảnh cuộc hội thoại và sử dụng bộ dịch cú pháp Markdown để hiển thị định dạng câu trả lời từ mô hình ngôn ngữ lớn trực quan trên giao diện RichText.
+	\item \textbf{Thành phần xác thực tài khoản:} Quản lý toàn bộ vòng đời đăng nhập, đăng ký và làm mới mã truy cập ngầm định (refreshAccessToken) qua Bearer JWT Token. Phân hệ di động cấu hình bộ lọc tự động bắt ngoại lệ tầng kết nối mạng (SocketTimeoutException) tại tính năng khôi phục mật khẩu, hỗ trợ luồng mã Token giả lập "DEMO123" nhằm đảm bảo tính ổn định tối đa cho chu trình thử nghiệm đồ án.
+	\item \textbf{Thành phần đồng bộ và tải tệp tin:} Xử lý hiển thị động các thông báo chưa đọc (Badge) trên thanh công cụ CustomAppBar bằng widget Stack. Đồng thời, phân hệ hiện thực hóa luồng đóng gói tệp tin hình ảnh nhị phân đa phần (MultipartFile) từ bộ nhớ máy thông qua thư viện ImagePicker để đồng bộ trực tiếp lên hạ tầng lưu trữ đám mây qua lệnh gọi http.MultipartRequest.
+\end{itemize}
 
 
 
@@ -1580,5 +1635,90 @@ Khi có nhu cầu bình luận vào bài viết, sau khi đăng nhập, người
 \textbf{Mục đích:} Giúp người dùng tra cứu nhanh chóng và chính xác các bài viết, chủ đề thảo luận hoặc tài liệu đã có trên diễn đàn.
 
 \textbf{Cách sử dụng:}
-Để tìm kiếm thông tin, người dùng nhập từ khóa cần tra cứu vào thanh tìm kiếm và kích hoạt lệnh bằng biểu tượng kính lúp hoặc phím Enter, từ đó hệ thống sẽ truy xuất và trả về danh sách các kết quả phù hợp để người dùng lựa chọn đi đến nội dung chi tiết.
-\end{comment}
+\begin{itemize}
+	\item \textbf{Để tìm kiếm thông tin:}
+	\begin{enumerate}
+		\item Người dùng nhập từ khóa cần tìm (ví dụ: tên bài post, các chủ đề trong nội dung bài post) vào thanh tìm kiếm.
+		\item Chọn biểu tượng "Kính lúp" hoặc nhấn phím Enter.
+		\item Hệ thống sẽ truy xuất dữ liệu và trả về danh sách các kết quả khớp với từ khóa. Người dùng chọn vào một kết quả để đi đến màn hình Chi tiết bài viết.
+	\end{enumerate}
+\end{itemize}
+
+\subsection{Giao diện phân hệ Ứng dụng di động (Mobile Application)}
+
+\indent Giao diện của phân hệ di động được thiết kế tối ưu cho màn hình dọc của thiết bị smartphone, tập trung vào việc sắp xếp các phần tử UI gọn gàng, hỗ trợ thao tác cuộn vuốt dễ dàng bằng một tay và đảm bảo trải nghiệm tương tác học vụ liền mạch cho sinh viên.
+
+% --- Màn hình 1 ---
+\subsubsection{Màn hình AI Chatbot - Cố vấn học tập thông minh}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
+		
+		\footnotesize a) Chế độ Khách (Không lưu lịch sử)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
+		
+		\footnotesize b) Chế độ Thành viên (Có lịch sử chat)
+	\end{minipage}
+	\caption{Giao diện màn hình AI Chatbot trên phân hệ di động}
+	\label{fig:ui_mobile_chatbot}
+\end{figure}
+
+\textbf{Mục đích:} Cung cấp không gian tương tác hội thoại trực tiếp giữa sinh viên và AI Agent để tra cứu môn học, tư vấn lộ trình đào tạo cá nhân hóa và giải đáp các thắc mắc về học chế tín chỉ.
+
+\textbf{Mô tả bố cục giao diện:} Màn hình sử dụng cấu trúc hiển thị dòng thời gian tin nhắn tăng dần theo chiều dọc. Thanh nhập liệu được cố định chắc chắn ở đáy màn hình tích hợp cơ chế tự động thu nhỏ vùng hiển thị khi bàn phím ảo xuất hiện. Ở chế độ Thành viên, một trình đơn kéo Sidebar dạng Drawer được tích hợp ẩn ở cạnh trái, cho phép người dùng chạm để mở rộng danh sách các phiên hội thoại cũ.
+
+\textbf{Cách sử dụng:}
+\begin{enumerate}
+	\item Người dùng tiến hành nhập câu hỏi hoặc yêu cầu tư vấn học tập vào khung văn bản ở đáy màn hình.
+	\item Chọn nút Gửi. Hệ thống AI Agent phân tích dữ liệu thực tế, truy xuất Đồ thị tri thức LightRAG và thực hiện hiển thị câu trả lời tức thời dạng dòng (streaming).
+	\item Ở trạng thái đã đăng nhập (Thành viên), nội dung cuộc chuyện sẽ được ghi nhớ tự động vào SharedPreferences cục bộ và hiển thị trên menu Drawer để sinh viên có thể xem lại.
+\end{enumerate}
+
+% --- Màn hình 2 ---
+\subsubsection{Màn hình quản lý tiến trình học tập}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
+	\caption{Giao diện màn hình Quản lý tiến trình học tập trên phân hệ di động}
+	\label{fig:ui_mobile_khoa_hoc}
+\end{figure}
+
+\textbf{Mục đích:} Giúp người học theo dõi trực quan tổng số tín chỉ học phần tích lũy hiện hành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên và quan sát danh sách lộ trình gợi ý học tập tiếp theo được cá nhân hóa do AI Agent đề xuất.
+
+\textbf{Mô tả bố cục giao diện:} Màn hình được tổ chức theo cấu trúc các khối chức năng xếp chồng theo một cột dọc duy nhất. Khu vực phía trên hiển thị biểu đồ thanh ngang Linear Progress Bar phản ánh phần trăm hoàn thành chặng đường tích lũy tín chỉ tốt nghiệp hiện tại của sinh viên. Khu vực phía dưới là một danh sách cuộn bao gồm các thẻ môn học (cards) được AI gợi ý riêng biệt để đăng ký trong học kỳ kế tiếp.
+
+\textbf{Cách sử dụng:}
+\begin{enumerate}
+	\item Sinh viên truy cập vào màn hình Trang chủ (Home) để kiểm tra nhanh thanh tiến độ tích lũy tín chỉ học tập tổng quan của mình.
+	\item Hệ thống tự động phân tích dữ liệu điểm số từ cơ sở dữ liệu PostgreSQL để kết xuất đồ thị thanh ngang phản ánh phần trăm hoàn thành lộ trình đào tạo.
+	\item Sinh viên cuộn xuống dưới để xem chi tiết các thẻ khuyến nghị môn học và lộ trình học tập tối ưu tiếp theo.
+\end{enumerate}
+
+% --- Màn hình 3 ---
+\subsubsection{Màn hình hồ sơ cá nhân sinh viên}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
+	\caption{Giao diện màn hình Hồ sơ cá nhân sinh viên trên phân hệ di động}
+	\label{fig:ui_mobile_infomation}
+\end{figure}
+
+\textbf{Mục đích:} Hiển thị chi tiết toàn bộ thông tin định danh cá nhân học vụ của sinh viên bao gồm mã số sinh viên, ngành học, lớp học, ngày sinh, giới tính và kết quả điểm số GPA tổng kết hiện tại.
+
+\textbf{Mô tả bố cục giao diện:} Phần ảnh đại diện (Avatar) hình tròn lớn được đặt trang trọng ở vị trí trung tâm phía trên cùng. Toàn bộ thông tin lý lịch trích ngang của sinh viên được phân bổ khoa học bên dưới thành một lưới các ô thuộc tính văn bản phân hàng rõ ràng, giúp người đọc dễ dàng rà soát thông tin học tập cá nhân.
+
+\textbf{Cách sử dụng:}
+\begin{enumerate}
+	\item Sinh viên truy cập vào phân hệ mục Hồ sơ để kiểm tra toàn bộ thông tin cá nhân và điểm số hiện tại của bản thân.
+	\item Khi muốn thay đổi các thông tin liên lạc cơ bản hoặc tải lên ảnh đại diện mới từ thiết bị, người dùng nhấn vào biểu tượng chỉnh sửa, nhập dữ liệu mới và thực hiện lưu thay đổi.
+	\item Ứng dụng ghi nhận dữ liệu mới, thực hiện đóng gói tệp tin và gọi API đồng bộ hóa dữ liệu trực tiếp về hệ quản trị cơ sở dữ liệu trung tâm.
+\end{enumerate}
