@@ -193,13 +193,11 @@
 \subsection{Tiền xử lý dữ liệu tri thức}
 
 \subsubsection{Hệ thống MinerU}
-\textit{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}:
-\indent Trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
+\textit{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}: Trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
 
 \indent Để giải quyết triệt để thách thức này, hệ thống áp dụng công cụ MinerU \cite{mineru_2024} (từ phiên bản 3.2.3 trở lên) làm giải pháp lõi cho quy trình tiền xử lý dữ liệu. Đây là một công cụ trích xuất dữ liệu đa phương thức chất lượng cao, tích hợp các mô hình tiên tiến như Vision-Language Model (VLM) cho việc phân tích bố cục (Layout Analysis), mô hình OCR để nhận diện văn bản trên ảnh, và mô hình Mathematical Formula Recognition (MFR) để chuyển đổi công thức toán học sang chuẩn LaTeX. Sự kết hợp này giúp MinerU không chỉ trích xuất chính xác văn bản mà còn bảo toàn hoàn hảo cấu trúc logic của tài liệu gốc, đặc biệt phù hợp với các giáo trình, bài báo khoa học và tài liệu lưu trữ của trường đại học.
 
-\textit{Luồng xử lý tự động (Hybrid-Auto-Engine)}:
-\indent Chế độ \texttt{-b hybrid\allowbreak-auto\allowbreak-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
+\textit{Luồng xử lý tự động (Hybrid-Auto-Engine)}: Chế độ \texttt{-b hybrid\allowbreak-auto\allowbreak-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
 
 \begin{figure}[H]
 	\centering
@@ -426,7 +424,7 @@
 
 \indent Giai đoạn 3: Xây dựng cây cấu trúc phân cấp (Hierarchical Structure Parsing). Đây là giai đoạn cốt lõi phân biệt chiến lược phân cấp với các phương pháp phân đoạn truyền thống. Hệ thống tái cấu trúc toàn bộ tài liệu thành một cây phân cấp (hierarchical tree) phản ánh tổ chức logic của nội dung, trong đó gốc cây là tài liệu, các nút trung gian là các mục (section) và tiểu mục (sub-section), còn các nút lá là các đơn vị nội dung cụ thể như đoạn văn, bảng, hình ảnh. Cấu trúc phân cấp này được suy luận từ hệ thống tiêu đề (heading hierarchy) trong tài liệu, cụ thể các cấp tiêu đề H1, H2, H3 tương ứng với các mức độ lồng nhau khác nhau trong cây. Trong trường hợp tài liệu không có tiêu đề rõ ràng hoặc cấu trúc tiêu đề bị nhiễu, hệ thống bổ sung cơ chế phân tích dựa trên mô hình ngôn ngữ lớn (tương tự kỹ thuật DSHP-LLM trong MultiDocFusion \cite{shin-etal-2025-multidocfusion}) để suy luận ranh giới ngữ nghĩa giữa các phần. Mỗi nút trong cây được gán một đường dẫn phân cấp (breadcrumb path) dạng: \texttt{[Tài liệu] > [Chương X] > [Mục X.Y] > [Tiểu mục X.Y.Z]}, cung cấp ngữ cảnh vị trí chính xác cho từng đơn vị nội dung.
 
-\indent \textit{Giai đoạn 4: Gom nhóm và sinh phân đoạn theo chiến lược DFS (DFS-based Grouping).} Giai đoạn cuối cùng thực hiện việc duyệt cây phân cấp theo chiều sâu (Depth-First Search) để gom nhóm các nút lá thành các phân đoạn hoàn chỉnh, tuân thủ giới hạn kích thước token tối đa đã được cấu hình. Thuật toán duyệt DFS đảm bảo rằng các nút con thuộc cùng một nút cha sẽ được ưu tiên gom vào cùng một phân đoạn, từ đó bảo toàn tính liên kết ngữ nghĩa theo cấu trúc phân cấp gốc. Cụ thể, quy tắc gom nhóm được áp dụng như sau:
+\indent Giai đoạn 4: Gom nhóm và sinh phân đoạn theo chiến lược DFS (DFS-based Grouping). Giai đoạn cuối cùng thực hiện việc duyệt cây phân cấp theo chiều sâu (Depth-First Search) để gom nhóm các nút lá thành các phân đoạn hoàn chỉnh, tuân thủ giới hạn kích thước token tối đa đã được cấu hình. Thuật toán duyệt DFS đảm bảo rằng các nút con thuộc cùng một nút cha sẽ được ưu tiên gom vào cùng một phân đoạn, từ đó bảo toàn tính liên kết ngữ nghĩa theo cấu trúc phân cấp gốc. Cụ thể, quy tắc gom nhóm được áp dụng như sau:
 
 
 	
@@ -449,8 +447,6 @@
 
 \noindent Kỹ thuật nhúng ngữ cảnh phân cấp này giúp mô hình ngôn ngữ lớn có đủ thông tin định vị ngay cả khi phân đoạn bị tách khỏi tài liệu gốc. Breadcrumb được nhúng vào đầu nội dung nhưng không được tính vào số lượng token của phần nội dung chính, nhằm không ảnh hưởng đến chất lượng biểu diễn vector nhúng (embedding) của nội dung thực.
 
-\indent Bảng~\ref{tab:so_sanh_chunking} trình bày so sánh chi tiết giữa hai chiến lược phân đoạn được áp dụng trong hệ thống.
-
 \begin{table}[H]
 	\centering
 	\caption{So sánh hai chiến lược phân đoạn trong hệ thống}
@@ -469,8 +465,7 @@
 	\end{tabular}
 \end{table}
 
-\indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ.
-\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+\indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ. \\ \indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
 
 \indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
 
@@ -493,83 +488,6 @@
 - Môi trường phát triển và thử nghiệm (Local Deployment): Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện sentence-transformers và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (Self-contained) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
 	
 - Môi trường vận hành thực tế (Production Hosting API): Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống chuyển sang mô hình Self-hosted API độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (Microservice) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như TEI (Text Embeddings Inference) của Hugging Face hoặc Triton Inference Server của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (Dynamic Batching) và lượng hóa ma trận về định dạng Float16, giúp nén tối đa độ trễ sinh vector nhúng thời gian thực xuống dưới 10 mili giây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
-
-
-\subsection{Hệ thống thu thập tri thức từ trang web}
-
-\begin{figure}[H]
-	\centering
-	\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, transform shape]
-		\node (input) [startstop] {URL Mục tiêu};
-		\node (dom) [process, below=of input] {Nhận diện cấu trúc DOM};
-		\node (check) [decision, below=of dom, text width=3cm] {Đã tồn tại trong \\ Registry hệ thống?};
-		
-		\node (llm) [process, left=2.8cm of check, yshift=-1.5cm, text width=3.5cm] {Phân tích LLM \\ (Logic tô pô DOM)};
-		\node (gen) [process, below=1cm of llm] {Tạo bộ chọn \\ CSS/JS tối ưu};
-		\node (save) [process, below=1cm of gen] {Cập nhật Registry \\ (Lưu trữ bộ chọn)};
-		
-		\node (exe) [process, right=2.8cm of check, yshift=-1.5cm, text width=4cm] {Thực thi Scraper Engine \\ (Playwright \& Stealth)};
-		\node (clean) [process, below=1.5cm of exe] {Làm sạch Markdown};
-		\node (out) [startstop, below=4cm of check, yshift=-2cm] {Đầu ra Markdown cuối cùng};
-		
-		\draw [arrow] (input) -- (dom);
-		\draw [arrow] (dom) -- (check);
-		\draw [arrow] (check) -| node [anchor=south, xshift=-1.4cm, font=\footnotesize] {KHÔNG (Mới)} (llm);
-		\draw [arrow] (check) -| node [anchor=south, xshift=1.4cm, font=\footnotesize] {CÓ (Đã biết)} (exe);
-		\draw [arrow] (llm) -- (gen);
-		\draw [arrow] (gen) -- (save);
-		\draw [arrow] (save) |- ($(out.north west)!0.3!(out.north)$);
-		\draw [arrow] (exe) -- (clean);
-		\draw [arrow] (clean) -- (out);
-	\end{tikzpicture}
-	\caption{Quy trình thu thập tri thức từ trang web với Smart Scraper}
-	\label{fig:flow_scrap_web}
-\end{figure}
-
-\indent Hệ thống cào web thông minh hoạt động theo quy trình tự động hóa từ việc nhận diện cấu trúc trang đến trích xuất dữ liệu. Logic cốt lõi dựa trên công cụ Smart Scraper Engine với cơ chế vận hành qua bốn bước chính: lấy dấu vân tay, đối chiếu kho lưu trữ, phân tích cấu trúc bằng mô hình ngôn ngữ và thực thi bộ phân giải.
-
-\indent Quy trình bắt đầu bằng việc tạo ra một bản tóm tắt cấu trúc cây DOM của trang web, tập trung vào các thuộc tính định danh như thẻ HTML, tên lớp và ID. Hệ thống trích xuất một bộ khung xương kỹ thuật của trang web để làm cơ sở cho việc nhận diện. Sau đó, bản tóm tắt này được đối chiếu với kho lưu trữ các bộ phân giải đã biết. Mỗi mục trong kho lưu trữ chứa các thông tin về dấu hiệu nhận biết, bộ chọn nội dung chính, các thành phần cần loại bỏ và chiến lược chờ đợi phù hợp cho từng loại công nghệ web như React, Vue, hay các hệ quản trị nội dung truyền thống.
-
-\indent Trong trường hợp gặp một trang web mới không có trong kho lưu trữ, hệ thống sẽ gửi một phần cấu trúc DOM tiêu biểu cho mô hình ngôn ngữ lớn. Mô hình này có nhiệm vụ phân tích logic phân bổ nội dung và tự động sinh ra mã lệnh điều hướng. Mã lệnh này bao gồm các bộ chọn CSS tối ưu để trích xuất văn bản có ý nghĩa và các quy tắc loại bỏ những thành phần gây nhiễu như trình đơn điều hướng, biểu ngữ quảng cáo hoặc các đoạn mã kịch bản. Bộ phân giải mới sinh ra sẽ được kiểm tra và lưu lại vào kho lưu trữ để sử dụng cho các lần truy cập sau, giúp tối ưu hóa hiệu suất và giảm thiểu chi phí gọi API.
-
-\indent Đối với các tên miền mặc định như fit.hcmus.edu.vn và hcmus.edu.vn, hệ thống đã được cấu hình sẵn các bộ phân giải chuyên biệt cho nền tảng DotNetNuke. Do đặc thù của nền tảng này thường chứa nhiều nội dung lồng ghép trong các khung phức tạp, hệ thống sử dụng các bộ chọn mục tiêu như .dnn\_contentPane và \#dnn\_ContentPane để định vị chính xác vùng chứa thông tin học thuật. Quy trình trích xuất văn bản tại đây không chỉ lấy chữ thuần túy mà còn thực hiện chuyển đổi các liên kết quan trọng sang định dạng Markdown để bảo toàn thông tin tham chiếu.
-
-\indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi chúng nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
-
-\subsection{Quy trình điều phối và phân đoạn dữ liệu}
-
-\indent Sau khi dữ liệu vượt qua bước kiểm tra trùng lặp, hệ thống bước vào giai đoạn điều phối và phân đoạn. Đây là quy trình then chốt nhằm chuyển đổi các văn bản Markdown dài thành những đơn vị tri thức có kích thước tối ưu, sẵn sàng cho việc trích xuất thực thể và quan hệ. Quy trình điều phối này không chỉ đơn thuần là cắt nhỏ văn bản mà còn đảm bảo tính logic và ngữ cảnh giữa các phần.
-
-\indent LightRAG \cite{lightrag} thực hiện quy trình này thông qua hai chiến lược phân đoạn chính để bảo toàn tính toàn vẹn tri thức:
-
-\indent Phương pháp thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
-
-\indent Phương pháp thứ hai, phân đoạn theo cấu trúc tự nhiên (structure-aware chunking), khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
-
-\begin{figure}[H]
-	\centering
-	\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.85, transform shape]
-		% Nodes
-		\node (in) [startstop] {Văn bản Markdown đồng nhất};
-		\node (clean) [process, below=of in] {Làm sạch \& Chuẩn hóa \\ \footnotesize(Unicode, Regex, Vệ sinh)};
-		\node (split) [decision, below=1.5cm of clean] {Chiến lược phân đoạn?};
-		
-		\node (fixed) [process, left=1.5cm of split, yshift=-1.5cm] {Fixed-size Chunking \\ \footnotesize(Overlap 10-20\%)};
-		\node (struct) [process, right=1.5cm of split, yshift=-1.5cm] {Structure-aware \\ \footnotesize(H1-H6, Paragraph)};
-		
-		\node (out) [startstop, below=3.5cm of split] {Danh sách phân đoạn (Chunks)};
-		
-		% Arrows
-		\draw [arrow] (in) -- (clean);
-		\draw [arrow] (clean) -- (split);
-		\draw [arrow] (split) -| node[anchor=south, xshift=-1cm, font=\footnotesize] {Kích thước cố định} (fixed);
-		\draw [arrow] (split) -| node[anchor=south, xshift=1cm, font=\footnotesize] {Cấu trúc tự nhiên} (struct);
-		\draw [arrow] (fixed) |- (out);
-		\draw [arrow] (struct) |- (out);
-	\end{tikzpicture}
-	\caption{Luồng logic xử lý từ dữ liệu thô đến giai đoạn phân đoạn}
-	\label{fig:flow_chunking_logic}
-\end{figure}
 
 \clearpage
 \subsection{Cơ chế trích xuất thực thể và xây dựng quan hệ}
@@ -689,8 +607,10 @@
 		% Nodes
 		\node (in) [startstop, text width=5.5cm] {Thực thể \& Quan hệ trích xuất \\ \footnotesize(theo từng phân đoạn)};
 		\node (g1) [decision, below=1cm of in, text width=3cm] {Guard 1: \texttt{chunk\_id} đã tồn tại?};
+		\node (proceed) [smallbox, below left=1.1cm and 1.3cm of g1, text width=3.6cm] {PROCEED \\ \footnotesize(phân đoạn mới, tính bậc cộng dồn)};
+		\node (reingest) [smallbox, below right=1.1cm and 1.3cm of g1, text width=3.6cm] {RE\_INGEST \\ \footnotesize(đã tồn tại: nạp lại, tính bậc theo max)};
 
-		\node (g2box) [groupbox, below=1.6cm of g1, minimum width=11cm, minimum height=2.6cm] (g2) {};
+		\node (g2box) [groupbox, below=3.7cm of g1, minimum width=11cm, minimum height=2.6cm] (g2) {};
 		\node [above right=1mm of g2.north west, anchor=south west, font=\small\bfseries] {Guard 2: Kiểm tra cấu trúc + Đối chiếu bằng chứng};
 		\node (shapes) [smallbox, text width=4.6cm] at ($(g2.center)+(-2.7cm,0)$) {SHACL Shapes \\ \footnotesize(name, type, isolated, provenance, weight, foreign-script)};
 		\node (ground) [smallbox, text width=4.6cm] at ($(g2.center)+(2.7cm,0)$) {Grounding xác định \\ \footnotesize(exact + fuzzy $\ge$ 0.9, span bằng chứng)};
@@ -705,7 +625,10 @@
 
 		% Arrows
 		\draw [arrow] (in) -- (g1);
-		\draw [arrow] (g1) -- node[anchor=west, font=\footnotesize] {PROCEED / RE\_INGEST} (g2);
+		\draw [arrow] (g1) -| node[anchor=south, pos=0.25, font=\footnotesize] {KHÔNG} (proceed);
+		\draw [arrow] (g1) -| node[anchor=south, pos=0.25, font=\footnotesize] {CÓ} (reingest);
+		\draw [arrow] (proceed.south) -- ([xshift=-2.7cm]g2.north);
+		\draw [arrow] (reingest.south) -- ([xshift=2.7cm]g2.north);
 		\draw [arrow] (g2) -- (dec);
 		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Đủ bằng chứng} (approved);
 		\draw [arrow] (dec) -- node[anchor=west, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending);
