@@ -603,14 +603,13 @@ các knowledge graph:
     tiềm năng, vừa tận dụng khả năng suy luận ngữ nghĩa sâu của LLM.
 
     \item \textbf{EasyEA}~\cite{easyea2024} chứng minh rằng mô hình
-    ngôn ngữ lớn, khi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
+    ngôn ngữ lớn, khbi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
     quyết định căn chỉnh thực thể chính xác theo phương thức
-    \textit{zero-shot} không cần dữ liệu huấn luyện nhãn, phù hợp
+    \textit{zero-shot} kbhông cần dữ liệu huấn luyện nhãn, phù hợp
     với bối cảnh corpus tiếng Việt học thuật hiện tại.
 \end{itemize}
 
 Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
-module phân giải thực thể và vị trí tích hợp của nó vào pipeline hợp
 nhất đồ thị.
 
 % ---- TIKZ DIAGRAM ----
@@ -1144,6 +1143,171 @@ Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa n�
 \setcounter{tocdepth}{4}
 
 \section{Thiết kế ứng dụng}
+
+\subsection{Thiết kế và cài đặt hệ thống (UML \& Use Case)}
+
+\subsubsection{Actor}
+
+Hệ thống có actor chính là: \textbf{Người dùng}.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
+
+	\begin{tabular}{|c|l|p{9cm}|}
+		\hline
+		\textbf{STT} & \textbf{Actor} & \textbf{Ý nghĩa / Ghi chú} \\
+		\hline
+		1 & \centering Người dùng & Là thành phần đáng chú ý nhất của hệ thống. Nhóm người trực tiếp trải nghiệm hệ thống và đưa ra ý kiến, góp ý cho nhà phát triển.  \\
+		\hline
+	\end{tabular}
+	\caption{Danh sách Actor}
+	
+\end{table}
+
+% ================= IMAGE =================
+% Thêm hình Use Case tại đây
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/Sơ đồ UC.drawio.png }
+	\caption{Sơ đồ Use Case hệ thống}
+\end{figure}
+\subsubsection{Danh sách Use Case}
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.5}
+	\setlength{\tabcolsep}{10pt}
+	
+	\begin{tabular}{|c|p{5cm}|p{5cm}|p{3cm}|}
+		\hline
+		STT & Tên UC & Mô tả & Actor \\
+		\hline
+		1 & Đăng ký & Người dùng tạo tài khoản mới & Người dùng \\
+		\cline{1-3}
+		2 & Đăng nhập & Người dùng đăng nhập bằng email và mật khẩu & \\
+		\cline{1-3}
+		3 & Xem thông tin cá nhân & Hiển thị thông tin người dùng & \\
+		\cline{1-3}
+		4 & Cập nhật thông tin & Chỉnh sửa thông tin cá nhân & \\
+		\cline{1-3}
+		5 & Chat với AI Agent & Chat với AI Agent để trả lời câu hỏi học tập & \\
+		\cline{1-3}
+		
+		\hline
+	\end{tabular}
+	\caption{Danh sách Use Case}
+\end{table}
+
+\subsubsection{Yêu cầu phi chức năng}
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
+	\begin{tabular}{|c|l|p{9cm}|}
+		\hline
+		\textbf{STT} & \textbf{Yêu cầu} & \textbf{Ý nghĩa / Mô tả} \\
+		\hline
+		1 & Hiệu suất & Tốc độ phản hồi câu trả lời phải đảm bảo tải trong vòng  $\leq 5$ giây để đảm bảo trải nghiệm người dùng.\\
+		\hline
+		2 & Khả năng mở rộng & Hê thống phải mở rộng được để xử lý lượng lớn người dùng. \\
+		\hline
+		3 & Khả dụng & Hệ thống phải hoạt động liên tục với uptime $\geq 99.9\%$/năm \\
+		\hline
+		4 & Khả năng sử dụng & UI/UX đơn giản, dễ hiểu.\\
+		\hline
+	\end{tabular}
+	\caption{Yêu cầu phi chức năng}
+\end{table}
+\subsection{Đặc tả Use-Case}
+\setcounter{secnumdepth}{3}
+\renewcommand{\arraystretch}{1}
+\subsubsection{Use-case Chat với AI Agent}
+\label{sec:uc-create-post}
+
+\begin{longtable}{|l|p{10cm}|}
+	\hline
+	\textbf{Tên Use Case} & Chat với AI Agent để Trả Lời Câu Hỏi Học Tập \\ \hline
+	
+	\textbf{Tác nhân} & Người dùng đã xác thực \\ \hline
+	
+	\textbf{Mô tả} &Cho phép người dùng tương tác với AI agent tích hợp để đặt câu hỏi liên quan đến học tập và nhận câu trả lời thông minh.
+	\\ \hline
+	
+	\textbf{Điều kiện tiên quyết} &
+	\begin{itemize}
+		\item Dịch vụ AI agent đang hoạt động và khả dụng.
+		\item Người dùng có quyền truy cập tính năng AI chat (đã đăng nhập).
+	\end{itemize} \\ \hline
+	
+	\textbf{Hậu điều kiện} &
+	\begin{itemize}
+		\item Người dùng nhận được phản hồi liên quan đến câu hỏi học tập của mình.
+		\item Cuộc hội thoại được lưu trong phiên làm việc (và tùy chọn lưu vào lịch sử người dùng).
+		
+	\end{itemize} \\ \hline
+	
+	\textbf{Luồng chính} &
+	\begin{enumerate}
+		\item Người dùng điều hướng đến phần AI Chat.
+		
+		\item Người dùng nhập câu hỏi liên quan đến học tập vào ô nhập chat.
+		
+		\item Hệ thống chuyển tiếp câu hỏi đến hệ thống AI Agents.
+		
+		\item AI agent xử lý câu hỏi và tạo ra phản hồi.
+		
+		\item Hệ thống hiển thị phản hồi của AI trong giao diện chat.
+		\item Người dùng có thể đặt câu hỏi tiếp theo; các bước 2–6 lặp lại.
+		
+	\end{enumerate} \\ \hline
+	
+	\textbf{Luồng thay thế} &
+	\begin{itemize}
+		\item LTT-05A Dịch Vụ AI Không Khả Dụng: Nếu dịch vụ AI bị gián đoạn, hệ thống hiển thị thông báo lỗi thân thiện và gợi ý thử lại sau hoặc tìm kiếm trong các chủ đề diễn đàn hiện có.
+		\item LTT-05B Câu Hỏi Ngoài Phạm Vi: Nếu người dùng hỏi vấn đề không liên quan đến học tập, AI phản hồi rằng câu hỏi nằm ngoài phạm vi hỗ trợ và gợi ý người dùng đặt câu hỏi liên quan đến học tập.
+	\end{itemize} \\ \hline
+	
+\end{longtable}
+
+
+
+\subsubsection{Use-case Đăng ký tài khoản}
+\begin{longtable}{|l|p{10cm}|}
+	\hline
+	\textbf{Tên Use Case} & Đăng ký tài khoản \\ \hline
+	
+	\textbf{Tác nhân} & Người dùng \\ \hline
+	
+	\textbf{Mô tả} & Cho phép người dùng tạo tài khoản mới. \\ \hline
+	
+	\textbf{Điều kiện tiên quyết} &
+	\begin{itemize}
+		\item Email chưa tồn tại
+		\item Trang đăng ký truy cập được
+	\end{itemize} \\ \hline
+	
+	\textbf{Hậu điều kiện} &
+	\begin{itemize}
+		\item Tạo tài khoản thành công
+	\end{itemize} \\ \hline
+	
+	\textbf{Luồng chính} &
+	\begin{enumerate}
+		\item Vào trang đăng ký
+		\item Nhập thông tin
+		\item Xác nhận mật khẩu
+		\item Đồng ý điều khoản
+		\item Nhấn đăng ký
+		\item Hệ thống kiểm tra và tạo tài khoản
+	\end{enumerate} \\ \hline
+	
+	\textbf{Luồng thay thế} &
+	\begin{itemize}
+		\item LTT-02A: Email đã tồn tại, thông báo lỗi
+	\end{itemize} \\ \hline
+	
+\end{longtable}
+
+% Sơ đồ trình tự (Sequence Diagram) được thiết lập để làm rõ luồng dữ liệu từ khi sinh viên đặt câu hỏi trên giao diện, đi qua tầng điều phối Đa tác nhân (LangGraph) \cite{langgraph2024, wu2023autogen}, truy xuất Đồ thị tri thức (LightRAG) \cite{guo2024lightrag} và trả về kết quả cuối cùng.
 \subsection{Kiến trúc hệ thống}
 
 % Quy tắc: Luôn dẫn dắt người đọc đến hình ảnh trước khi mô tả chi tiết
