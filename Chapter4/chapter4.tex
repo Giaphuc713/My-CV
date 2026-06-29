@@ -1,19 +1,14 @@
-\chapter{Kết quả thí nghiệm}
+\chapter{Kết quả thí nghiệm và Ứng dụng}
 \label{Chapter4}
 
 \section{Đánh giá chất lượng MinerU trên tập tài liệu đầu vào}
-\indent Trong kiến trúc hệ thống đề xuất, chất lượng của pha tiền xử lý tài liệu phi cấu trúc có ảnh hưởng trực tiếp đến độ chính xác và toàn vẹn của đồ thị tri thức. Nhằm đánh giá mức độ tin cậy của bộ giải mã MinerU, nghiên cứu đã tiến hành thực nghiệm trích xuất trên tập dữ liệu Chương trình đào tạo chuẩn của sáu ngành và khối ngành thuộc Khoa, bao gồm: Cử nhân tài năng, Công nghệ thông tin, Hệ thống thông tin, Khoa học máy tính, Kỹ thuật phần mềm, và Trí tuệ nhân tạo. Đặc biệt, để đảm bảo tính đại diện của tập mẫu, tài liệu được thu thập và phân rã theo từng khóa tuyển sinh từ năm 2022 đến năm 2025.
-
-\indent Phương pháp đánh giá được thực hiện thông qua việc đối sánh kết quả trích xuất tự động với nhãn chuẩn (Ground Truth) dựa trên các độ đo học thuật:
-\begin{itemize}
-    \item CER (Character Error Rate) và WER (Word Error Rate): Tỷ lệ sai sót ở cấp độ ký tự và cấp độ từ. Giá trị càng thấp biểu thị khả năng nhận dạng quang học càng chính xác (ví dụ: Khoa học máy tính khóa 2022 đạt kết quả xuất sắc với CER chỉ 0.0019 và WER 0.0102).
-    \item Edit Distance Sim (Độ tương đồng khoảng cách sửa đổi): Đo lường sự sai khác chuỗi tổng thể dựa trên số thao tác tối thiểu cần thiết để chuyển đổi kết quả sinh ra về nhãn chuẩn (ví dụ: hầu hết các tài liệu thuộc Hệ thống thông tin đều đạt trên 0.99, cho thấy độ chính xác gần như tuyệt đối).
-    \item BLEU và METEOR: Các độ đo tiêu chuẩn trong dịch máy và sinh văn bản nhằm định lượng mức độ trùng khớp n-gram giữa văn bản trích xuất và văn bản gốc (ví dụ: CNTT khóa 2022 đạt BLEU lên tới 0.9928, bảo toàn hoàn hảo các thuật ngữ gốc).
-    \item TEDS-Struct và TEDS-Content (Tree-Edit-Distance-based Similarity): Độ đo chuyên biệt dùng cho việc phân tích cấu trúc bảng biểu. TEDS-Struct đánh giá mức độ bảo toàn khung hàng/cột của bảng, trong khi TEDS-Content bao hàm cả tính chính xác của nội dung từng ô (ví dụ: ngoại trừ KTPM khóa 2024 sụt giảm còn 0.3342, phần lớn các khóa khác đều đạt TEDS-Struct 1.0000, giữ nguyên vẹn cấu trúc bảng).
-\end{itemize}
+\indent Dựa trên các thiết lập thực nghiệm, nghiên cứu đã tiến hành trích xuất và đo lường trên tập dữ liệu. Khoa học máy tính khóa 2022 là một minh chứng xuất sắc khi đạt CER chỉ 0.0019. Với chỉ số Edit Distance Sim, hầu hết tài liệu thuộc Hệ thống thông tin đều đạt trên 0.99, cho thấy độ chính xác gần như tuyệt đối. CNTT khóa 2022 đạt BLEU lên tới 0.9928. Đối với cấu trúc dữ liệu phức tạp, kết quả thực nghiệm chỉ ra phần lớn các khóa đều đạt TEDS-Struct 1.0000 dù KTPM khóa 2024 có sự sụt giảm nhẹ.
 
 \begin{table}[H]
 	\centering
+	\caption{Kết quả chi tiết đánh giá MinerU trên các tập tài liệu Chương trình đào tạo (2022-2025)}
+	\label{tab:mineru_eval_detail}
+
 	\small
 	\resizebox{1.05\textwidth}{!}{
 		\begin{tabular}{|l|c|c|c|c|c|c|c|}
@@ -58,70 +53,20 @@
 			\hline
 		\end{tabular}
 	}
-	\caption{Kết quả chi tiết đánh giá MinerU trên các tập tài liệu Chương trình đào tạo (2022-2025)}
-	\label{tab:mineru_eval_detail}
 \end{table}
 
-\indent Biện luận về độ quan trọng của các chỉ số: Đối với kiến trúc truy xuất tăng cường đồ thị (LightRAG) được sử dụng trong hệ thống, các chỉ số BLEU, TEDS-Struct, TEDS-Content và Edit Distance Sim đóng vai trò then chốt nhất. Lý do xuất phát từ đặc thù của tài liệu Chương trình đào tạo, nơi thông tin trọng yếu về điều kiện tiên quyết, phân bổ tín chỉ và ma trận kỹ năng luôn được tổ chức dưới dạng bảng biểu phức tạp. Nếu mô hình bóc tách thất bại trong việc tái tạo cấu trúc bảng (thể hiện qua TEDS-Struct thấp), lượng tri thức này sẽ bị suy biến thành văn bản tuyến tính phi cấu trúc. Chỉ số BLEU cao minh chứng rằng văn bản được bóc tách bảo toàn chính xác các cụm từ (n-gram) từ tài liệu gốc, giúp mô hình ngôn ngữ lớn (LLM) không bị sai lệch ngữ cảnh. Hậu quả của việc điểm số suy giảm là LLM phía sau sẽ trích xuất sai các quan hệ (Relations) và thực thể (Entities), dẫn đến việc sinh ra các cạnh rác trong đồ thị tri thức. Song song đó, chỉ số Edit Distance Sim đảm bảo tính nguyên vẹn của các mã học phần và thuật ngữ kỹ thuật, tạo tiền đề bắt buộc để thuật toán đối soát và hợp nhất thực thể (Entity Deduplication) hoạt động ổn định và chính xác.
-
-\indent Tóm lại, dựa trên các thông số thu nghiệm được ở Bảng \ref{tab:mineru_eval_detail}, bộ giải mã MinerU cho thấy khả năng duy trì cực kỳ tốt cấu trúc tài liệu phức tạp cũng như bảo toàn nội dung văn bản gốc ở đa số các ngành. Cụ thể, các chỉ số cốt lõi như TEDS-Struct và TEDS-Content đều duy trì ở mức hoàn hảo (1.0000) đối với nhóm ngành Hệ thống thông tin (HTTT) và Khoa học máy tính (KHMT), đi kèm với chỉ số Edit Distance Sim tiệm cận mức 1. Mặc dù ở một vài tài liệu cá biệt (như Kỹ thuật phần mềm khóa 2024 hay Trí tuệ nhân tạo khóa 2024) các chỉ số bóc tách bảng có dấu hiệu sụt giảm (TEDS-Struct dưới 0.45), nhưng tổng thể mức độ ổn định của toàn bộ tập dữ liệu vẫn ở mức rất cao. Có thể kết luận rằng, hệ thống bóc tách MinerU hoàn toàn đáp ứng được các yêu cầu khắt khe về tiền xử lý dữ liệu và là một công cụ xuất sắc, đủ tiêu chuẩn để ứng dụng làm đầu vào chất lượng cao cho luồng xử lý của hệ thống LightRAG.
 
 \section{Đánh giá chất lượng đồ thị tri thức}
 
-Hệ thống được triển khai thực nghiệm trên hạ tầng máy chủ đám mây nhằm đảm bảo khả năng xử lý các tác vụ phức tạp của Mô hình ngôn ngữ lớn (LLM) \cite{xi2023rise} và cơ sở dữ liệu đồ thị \cite{hogan2021knowledge}. Bộ dữ liệu kiểm thử (Benchmark Dataset) bao gồm 200 câu hỏi chuẩn được trích xuất từ các tình huống thực tế của sinh viên Khoa Công nghệ Thông tin liên quan đến quy chế đào tạo, sổ tay học vụ và lộ trình môn học.
 
-\subsection{Tổng quan và Lý do lựa chọn bộ tiêu chí đánh giá}
-
-Khi triển khai kiến trúc LightRAG \cite{lightrag} vào bài toán dữ liệu có tính hệ thống cao như Chương trình đào tạo, rủi ro lớn nhất là việc mô hình ngôn ngữ sẽ gặp ''ảo giác'' (Hallucination) hoặc thiết lập các chuỗi quan hệ rác, mất tính liên kết. Thay vì phụ thuộc 100\% vào hệ thống học máy, việc nâng cấp sử dụng phương pháp phân tích tĩnh và động (Hybrid Assessment) cho việc đánh giá đồ thị mạng lưới \cite{knowledge_graphs} giúp mang lại khả năng đo đạc minh bạch.
-
-\indent Đồ thị tri thức sinh tự động từ LLM trên miền dữ liệu đặc thù tiếng Việt đặt ra ba thách thức kỹ thuật cụ thể: (i)~phát hiện vi phạm ràng buộc cấu trúc mà không cần ontology cố định trước, (ii)~đánh giá độ trung thực ngữ nghĩa của từng triple trên văn bản nguồn tiếng Việt chuyên ngành, và (iii)~đo lường hiệu quả hợp nhất thực thể (entity deduplication) trong điều kiện nhãn ground-truth bị giới hạn. Ba thách thức này trực tiếp quy định bộ tiêu chí đánh giá được trình bày dưới đây \cite{kg_survey_eval_2023}.
-
-\indent \textbf{Nhóm 1 --- Đánh giá cấu trúc đồ thị (SHACL):} Chuẩn SHACL của W3C \cite{shacl_w3c} được lựa chọn vì là tiêu chuẩn duy nhất có thể kiểm tra ràng buộc cấu trúc đồ thị mà không yêu cầu tập dữ liệu nhãn thủ công. Hai phương án thay thế được xem xét là \textit{OWL Reasoner} và \textit{SPARQL-based validation}. OWL Reasoner có ưu điểm là hỗ trợ suy diễn logic phức tạp (ví dụ kế thừa lớp, đóng mở thế giới), nhưng yêu cầu bản thể học (ontology) phải được định nghĩa đầy đủ tường minh trước --- điều không phù hợp với đồ thị tri thức được sinh tự động từ LLM với cấu trúc linh hoạt và chưa hoàn chỉnh. SPARQL-based validation có ưu điểm là rất linh hoạt trong việc viết truy vấn kiểm tra, nhưng đòi hỏi một endpoint SPARQL riêng biệt và không có cơ chế báo cáo vi phạm chuẩn hóa, làm tăng chi phí vận hành hạ tầng. SHACL đã được kiểm chứng thực tiễn quy mô lớn trên Wikidata \cite{shacl_wikidata}, một trong những đồ thị tri thức mở lớn nhất thế giới, chứng minh khả năng mở rộng và độ tin cậy ở quy mô thực tế.
-
-\indent \textbf{Nhóm 2 --- Đánh giá độ hữu cơ của quan hệ (LLM-as-a-Judge):} Phương pháp sử dụng mô hình ngôn ngữ lớn làm trọng tài \cite{zheng2023judging} được ưu tiên so với bốn phương án thay thế: (1)~\textit{Pattern matching} có ưu điểm là nhanh và rẻ, nhưng không hiệu quả với tiếng Việt chuyên ngành vì thiếu tập quy tắc được chuẩn hóa; (2)~\textit{Triple validation} qua cơ sở tri thức bên ngoài (Wikidata, ConceptNet) có ưu điểm là khách quan nhưng gần như bất khả thi với tri thức đặc thù của một khoa đại học trong nước --- không có cơ sở dữ liệu nào chứa thông tin về chuẩn đầu ra CLO hay mã học phần nội bộ; (3)~\textit{KGEval} \cite{kgeval_2023} --- framework đánh giá KG thông qua các bài toán link prediction trên Knowledge Graph Embedding --- cho kết quả tốt trên đồ thị chuẩn hóa như Freebase và DBpedia nhưng yêu cầu tập thực thể đầy đủ và nhãn quan hệ cố định trước, không khả thi với đồ thị sinh tự động có nhãn mở; (4)~\textit{GENIE} \cite{genie_2022} --- benchmark đánh giá chất lượng văn bản sinh kết hợp đánh giá tự động và con người --- được thiết kế cho các tác vụ cấp câu như summarization và dialogue, không cung cấp cơ chế kiểm tra groundedness ở cấp độ từng triple riêng lẻ trong đồ thị tri thức.
-
-\indent \textbf{Nhóm 3 --- Đánh giá hợp nhất thực thể (V-Measure):} Nhóm này được chú trọng đặc biệt vì bài toán deduplication trên đồ thị sinh tự động rất dễ gặp lỗi gộp nhầm các thực thể có tên tương đồng nhưng bản chất khác nhau. Sáu chỉ số được xem xét bao gồm các phương pháp truyền thống và các kỹ thuật hiện đại nhất (2023--2024):
-
-\begin{itemize}
-    \item \textbf{MUC} (1995) \cite{muc_vilain}: Ưu điểm là đơn giản, nhược điểm là thiên vị cụm lớn (large-cluster bias). Không phù hợp vì gây đánh giá sai lệch trong deduplication.
-    \item \textbf{B-Cubed} (1998) \cite{bcubed_bagga}: Giảm thiên vị cluster-size nhưng không phân tách được lỗi gộp nhầm (over-merge) và bỏ sót gộp (under-merge).
-    \item \textbf{CEAF} (2005) \cite{ceaf_luo} và \textbf{ARI} (1985) \cite{hubert1985ari}: Có độ chính xác cao nhưng yêu cầu ground-truth clustering đầy đủ --- một rào cản quá lớn với dữ liệu sinh tự động quy mô nghìn thực thể.
-    \item \textbf{Variation of Information (VI)} \cite{meila2003vi}: Một chỉ số dựa trên lý thuyết thông tin (entropy) hiện đại và mạnh mẽ, đo lường lượng thông tin bị mất hoặc tăng thêm giữa hai phân cụm. VI có ưu điểm là thỏa mãn các tính chất toán học của một "metric" (khoảng cách), nhưng nhược điểm là khó diễn giải giá trị tuyệt đối (không nằm trong khoảng [0, 1] cố định) nên khó so sánh trực quan giữa các phiên bản đồ thị khác nhau.
-    \item \textbf{Generalized Merge Distance (GMD)} \cite{menestrina2010gmd}: Phương pháp hiện đại cho phép tùy chỉnh "chi phí" (cost) cho các lỗi split (chia nhỏ cụm) và merge (gộp nhầm). Đây là công cụ chẩn đoán cực kỳ mạnh mẽ, nhưng đòi hỏi phải thiết lập ma trận chi phí chủ quan, có thể gây thiếu khách quan trong báo cáo khoa học nếu không có cơ sở trọng số rõ ràng.
-\end{itemize}
-
-\indent V-Measure \cite{vmeasure_rosenberg} vượt qua các hạn chế trên nhờ cách tiếp cận dựa trên lý thuyết thông tin: đo đồng thời \textit{homogeneity} (mỗi cụm chỉ chứa một loại thực thể) và \textit{completeness} (mọi thực thể cùng loại vào cùng một cụm), tổng hợp thành điểm F tổng quát. Thiết kế này cho phép phân tích tách biệt lỗi over-merge và under-merge mà không cần ground-truth gán nhãn đầy đủ --- chỉ cần tập mẫu kiểm tra ngẫu nhiên đủ lớn theo lý thuyết thống kê \cite{kopcke2010framework}.
-
-\indent \textbf{Tính bền vững và khả năng mở rộng (2024+):} Mặc dù V-Measure ra đời năm 2007, nó vẫn là nền tảng cho các framework đánh giá tiên tiến nhất hiện nay. Khảo sát của Ji et al.\ \cite{kg_survey_eval_2023} và các nghiên cứu về \textit{Pointwise Clustering Metrics} từ Google (2024) \cite{vanstaden2024pointwise} đều nhấn mạnh việc phân tách rõ rệt giữa tính đồng nhất (Homogeneity) và tính đầy đủ (Completeness) là hướng đi đúng đắn để tối ưu hệ thống AI. V-Measure được chọn vì nó chuẩn hóa (normalize) các khái niệm entropy từ VI vào thang điểm [0, 1] dễ hiểu, đồng thời không yêu cầu ground-truth toàn phần như ARI hay CEAF. Việc sử dụng V-Measure đảm bảo báo cáo thực nghiệm vừa mang tính học thuật hiện đại, vừa có khả năng chẩn đoán lỗi trích xuất thực thể từ LLM một cách minh bạch.
-
-\subsection{Kết quả đánh giá thực nghiệm}
-
-Tính chính xác và toàn vẹn của đồ thị tri thức quyết định trực tiếp khả năng suy luận của hệ thống. Nhóm thực hiện quy trình thẩm định sâu về ngữ nghĩa và cấu trúc thông qua ba trụ cột kỹ thuật chính kế thừa từ các nghiên cứu tiên tiến. 
-
-Phân hệ thứ nhất tập trung vào tình trạng cấu trúc đồ thị, hoàn toàn không sử dụng mô hình ngôn ngữ lớn mà ứng dụng bộ quy tắc kiểm định ràng buộc tĩnh kế thừa từ chuẩn ngôn ngữ SHACL của W3C \cite{shacl_w3c}. Phương pháp này đã được ứng dụng rộng rãi trong việc làm sạch cấu trúc đồ thị Wikidata \cite{shacl_wikidata}. Các hạng mục rà soát bao gồm việc tìm kiếm các nút mồ côi thông qua duyệt đồ thị có hướng để phát hiện các đỉnh bậc không, đồng thời sử dụng phương pháp nhúng vector để phát hiện các thực thể trùng lặp dựa trên giới hạn độ tương đồng cosine \cite{ner_survey, knowledge_graphs}. 
-
-Phân hệ thứ hai tập trung vào việc đánh giá độ lắng đọng trích xuất bằng kỹ thuật LLM-as-a-Judge, lấy nền tảng từ quy trình kiểm duyệt chất lượng của kiến trúc GraphRAG \cite{graphrag}. Tiêu chí cốt lõi là độ có cơ sở (Groundedness), bắt buộc mối quan hệ phải tồn tại chứng cứ tường minh từ các đoạn văn bản gốc. Nhóm đã cải tiến cửa sổ ngữ cảnh lên tối đa 128,000 tokens để ngăn chặn hiện tượng âm tính giả. 
-
-Phân hệ thứ ba rà soát lỗi quên gộp thực thể dựa trên khung chuẩn ghép cặp thực thể trong cơ sở dữ liệu và liên kết bản ghi \cite{kopcke2010framework}. Hệ thống đo lường hiệu quả thông qua chỉ số V-Measure, vốn là chuẩn đánh giá cao cấp của Google Cloud Enterprise Knowledge Graph \cite{knowledge_graphs}. 
-
-Để đo lường khách quan hiệu quả của các quy trình tối ưu hóa, nhóm sử dụng sáu chỉ số đánh giá cốt lõi:
-\begin{itemize}
-    \item \textbf{Nút mồ côi (Dangling Nodes):} Là các đỉnh trong đồ thị không có bất kỳ mối quan hệ kết nối nào. Tỷ lệ này cao cho thấy tri thức bị phân mảnh, rời rạc.
-    \item \textbf{Độ phủ văn bản (Chunk Coverage):} Đo lường khả năng trích xuất toàn vẹn tri thức từ dữ liệu thô. Chỉ số này phản ánh việc hệ thống có bỏ sót thông tin quan trọng trong tài liệu gốc hay không.
-    \item \textbf{Độ có cơ sở (Groundedness):} Đảm bảo mọi quan hệ trích xuất đều có bằng chứng xác thực từ văn bản nguồn, ngăn chặn lỗi ảo giác thông tin của LLM.
-    \item \textbf{Bỏ sót gộp (C1 Rate - Under-merge):} Tỷ lệ các thực thể cùng thực thể nhưng bị trích xuất thành nhiều nút khác nhau (ví dụ: "Khoa CNTT" và "Khoa Công nghệ Thông tin").
-    \item \textbf{Độ thuần khiết (C2 Rate - Purity):} Đảm bảo các thực thể thực sự khác nhau không bị gộp chung vào một nút (tránh hiện tượng đồng nhất hóa sai lầm).
-    \item \textbf{Overall V-Measure:} Chỉ số tổng quát đánh giá sự cân bằng giữa tính đầy đủ và tính chính xác của quy trình deduplication thực thể.
-\end{itemize}
-
-Nhóm đã lựa chọn mô hình \textbf{Qwen/Qwen2.5-72B-Instruct} làm trọng tài (Judge) cho quá trình đánh giá. Đây là dòng mô hình mã nguồn mở hàng đầu hiện nay, có khả năng tư duy logic (reasoning) và am hiểu sâu sắc ngữ pháp tiếng Việt, giúp phân tách được các khái niệm chuyên môn phức tạp mà các mô hình nhỏ thường nhầm lẫn.
-
-Trong quá trình thực nghiệm trên bộ dữ liệu Chương trình đào tạo và Website thông tin của khoa, hệ thống đã xây dựng hai phiên bản đồ thị để đối soát chất lượng: Phiên bản gốc (Origin) và phiên bản tích hợp SHACL (Tối ưu). Để đạt độ bảo vệ dữ liệu cấp doanh nghiệp, nhóm đã tích hợp các định lý từ Knowledge Vault về việc kết hợp phân tích đa nguồn \cite{knowledge_graphs}. Việc lựa chọn quy mô mẫu thử N=500 dựa trên lý thuyết hội tụ tri thức, đảm bảo bao phủ được các quan hệ hiếm gặp và đạt độ tin cậy thống kê 95\% với sai số biên nhỏ.
 
 Dưới đây là kết quả thực nghiệm đối soát toàn diện giữa kiến trúc LightRAG nguyên bản (Origin) và kiến trúc tối ưu (Tối ưu) tích hợp SHACL:
 
 \begin{table}[H]
 	\centering
+	\caption{Tổng hợp kết quả đánh giá đồ thị tri thức trên các cấp độ lấy mẫu khác nhau}
+	\label{tab:triple_comparison}
+
 	\small
 	\resizebox{1.05\textwidth}{!}{
 		\begin{tabular}{|l|c|c|c|c|c|c|}
@@ -136,275 +81,753 @@ Dưới đây là kết quả thực nghiệm đối soát toàn diện giữa k
 			Overall V-Measure & 57.9\% & 80.2\% & 62.2\% & 84.8\% & 68.3\% & 84.8\% \\ \hline
 		\end{tabular}
 	}
-	\caption{Tổng hợp kết quả đánh giá đồ thị tri thức trên các cấp độ lấy mẫu khác nhau}
-	\label{tab:triple_comparison}
 \end{table}
 
-Phân tích kết quả thực nghiệm cho thấy sự cải thiện vượt bậc sau khi áp dụng quy trình tối ưu:
-\begin{itemize}
-    \item \textbf{Giảm tỷ lệ nút mồ côi:} Tỷ lệ giảm mạnh từ \textbf{19.4\% xuống còn 5.2\%}. Kết quả này chứng minh rằng việc áp dụng SHACL và thuật toán duyệt đồ thị đã buộc các thực thể phải được kết nối vào ngữ cảnh chung, loại bỏ các "ốc đảo tri thức" cô lập, từ đó giúp câu trả lời của AI luôn có sự liên kết logic.
-    \item \textbf{Đột phá về độ phủ văn bản:} Tăng từ \textbf{36.1\% lên mức ấn tượng 96.9\%}. Điều này có nghĩa là gần như toàn bộ thông tin quan trọng trong Chương trình đào tạo và Website của Khoa đã được hệ thống "hấp thụ" vào đồ thị tri thức, không còn hiện tượng bỏ sót thông tin như phiên bản cũ.
-    \item \textbf{Cải thiện chất lượng hợp nhất thực thể:} Chỉ số \textbf{V-Measure tăng từ ~60\% lên ~85\%}, cùng với việc tỷ lệ bỏ sót gộp (C1) giảm từ \textbf{44\% xuống còn 8\%}. Điều này giải quyết bài toán nhức nhối khi một giảng viên hoặc một môn học bị trích xuất thành nhiều thực thể khác nhau, giúp đồ thị trở nên tinh gọn và chính xác hơn. Đặc biệt, các trường hợp chưa được hệ thống tự động nhận diện vẫn có thể được hợp nhất thủ công thông qua giao diện quản lý đồ thị, đảm bảo tính chuẩn xác tuyệt đối của tri thức.
-    \item \textbf{Độ có cơ sở (Groundedness):} Luôn duy trì ở mức tiệm cận tuyệt đối (\textbf{0.998 - 1.000}), khẳng định sự kết hợp giữa ràng buộc cấu trúc SHACL và mô hình ngôn ngữ cấp chuyên gia đã loại bỏ hoàn toàn các quan hệ sai lệch, đảm bảo tri thức đạt chuẩn tin cậy học thuật \cite{graphrag}.
-\end{itemize}
+Phân tích kết quả thực nghiệm cho thấy một sự cải thiện vượt bậc và toàn diện sau khi áp dụng quy trình tối ưu. Cụ thể, tỷ lệ nút mồ côi đã giảm mạnh từ 19.4\% xuống chỉ còn 5.2\%. Sự chuyển biến này chứng minh rằng việc áp dụng SHACL cùng thuật toán duyệt đồ thị đã ép buộc các thực thể hòa nhập vào ngữ cảnh chung, triệt tiêu hiệu quả các "ốc đảo tri thức" cô lập và đảm bảo tính liên kết logic trong từng câu trả lời của AI. Nhờ vậy, hệ thống cũng ghi nhận một bước đột phá lớn về độ phủ văn bản khi tăng từ 36.1\% lên mức ấn tượng 96.9\%; điều này khẳng định gần như toàn bộ thông tin trọng yếu đã được "hấp thụ" thành công vào đồ thị tri thức mà không bị bỏ sót. Cùng với đó, chất lượng hợp nhất thực thể cũng chứng kiến sự thăng tiến đáng kể khi chỉ số V-Measure tăng từ khoảng 60\% lên 85\%, kéo theo tỷ lệ bỏ sót gộp (C1) giảm mạnh từ 44\% xuống 8\%. Những con số này minh chứng cho việc giải quyết thành công tình trạng phân mảnh thực thể, làm cho đồ thị trở nên tinh gọn, trong khi vẫn cho phép sự can thiệp thủ công qua giao diện để duy trì độ chuẩn xác tuyệt đối. Đáng chú ý nhất, độ có cơ sở (Groundedness) luôn được duy trì ở mức tiệm cận tuyệt đối (0.998 - 1.000), qua đó khẳng định sự kết hợp giữa SHACL và mô hình ngôn ngữ cấp chuyên gia đã loại bỏ hoàn toàn các quan hệ sai lệch, đáp ứng trọn vẹn tiêu chuẩn tin cậy học thuật \cite{graphrag}.
 
 \section{Đánh giá chất lượng truy xuất và sinh văn bản (RAG Metrics)}
-Chất lượng sinh văn bản của hệ thống được đo lường khắt khe dựa trên khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas}. Các chỉ số đạt được trên bộ 200 câu hỏi chuẩn như sau:
-\begin{itemize}
-	\item \textbf{Độ trung thực (Faithfulness):} Đạt mức 76.07\%. Chỉ số này chứng minh hệ thống có khả năng bám sát ngữ cảnh từ Đồ thị tri thức, hạn chế tối đa việc AI bị ảo giác (Hallucination) và tự bịa đặt thông tin \cite{ji2023survey}.
-	\item \textbf{Độ liên quan của câu trả lời (Answer Relevance):} Đạt mức 88.76\%. Câu trả lời sinh ra đáp ứng đúng trọng tâm truy vấn của sinh viên, vượt trội so với các phương pháp RAG truyền thống \cite{lewis2020rag}.
-	\item \textbf{Độ gọi bối cảnh (Context Recall):} Đạt mức 76.01\%. Nhờ cơ chế Graph-aware Retrieval lấy cảm hứng từ GraphRAG \cite{edge2024graphrag}, hệ thống truy xuất thành công các khái niệm phân tán mà phương pháp Vector Search truyền thống thường bỏ sót.
-\end{itemize}
+Chất lượng sinh văn bản của hệ thống được đo lường khắt khe dựa trên khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas}, mang lại những kết quả khả quan trên bộ 200 câu hỏi chuẩn. Yếu tố nổi bật nhất là Độ liên quan của câu trả lời (Answer Relevance) đạt mức 88.76\%, chứng tỏ các phản hồi sinh ra đáp ứng đúng trọng tâm truy vấn của sinh viên, vượt trội rõ rệt so với các phương pháp RAG truyền thống \cite{lewis2020rag}. Để hỗ trợ cho sự chính xác này, hệ thống duy trì Độ trung thực (Faithfulness) ở mức 76.07\%; kết quả này minh chứng cho khả năng bám sát ngữ cảnh từ Đồ thị tri thức, qua đó hạn chế tối đa việc mô hình bị "ảo giác" (Hallucination) hoặc tự bịa đặt thông tin \cite{ji2023survey}. Thêm vào đó, thông qua cơ chế Graph-aware Retrieval lấy cảm hứng từ GraphRAG \cite{edge2024graphrag}, Độ gọi bối cảnh (Context Recall) cũng đạt 76.01\%, cho thấy hệ thống có khả năng truy xuất thành công các khái niệm phân tán vốn là thách thức lớn đối với kỹ thuật Vector Search thông thường.
 
 \section{Đánh giá hiệu năng điều phối Đa tác nhân (Agentic Metrics)}
-Việc tích hợp kiến trúc LangGraph mang lại sự linh hoạt nhưng cũng đặt ra bài toán về hiệu năng tính toán. Quá trình kiểm định ghi nhận các thông số sau:
-\begin{itemize}
-	\item \textbf{Tỷ lệ điều phối đúng công cụ (Routing Accuracy):} Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng công cụ truy xuất (Local, Global hoặc Hybrid).
-	\item \textbf{Tốc độ phản hồi (Average Latency):} Thời gian trung bình từ khi nhận câu hỏi đến khi xuất ra câu trả lời hoàn chỉnh là 7.32 giây. 
-\end{itemize}
+Việc tích hợp kiến trúc LangGraph mang lại sự linh hoạt lớn cho hệ thống nhưng đồng thời cũng đặt ra bài toán về hiệu năng tính toán. Quá trình kiểm định cho thấy Tác nhân Orchestrator hoạt động vô cùng hiệu quả với tỷ lệ điều phối đúng công cụ (Routing Accuracy) đạt độ chính xác cao, đặc biệt trong việc phân loại ý định người dùng để điều hướng tới luồng truy xuất phù hợp (Local, Global hoặc Hybrid). Bất chấp sự phức tạp của luồng đa tác nhân, tốc độ phản hồi (Average Latency) vẫn được tối ưu ở mức chấp nhận được, với thời gian trung bình từ lúc nhận câu hỏi đến khi xuất ra câu trả lời hoàn chỉnh đạt 7.32 giây.
 
 \section{Đánh giá hệ thống từ phía người dùng cuối}
 Quá trình thử nghiệm thực tế (Beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru 40 câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
 
 Đặc biệt, hệ thống xử lý hiệu quả các truy vấn phức tạp trên diễn đàn (Forum) chứa từ khóa lóng và văn phong tự do. Các câu hỏi vi phạm chính sách hoặc mang tính chất spam đều bị Tác nhân phân tích nhận diện và từ chối phản hồi ngay lập tức, đảm bảo môi trường học thuật lành mạnh.
 
-\begin{comment} % Tạm comment 4.5 UML & Use Case - sẽ tích hợp vào Chapter4_ThietKeUngDung
-\section{Hồ sơ thiết kế và cài đặt hệ thống (UML \& Use Case)}
+\section{Thiết kế và xây dựng ứng dụng}
+\label{Chapter4-ThietKe}
 
-% Hệ thống gồm phân hệ chính là \textbf{Người dùng}. Phân hệ tương tác với hệ thống thông qua các chức năng sau:
+% ============================================================
+\subsection{Ý tưởng ứng dụng}
 
-% \begin{table}[H]
-% 	\centering
-% 	\caption{Chức năng của từng phân hệ}
-% 	\begin{tabular}{|c|l|p{8cm}|}
-% 		\hline
-% 		\textbf{STT} & \textbf{Phân hệ} & \textbf{Chức năng} \\
-% 		\hline
-% 		1 & \centering Người dùng & 
-% 		\begin{itemize}
-% 			\item Join/leave forum
-% 			\item Xem danh sách và chi tiết forum.
-% 			\item Tạo bài đăng, tương tác (bình luận, nhận thông báo)
-% 			\item Nhận thông báo khi có hoạt động liên quan.
-% 			\item Chat với AI Agent.
-			
-% 		\end{itemize} \\
-% 		\hline
-% 	\end{tabular}
-% \end{table}
+Sinh viên Khoa Công nghệ Thông tin tại Trường Đại học Khoa học Tự nhiên (HCMUS) đang phải đối mặt với một khối lượng thông tin học vụ lớn và phân tán: từ chương trình đào tạo, đề cương chi tiết từng môn học, quy chế học vụ đến mạng lưới môn tiên quyết và song hành. Để tìm được câu trả lời cho một câu hỏi đơn giản như ``Mình cần học gì trước khi học Trí tuệ Nhân tạo?'', sinh viên thường phải lần lượt tra cứu qua nhiều tệp PDF rời rạc hoặc chờ đợi giờ tư vấn của giảng viên.
 
-% \subsection{Actor}
+Ý tưởng trung tâm của hệ thống là xây dựng một trợ lý học tập thông minh có khả năng hiểu sâu về toàn bộ kho tri thức học vụ của Khoa. Hệ thống không chỉ trả lời các câu hỏi đơn lẻ mà còn hiểu được mối liên hệ logic giữa các môn học, chuyên ngành và yêu cầu tốt nghiệp, từ đó đưa ra lời tư vấn cá nhân hóa và có căn cứ rõ ràng.
 
-% Hệ thống diễn đàn có actor chính là: \textbf{Người dùng}.
+\subsubsection{Các tình huống sử dụng tiêu biểu}
 
-% \begin{table}[H]
-% 	\centering
-% 	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
-% 	\caption{Danh sách Actor}
-% 	\begin{tabular}{|c|l|p{9cm}|}
-% 		\hline
-% 		\textbf{STT} & \textbf{Actor} & \textbf{Ý nghĩa / Ghi chú} \\
-% 		\hline
-% 		1 & \centering Người dùng & Là thành phần đáng chú ý nhất của hệ thống. Nhóm người trực tiếp trải nghiệm hệ thống và đưa ra ý kiến, góp ý cho nhà phát triển.  \\
-% 		\hline
-% 	\end{tabular}
+Tình huống 1: Tra cứu lộ trình môn học.
+Sinh viên năm hai đang lập kế hoạch học tập đặt câu hỏi: \textit{``Mình muốn học môn Trí tuệ Nhân tạo thì cần học những môn gì trước?''}. Hệ thống AI Agent phân tích câu hỏi, truy xuất đồ thị tri thức để xác định chuỗi môn tiên quyết, sau đó trả lời chi tiết kèm mã môn học và lộ trình học kỳ gợi ý.
+
+Tình huống 2: Kiểm tra điều kiện tốt nghiệp.
+Sinh viên năm bốn hỏi: \textit{``Mình còn thiếu những gì để đủ điều kiện xét tốt nghiệp?''}. Hệ thống đối chiếu hồ sơ học tập cá nhân được lưu trong bộ nhớ dài hạn với quy định chuẩn đầu ra của Khoa, liệt kê các môn còn thiếu và đưa ra gợi ý đăng ký cho học kỳ tiếp theo.
+
+Tình huống 3: Hỏi đáp về quy chế học vụ.
+Sinh viên thắc mắc: \textit{``Nếu mình trượt môn tiên quyết thì kỳ sau có được đăng ký môn tiếp theo không?''}. Hệ thống tra cứu quy chế đào tạo tín chỉ của trường, trả lời chính xác với đoạn trích dẫn từ văn bản quy chế tương ứng.
+
+\subsubsection{Đối tượng người dùng mục tiêu}
+
+Hệ thống hướng tới hai nhóm người dùng chính: Sinh viên Khoa Công nghệ Thông tin tại Trường Đại Học Khoa Học Tự Nhiên, những người cần tra cứu thông tin học vụ và lập kế hoạch học tập.
+
+% ============================================================
+\subsection{Phân tích và đặc tả yêu cầu}
+
+\subsubsection{Yêu cầu chức năng}
+
+Hệ thống được xác định cần đáp ứng các nhóm chức năng chính được liệt kê trong Bảng~\ref{tab:yc_chuc_nang}.
+
+\begin{table}[H]
+	\centering
+	\caption{Danh sách yêu cầu chức năng}
+	\label{tab:yc_chuc_nang}
+
+	\renewcommand{\arraystretch}{1.4}
+	\begin{tabular}{|c|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{8.5cm}|}
+		\hline
+		STT & Nhóm chức năng & Mô tả \\ \hline
+		1 & Xác thực người dùng & Đăng ký tài khoản, đăng nhập bằng email/mật khẩu, khôi phục mật khẩu qua email. \\ \hline
+		2 & Chat với AI Agents & Đặt câu hỏi học vụ bằng ngôn ngữ tự nhiên, nhận câu trả lời có nguồn gốc từ đồ thị tri thức, xem lại lịch sử hội thoại theo phiên. \\ \hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{Yêu cầu phi chức năng}
+
+\begin{table}[H]
+	\centering
+	\caption{Yêu cầu phi chức năng}
+	\label{tab:yc_phi_cn}
+
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabular}{|c|l|p{9cm}|}
+		\hline
+		STT & Yêu cầu & Ý nghĩa / Mô tả \\
+		\hline
+		1 & Hiệu suất & Giao diện AI Chat phải đảm bảo tải trong vòng $\leq 2$ giây để đảm bảo trải nghiệm người dùng. \\
+		\hline
+		2 & Khả năng mở rộng & Hệ thống phải mở rộng được để xử lý lượng lớn người dùng và phiên hội thoại đồng thời. \\
+		\hline
+		3 & Khả dụng & Hệ thống phải hoạt động liên tục với uptime $\geq 99.9\%$/năm. \\
+		\hline
+		4 & Đáp ứng & Các thao tác cơ bản như đăng nhập, AI Chat phản hồi nhanh (dưới 1 giây). \\
+		\hline
+		5 & Khả năng sử dụng & UI/UX đơn giản, dễ hiểu, dễ đặt câu hỏi AI. \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{Danh sách Actor}
+
+Hệ thống xác định một Actor chính tương tác trực tiếp với toàn bộ các chức năng:
+
+\begin{table}[H]
+	\centering
+	\caption{Danh sách Actor}
+	\label{tab:actor}
+
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabular}{|c|l|p{9cm}|}
+		\hline
+		STT & Actor & Ý nghĩa / Ghi chú \\
+		\hline
+		1 & Người dùng & Sinh viên trực tiếp sử dụng hệ thống, thao tác các chức năng và gửi phản hồi. \\
+		\hline
+	\end{tabular}
+\end{table}
+
+% ============================================================
+\subsection{Mô hình Use Case}
+
+Hệ thống có một phân hệ chính là Sinh viên, tương tác với hệ thống qua ba chức năng: đăng ký tài khoản, đăng nhập và chat với AI Agents. Sơ đồ Use Case tổng quan được thể hiện tại Hình~\ref{fig:usecase}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/usecase2.drawio.png}
+	\caption{Sơ đồ Use Case hệ thống}
+	\label{fig:usecase}
+\end{figure}
+
+\subsubsection{Danh sách Use Case}
+
+\begin{table}[H]
+	\centering
+	\caption{Danh sách Use Case}
+	\label{tab:ds_uc}
+
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabular}{|c|p{4.5cm}|p{7cm}|p{2.5cm}|}
+		\hline
+		STT & Tên Use Case & Mô tả & Actor \\ \hline
+		1 & Đăng ký tài khoản & Sinh viên tạo tài khoản mới trên hệ thống. & \multirow{3}{2.5cm}{\centering Sinh viên} \\ \cline{1-3}
+		2 & Đăng nhập & Sinh viên đăng nhập bằng email và mật khẩu. & \\ \cline{1-3}
+		3 & Chat với AI Agents & Sinh viên đặt câu hỏi học vụ và nhận tư vấn thông minh từ AI. & \\ \hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả Use Case}
+\setcounter{secnumdepth}{3}
+\renewcommand{\arraystretch}{1.4}
+
+\paragraph{Use Case: Đăng ký tài khoản}
+\label{sec:uc-dang-ky}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
+	\hline
+	Tên use-case & Đăng ký tài khoản \\ \hline
+	Tóm tắt & Cho phép sinh viên tạo tài khoản mới để sử dụng hệ thống. \\ \hline
+	Tác nhân & Sinh viên \\ \hline
+	Use-case liên quan & Đăng nhập \\ \hline
+	Điều kiện tiên quyết & Email chưa được đăng ký trong hệ thống. \\ \hline
+	Dòng sự kiện chính &
 	
-% \end{table}
-
-% % ================= IMAGE =================
-% % Thêm hình Use Case tại đây
-% \begin{figure}[H]
-% 	\centering
-% 	\includegraphics[width=0.8\textwidth]{images/Sơ đồ UC.drawio.png }
-% 	\caption{Sơ đồ Use Case hệ thống}
-% \end{figure}
-% \subsection{Danh sách Use Case}
-% \begin{table}[H]
-% 	\centering
-% 	\renewcommand{\arraystretch}{1.5}
-% 	\setlength{\tabcolsep}{10pt}
-% 	\caption{Danh sách Use Case}
-% 	\begin{tabular}{|c|p{5cm}|p{5cm}|p{3cm}|}
-% 		\hline
-% 		STT & Tên UC & Mô tả & Actor \\
-% 		\hline
-% 		1 & Đăng ký & Người dùng tạo tài khoản mới & Người dùng \\
-% 		\cline{1-3}
-% 		2 & Đăng nhập & Người dùng đăng nhập bằng email và mật khẩu & \\
-% 		\cline{1-3}
-% 		3 & Xem thông tin cá nhân & Hiển thị thông tin người dùng & \\
-% 		\cline{1-3}
-% 		4 & Cập nhật thông tin & Chỉnh sửa thông tin cá nhân & \\
-% 		\cline{1-3}
-% 		5 & Xem danh sách forum & Duyệt danh sách forum & \\
-% 		\cline{1-3}
-% 		6 & Xem chi tiết forum & Xem thông tin chi tiết forum & \\
-% 		\cline{1-3}
-% 		7 & Tham gia forum & Tham gia một forum & \\
-% 		\cline{1-3}
-% 		8 & Rời forum & Rời khỏi forum & \\
-% 		\cline{1-3}
-% 		9 & Tạo bài đăng & Tạo bài viết mới & \\
-% 		\cline{1-3}
-% 		10 & Xem bài đăng & Xem nội dung bài viết & \\
-% 		\cline{1-3}
-% 		11 & Bình luận & Bình luận vào bài viết & \\
-% 		\cline{1-3}
-% 		12 & Nhận thông báo & Nhận thông báo từ hệ thống & \\
 		
+- Sinh viên truy cập trang đăng ký.
 		
-% 		\hline
-% 	\end{tabular}
-% \end{table}
+- Sinh viên nhập họ tên, email và mật khẩu.
+		
+- Sinh viên xác nhận mật khẩu và đồng ý điều khoản.
+		
+- Sinh viên nhấn nút \textit{Đăng ký}.
+		
+- Hệ thống kiểm tra hợp lệ và tạo tài khoản.
+		
+- Hệ thống chuyển hướng sang trang đăng nhập.
+	 \\ \hline
+	Dòng sự kiện phụ & A1. Rẽ nhánh tại bước 2, email đã tồn tại: Hệ thống hiển thị thông báo lỗi và yêu cầu sinh viên sử dụng email khác. \\ \hline
+	Hậu điều kiện & Tài khoản được tạo thành công; sinh viên có thể đăng nhập vào hệ thống. \\ \hline
+\end{longtable}
 
-% \subsection{Yêu cầu phi chức năng}
-% \begin{table}[H]
-% 	\centering
-% 	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
-% 	\begin{tabular}{|c|l|p{9cm}|}
-% 		\hline
-% 		\textbf{STT} & \textbf{Yêu cầu} & \textbf{Ý nghĩa / Mô tả} \\
-% 		\hline
-% 		1 & Hiệu suất & Trang forum (danh sách, chi tiết, bài đăng) phải đảm bảo tải trong vòng  $\leq 2$ giây để đảm bảo trải nghiệm người dùng.\\
-% 		\hline
-% 		2 & Khả năng mở rộng & Hê thống phải mở rộng được để xử lý lượng lớn người dùng, bài đăng, comment và forum. \\
-% 		\hline
-% 		3 & Khả dụng & Hệ thống phải hoạt động liên tục với uptime $\geq 99.9\%$/năm \\
-% 		\hline
-% 		4 & Đáp ứng & Các thao tác như join/leave forum, đăng bài, comment phải phản hồi nhanh \\
-		
-% 		\hline
-% 		5 & Khả năng sử dụng & UI/UX đơn giản, dễ hiểu, dễ join forum, tạo bài, đăng thông báo \\
-		
-% 		\hline
-% 	\end{tabular}
-% 	\caption{Yêu cầu phi chức năng}
-% \end{table}
-% \subsection{Đặc tả Use-Case}
-% \setcounter{secnumdepth}{3}
-% \renewcommand{\arraystretch}{1}
-% \subsubsection{Use-case Chat với AI Agent}
-% \label{sec:uc-create-post}
+\paragraph{Use Case: Đăng nhập}
+\label{sec:uc-dang-nhap}
 
-% \begin{longtable}{|l|p{10cm}|}
-% 	\hline
-% 	\textbf{Tên Use Case} & Chat với AI Agent để Trả Lời Câu Hỏi Học Tập \\ \hline
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
+	\hline
+	Tên use-case & Đăng nhập hệ thống \\ \hline
+	Tóm tắt & Cho phép sinh viên xác thực danh tính và truy cập vào hệ thống. \\ \hline
+	Tác nhân & Sinh viên \\ \hline
+	Use-case liên quan & Đăng ký tài khoản, Chat với AI Agents \\ \hline
+	Điều kiện tiên quyết & Sinh viên đã có tài khoản được đăng ký trong hệ thống. \\ \hline
+	Dòng sự kiện chính &
 	
-% 	\textbf{Tác nhân} & Người dùng đã xác thực \\ \hline
-	
-% 	\textbf{Mô tả} &Cho phép người dùng tương tác với AI agent tích hợp để đặt câu hỏi liên quan đến học tập và nhận câu trả lời thông minh.
-% 	\\ \hline
-	
-% 	\textbf{Điều kiện tiên quyết} &
-% 	\begin{itemize}
-% 		\item Dịch vụ AI agent đang hoạt động và khả dụng.
-% 		\item Người dùng có quyền truy cập tính năng AI chat (đã đăng nhập).
-% 	\end{itemize} \\ \hline
-	
-% 	\textbf{Hậu điều kiện} &
-% 	\begin{itemize}
-% 		\item Người dùng nhận được phản hồi liên quan đến câu hỏi học tập của mình.
-% 		\item Cuộc hội thoại được lưu trong phiên làm việc (và tùy chọn lưu vào lịch sử người dùng).
 		
-% 	\end{itemize} \\ \hline
+- Sinh viên truy cập trang đăng nhập.
+		
+- Sinh viên nhập email và mật khẩu.
+		
+- Sinh viên nhấn nút \textit{Đăng nhập}.
+		
+- Hệ thống xác thực thông tin đăng nhập.
+		
+- Hệ thống cấp phát JWT token và chuyển hướng đến trang chính.
+	 \\ \hline
+	Dòng sự kiện phụ & A1. Rẽ nhánh tại bước 4, thông tin không hợp lệ: Hệ thống hiển thị thông báo lỗi và yêu cầu sinh viên nhập lại.\par\medskip
+	A2. Quên mật khẩu: Sinh viên chọn \textit{Quên mật khẩu}, hệ thống gửi email chứa liên kết khôi phục. \\ \hline
+	Hậu điều kiện & Sinh viên đăng nhập thành công và có thể sử dụng đầy đủ chức năng hệ thống. \\ \hline
+\end{longtable}
+
+\paragraph{Use Case: Chat với AI Agents}
+\label{sec:uc-chat-ai}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
+	\hline
+	Tên use-case & Chat với AI Agents \\ \hline
+	Tóm tắt & Sinh viên đặt câu hỏi về học vụ và nhận câu trả lời thông minh từ AI Agent. \\ \hline
+	Tác nhân & Sinh viên \\ \hline
+	Use-case liên quan & Đăng nhập \\ \hline
+	Điều kiện tiên quyết & Sinh viên đã đăng nhập, dịch vụ AI Agent đang hoạt động. \\ \hline
+	Dòng sự kiện chính &
 	
-% 	\textbf{Luồng chính} &
-% 	\begin{enumerate}
-% 		\item Người dùng điều hướng đến phần AI Chat.
 		
-% 		\item Người dùng nhập câu hỏi liên quan đến học tập vào ô nhập chat.
+- Sinh viên điều hướng đến phần AI Chat.
 		
-% 		\item Hệ thống chuyển tiếp câu hỏi đến hệ thống AI Agents.
+- Sinh viên nhập câu hỏi liên quan đến học vụ.
 		
-% 		\item AI agent xử lý câu hỏi và tạo ra phản hồi.
+- Hệ thống chuyển tiếp câu hỏi đến hệ thống AI Agents.
 		
-% 		\item Hệ thống hiển thị phản hồi của AI trong giao diện chat.
-% 		\item Người dùng có thể đặt câu hỏi tiếp theo; các bước 2–6 lặp lại.
+- AI Agent phân tích, truy xuất đồ thị tri thức và tạo phản hồi.
 		
-% 	\end{enumerate} \\ \hline
+- Hệ thống hiển thị câu trả lời trong giao diện chat.
+		
+- Sinh viên có thể đặt câu hỏi tiếp theo, lặp lại bước 2-5.
+	 \\ \hline
+	Dòng sự kiện phụ & A1. Rẽ nhánh tại bước 5, dịch vụ AI không khả dụng: Hệ thống hiển thị thông báo lỗi và gợi ý sinh viên thử lại sau.\par\medskip
+	A2. Câu hỏi ngoài phạm vi: AI phản hồi rằng câu hỏi nằm ngoài phạm vi hỗ trợ của hệ thống. \\ \hline
+	Hậu điều kiện & Sinh viên nhận được câu trả lời, cuộc hội thoại được lưu vào lịch sử phiên. \\ \hline
+\end{longtable}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% ============================================================
+\subsection{Kiến trúc hệ thống}
+
+Mô hình kiến trúc tổng thể của hệ thống được đề xuất dựa trên kiến trúc đa tầng (Multi-tier Architecture), nhằm đảm bảo tính tách biệt giữa giao diện người dùng, logic nghiệp vụ và các phân hệ xử lý trí tuệ nhân tạo. Sơ đồ chi tiết được thể hiện tại Hình~\ref{fig:kien_truc_he_thong}.
+
+Sơ lược về kiến trúc được nhóm sử dụng như sau: hệ thống được tổ chức theo mô hình đa tầng gồm bốn tầng chính, trong đó Tầng Giao diện tiếp nhận yêu cầu từ sinh viên và phân phối sang hai luồng xử lý độc lập, Tầng Nghiệp vụ xử lý logic xác thực và nghiệp vụ, Tầng Điều phối AI đảm nhận toàn bộ xử lý trí tuệ nhân tạo, và Tầng Dữ liệu cung cấp hạ tầng lưu trữ chuyên biệt cho từng loại dữ liệu.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/system_architecture_ver4.drawio.png}
+	\caption{Mô hình kiến trúc hệ thống tổng thể}
+	\label{fig:kien_truc_he_thong}
+\end{figure}
+
+\subsubsection{Tầng Giao diện (Client Layer)}
+
+Tầng Giao diện được xây dựng trên Next.js, là điểm tiếp xúc duy nhất giữa sinh viên và toàn bộ hệ thống. Khi sinh viên sử dụng ứng dụng, tầng này vận hành hai luồng giao tiếp song song tùy theo tính năng được yêu cầu.
+
+Đối với các tác vụ liên quan đến tài khoản và thông tin cá nhân, ứng dụng giao tiếp với Tầng Nghiệp vụ thông qua giao thức HTTPS và REST API. Đây là luồng truyền thống, đảm bảo tính nhất quán và bảo mật cho các thao tác đọc ghi dữ liệu có cấu trúc.
+
+Đối với tính năng Chat tư vấn học vụ, ứng dụng thiết lập kết nối trực tiếp đến Tầng Điều phối AI (Chat \& AI Direct Connection) mà không đi qua Tầng Nghiệp vụ trung gian. Thiết kế giúp giảm thiểu độ trễ và cho phép hiển thị câu trả lời theo từng phần, giúp mang lại trải nghiệm hội thoại tự nhiên và mượt mà hơn cho người dùng.
+
+\subsubsection{Tầng Nghiệp vụ (Application Layer)}
+
+Tầng Nghiệp vụ được xây dựng trên Spring Boot, đảm nhận nhiệm vụ xử lý toàn bộ logic nghiệp vụ và kiểm soát luồng dữ liệu giữa các tầng trong hệ thống.
+
+Mọi yêu cầu từ phía Client trước tiên đều phải đi qua lớp bảo mật Spring Security kết hợp với cơ chế xác thực JWT (JSON Web Token). Giúp kiểm tra tính hợp lệ của token và phân quyền truy cập trước khi cho phép yêu cầu đi tiếp vào bên trong hệ thống.
+
+Sau khi xác thực thành công, yêu cầu được định tuyến đến Controller rồi chuyển xuống lớp Services để thực thi logic nghiệp vụ. Lớp Data Access sử dụng Spring Data JPA và Hibernate để ánh xạ đối tượng và giao tiếp với cơ sở dữ liệu PostgreSQL thông qua giao thức JPA/JDBC.
+
+\subsubsection{Tầng Điều phối AI (AI Processing Layer)}
+
+Tầng Điều phối AI là trung tâm xử lý trí tuệ nhân tạo của hệ thống, tiếp nhận câu hỏi từ sinh viên qua luồng trực tiếp từ Client thông qua Chat \& AI Direct Connection.
+
+Khi nhận được câu hỏi, Multi-Agent System được xây dựng trên LangGraph Framework sẽ điều phối các tác nhân AI chuyên biệt để phân tích ý định câu hỏi, lập kế hoạch trả lời và tổng hợp kết quả. Trước khi sinh ra câu trả lời, hệ thống kích hoạt cơ chế RAG Retrieval để truy xuất các đoạn thông tin liên quan từ LightRAG Knowledge Base, kho tri thức học vụ đã được xây dựng và lập chỉ mục từ tài liệu của Khoa. Việc bổ sung ngữ cảnh từ tri thức thực tế giúp hạn chế tối đa hiện tượng ``ảo giác'' (hallucination) của mô hình ngôn ngữ, đảm bảo câu trả lời có căn cứ rõ ràng.
+
+Sau khi có đầy đủ ngữ cảnh, hệ thống dùng LLM để tạo ra câu trả lời cuối cùng và trả về cho sinh viên.
+
+\subsubsection{Tầng Dữ liệu và Hạ tầng (Data \& Infrastructure Layer)}
+
+Tầng này gồm ba thành phần chính, mỗi thành phần phục vụ một mục đích riêng biệt.
+
+PostgreSQL được dùng để lưu thông tin tài khoản của sinh viên, bao gồm thông tin đăng nhập, phân quyền và hồ sơ cá nhân. Nhóm chọn PostgreSQL vì hỗ trợ tốt các ràng buộc toàn vẹn dữ liệu, phù hợp với yêu cầu bảo mật cao cho dữ liệu người dùng. Tầng Nghiệp vụ kết nối với PostgreSQL thông qua giao thức JPA/JDBC.
+
+MongoDB lưu lịch sử hội thoại giữa sinh viên và AI Agent theo từng phiên. Do dữ liệu hội thoại không có cấu trúc cố định và cần truy xuất nhanh, MongoDB với cấu trúc tài liệu linh hoạt là lựa chọn phù hợp hơn so với cơ sở dữ liệu quan hệ.
+
+LLM (Large Language Model) là thành phần thực hiện suy luận và sinh ra câu trả lời cuối cùng. Khi Tầng Điều phối AI đã thu thập đủ ngữ cảnh từ Knowledge Graph, yêu cầu Inference được gửi đến LLM để tổng hợp và trả lời cho sinh viên.
+
+% ============================================================
+\subsection{Thiết kế chi tiết các thành phần}
+
+Hệ thống sử dụng ba loại cơ sở dữ liệu với vai trò khác nhau: PostgreSQL lưu thông tin tài khoản người dùng, MongoDB lưu lịch sử hội thoại với AI Agent, và Knowledge Graph (LightRAG) lưu toàn bộ tri thức học vụ phục vụ cho tính năng tư vấn.
+
+\begin{comment}
+\subsubsection{Sơ đồ lớp (Class Diagram)}
+% TODO: Thêm hình Class Diagram vào đây khi hoàn thiện
+\textit{(Sơ đồ lớp đang được cập nhật.)}
+
+\subsubsection{Sơ đồ trình tự (Sequence Diagram)}
+% TODO: Thêm hình Sequence Diagram vào đây khi hoàn thiện
+\textit{(Sơ đồ trình tự đang được cập nhật.)}
+\end{comment}
+
+\subsubsection{Thiết kế cơ sở dữ liệu}
+
+\paragraph{Cơ sở dữ liệu Quan hệ (PostgreSQL)}
+
+PostgreSQL được dùng để lưu thông tin tài khoản và hồ sơ người dùng trong hệ thống. Cấu trúc quan hệ giúp đảm bảo tính toàn vẹn dữ liệu và hỗ trợ phân quyền chặt chẽ. Sơ đồ tổng quan của cơ sở dữ liệu được thể hiện tại Hình~\ref{fig:mo_hinh_db}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{images/db_diagram.png}
+	\caption{Mô hình sơ đồ cơ sở dữ liệu quan hệ người dùng}
+	\label{fig:mo_hinh_db}
+\end{figure}
+
+{
+	\renewcommand{\arraystretch}{1.4}
+	\begin{longtable}{|c|>{\raggedright\arraybackslash}p{5.5cm}|>{\raggedright\arraybackslash}p{7.5cm}|}
+		\caption{Danh sách các bảng trong cơ sở dữ liệu quan hệ} \label{tab:danh_sach_bang} \\
+		\hline
+		STT & Tên bảng & Ý nghĩa \\ \hline
+		\endfirsthead
+		\hline
+		STT & Tên bảng & Ý nghĩa \\ \hline
+		\endhead
+		\hline
+		\endfoot
+		1 & students & Lưu toàn bộ thông tin hồ sơ người dùng: mã sinh viên, họ tên, ngày sinh, email, mật khẩu, ngành học, trình độ đào tạo và các cờ trạng thái tài khoản (is\_enabled, is\_account\_non\_locked,...). \\ \hline
+		2 & refresh\_tokens & Lưu token phiên làm việc (token, expiry\_date) để duy trì trạng thái đăng nhập mà không cần xác thực lại. \\ \hline
+		3 & password\_reset\_tokens & Lưu token bảo mật (token, expiry\_date) dùng trong quy trình đặt lại mật khẩu. \\ \hline
+	\end{longtable}
+}
+
+Ràng buộc Khóa ngoại
+
+{
+	\renewcommand{\arraystretch}{1.4}
+	\begin{longtable}{|c|>{\raggedright\arraybackslash}p{5cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{2cm}|>{\raggedright\arraybackslash}p{1.5cm}|}
+		\caption{Mô tả khóa ngoại của các bảng trong CSDL quan hệ} \label{tab:khoa_ngoai} \\
+		\hline
+		STT & Tên Bảng & Tên cột & Bảng tham chiếu & Cột tham chiếu \\ \hline
+		\endfirsthead
+		\hline
+		STT & Tên Bảng & Tên cột & Bảng tham chiếu & Cột tham chiếu \\ \hline
+		\endhead
+		\hline
+		\endfoot
+		1 & refresh\_tokens & student\_id & students & id \\ \hline
+		2 & password\_reset\_tokens & student\_id & students & id \\ \hline
+	\end{longtable}
+}
+
+\paragraph{Cơ sở dữ liệu Phi cấu trúc (MongoDB)}
+Để phục vụ cho tác nhân duy trì bộ nhớ dài hạn (Long-term Memory Agent) và quản lý trạng thái luồng suy luận trong kiến trúc LangGraph, hệ thống sử dụng MongoDB. Dữ liệu được tổ chức linh hoạt để lưu trữ lịch sử hội thoại và các điểm kiểm soát (checkpoints) của AI Agent.
+
+{
+	\renewcommand{\arraystretch}{1.4}
+	\begin{longtable}{|c|p{4.5cm}|p{8.5cm}|}
+		\caption{Danh sách các Collection trong cơ sở dữ liệu hcmus\_langgraph} \label{tab:mongo_collections} \\
+		\hline
+		STT & Tên Collection & Ý nghĩa dữ liệu thực tế \\ \hline
+		\endfirsthead
+		\hline
+		STT & Tên Collection & Ý nghĩa dữ liệu thực tế \\ \hline
+		\endhead
+		\hline
+		\endfoot
+		1 & session\_info & Lưu trữ thông tin định danh của phiên chat bao gồm: session\_id, user\_id, tiêu đề cuộc hội thoại và thời gian cập nhật gần nhất. \\ \hline
+		2 & long\_term\_memory & Lưu trữ các tri thức hoặc thông tin quan trọng được đúc kết từ các cuộc hội thoại cũ để AI Agent sử dụng cho các lần tương tác sau. \\ \hline
+		3 & checkpoints & Lưu trữ trạng thái hiện tại (State) của luồng LangGraph, cho phép hệ thống phục hồi lại đúng bước đang xử lý khi có lỗi hoặc ngắt quãng. \\ \hline
+		4 & checkpoint\_writes & Ghi lại nhật ký các thay đổi của trạng thái Agent qua từng bước trong luồng điều phối. \\ \hline
+	\end{longtable}
+}
+
+\subsubsection{Cơ sở dữ liệu Đồ thị (Knowledge Graph)}
+Hệ thống sử dụng LightRAG để xây dựng đồ thị tri thức học vụ, phục vụ lưu trữ thông tin phức tạp với nhiều mối quan hệ đan xen. Thay vì cấu trúc bảng (Table), dữ liệu được biểu diễn dưới dạng Thực thể (Nodes) và Mối quan hệ (Edges/Relationships), lưu trữ trong Neo4j.
+
+Cấu trúc đồ thị tri thức được phân tích theo hai lớp: lớp khái niệm (logical view) thể hiện ngữ nghĩa các loại thực thể và quan hệ, và lớp lưu trữ vật lý (physical view) phản ánh cách triển khai thực tế trong Neo4j.
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\paragraph{Lớp khái niệm (logical view)}
+Hình~\ref{fig:kg-concept-model} thể hiện mô hình khái niệm các loại thực thể và quan hệ chính trong đồ thị tri thức học vụ.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+	docnode/.style={rectangle, rounded corners=6pt,
+		draw=blue!50!violet!80, fill=blue!15!violet!25,
+		minimum width=4.3cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	coursenode/.style={rectangle, rounded corners=6pt,
+		draw=teal!80, fill=teal!30,
+		minimum width=4.2cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	outcomenode/.style={rectangle, rounded corners=6pt,
+		draw=orange!70!red!60, fill=orange!35!red!20,
+		minimum width=4.3cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	programnode/.style={rectangle, rounded corners=6pt,
+		draw=gray!65, fill=gray!20,
+		minimum width=5.2cm, minimum height=1.3cm,
+		align=center, inner sep=7pt},
+	rel/.style={-Stealth, thick, draw=black!65},
+	lbl/.style={fill=white, inner sep=1.5pt, font=\scriptsize},
+]
+
+% ==================== Nodes ====================
+\node[docnode]     (vbqd) at (0.0, 5.0) {Văn bản quy định\\{\small Quy chế, đề cương}};
+\node[outcomenode] (cdr)  at (10.0, 5.0) {Chuẩn đầu ra\\{\small Kỹ năng, kiến thức}};
+
+\node[coursenode]  (mhA)  at (0.0, 2.0) {Môn học A\\{\small Học phần tiên quyết}};
+\node[coursenode]  (mhB)  at (6.6, 2.0) {Môn học B\\{\small Học phần, tín chỉ}};
+
+\node[programnode] (ctdt) at (6.6, -1.0) {Chương trình đào tạo\\{\small Ngành, chuyên ngành}};
+
+% ==================== Relationships ====================
+\draw[rel] (vbqd.south east) -- (mhB.north west);
+\node[lbl] at (3.6, 3.65) {QUY ĐỊNH};
+
+% \draw[rel] (mhB.north east) to[out=35,in=-90] (cdr.south);
+\draw[rel] (mhB.north east) -- (cdr.south);
+\node[lbl] at (8.35, 3.55) {ĐÁP ỨNG};
+
+\draw[rel] (mhA.east) -- (mhB.west);
+\node[lbl] at (3.3, 2.45) {TIÊN QUYẾT};
+
+\draw[rel] (mhB.south) -- (ctdt.north);
+\node[lbl] at (7.5, 0.45) {THUỘC};
+
+% ==================== Legend ====================
+\begin{scope}[shift={(1.2,-3.2)}]
+	\filldraw[draw=blue!50!violet!80, fill=blue!15!violet!25] (0.0, 0.0) circle (0.18cm);
+	\node[right=0.08cm] at (0.20, 0.0) {\small Văn bản quy định};
+
+	\filldraw[draw=teal!80, fill=teal!30] (5.0, 0.0) circle (0.18cm);
+	\node[right=0.08cm] at (5.20, 0.0) {\small Môn học};
+
+	\filldraw[draw=orange!70!red!60, fill=orange!35!red!20] (0.0, -0.8) circle (0.18cm);
+	\node[right=0.08cm] at (0.20, -0.8) {\small Chuẩn đầu ra};
+
+	\filldraw[draw=gray!65, fill=gray!20] (5.0, -0.8) circle (0.18cm);
+	\node[right=0.08cm] at (5.20, -0.8) {\small Chương trình đào tạo};
+\end{scope}
+
+\end{tikzpicture}
+\caption{Mô hình khái niệm các loại thực thể và quan hệ chính trong đồ thị tri thức học vụ}
+\label{fig:kg-concept-model}
+\end{figure}
+
+Về mặt khái niệm, đồ thị gồm bốn nhóm thực thể chính. Môn học là thực thể trung tâm, lưu các học phần cùng thông tin tín chỉ, các môn có thể liên kết tiên quyết với nhau qua quan hệ TIÊN QUYẾT. Chương trình đào tạo nhóm các môn học theo ngành và chuyên ngành qua quan hệ THUỘC. Chuẩn đầu ra mô tả các kỹ năng, kiến thức cần đạt qua quan hệ ĐÁP ỨNG. Văn bản quy định gồm quy chế và đề cương là nguồn gốc tri thức của hệ thống, liên kết qua quan hệ QUY ĐỊNH.
+
+\paragraph{Lớp lưu trữ vật lý (physical view)}
+Về mặt triển khai trong Neo4j, toàn bộ các quan hệ đều được lưu dưới một relationship type duy nhất là DIRECTED, ngữ nghĩa cụ thể được mã hóa trong thuộc tính keywords do mô hình ngôn ngữ lớn sinh ra trong quá trình trích xuất.
+
+Mỗi thực thể được lưu dưới dạng một node với hai nhãn: nhãn \textit{workspace} (phân vùng dữ liệu, ví dụ base) và nhãn \textit{entity\_type} (phân loại ngữ nghĩa, ví dụ Course, Concept). Bảng~\ref{tab:kg-node-props} liệt kê các thuộc tính của node.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Thuộc tính của node thực thể trong Knowledge Graph (Neo4j)}
+	\label{tab:kg-node-props}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{8.5cm}|}
+		\hline
+		Thuộc tính & Kiểu & Mô tả \& Ví dụ \\ \hline
+		entity\_id   & string  & Tên thực thể (chuẩn hóa chữ thường). VD: "cơ sở dữ liệu" \\ \hline
+		entity\_type & string  & Loại thực thể do LLM phân loại. VD: "Course" \\ \hline
+		description  & string  & Mô tả tổng hợp từ nhiều tài liệu, các đoạn nối bằng <SEP>. VD: "Môn học về quản lý dữ liệu<SEP>Nghiên cứu SQL" \\ \hline
+		source\_id   & string  & Danh sách ID chunk nguồn, nối bằng <SEP>. VD: "chunk-abc123<SEP>chunk-def456" \\ \hline
+		file\_path   & string  & Tài liệu gốc chứa thực thể, nhiều giá trị nối bằng <SEP>. VD: "chuong\_trinh.pdf<SEP>decuong.pdf" \\ \hline
+		created\_at  & integer & Unix timestamp thời điểm tạo. VD: 1719571200 \\ \hline
+		truncate     & string  & Trạng thái giới hạn source\_id: "" hoặc "KEEP Old" \\ \hline
+	\end{tabular}
+\end{table}
+
+Trường hợp đặc biệt là quan hệ đồng nhất thực thể, được biểu diễn bằng cùng type DIRECTED nhưng với keywords = "SAME\_AS". Bảng~\ref{tab:kg-edge-props} mô tả các thuộc tính của relationship.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Thuộc tính của relationship trong Knowledge Graph (Neo4j)}
+	\label{tab:kg-edge-props}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{8.5cm}|}
+		\hline
+		Thuộc tính & Kiểu & Mô tả \& Ví dụ \\ \hline
+		keywords     & string  & Từ khóa mô tả bản chất quan hệ, do LLM sinh ra. VD: "tiên quyết, học trước" hoặc "SAME\_AS" \\ \hline
+		description  & string  & Diễn giải quan hệ theo ngữ cảnh tài liệu, nhiều mô tả nối bằng <SEP>. VD: "Nhập môn Lập trình là môn tiên quyết của Cơ sở dữ liệu" \\ \hline
+		weight       & float   & Trọng số quan hệ, tỉ lệ với số lần quan hệ xuất hiện. VD: 3.0 \\ \hline
+		source\_id   & string  & ID các chunk nguồn hỗ trợ quan hệ này. VD: "chunk-abc123" \\ \hline
+		file\_path   & string  & Tài liệu gốc của quan hệ. VD: "chuong\_trinh.pdf" \\ \hline
+		created\_at  & integer & Unix timestamp thời điểm tạo. VD: 1719571200 \\ \hline
+	\end{tabular}
+\end{table}
+
+\begin{comment}
+\paragraph{Phân loại thực thể trong corpus học thuật HCMUS.}
+Thay vì sử dụng schema cố định, hệ thống áp dụng phương pháp phân loại
+\textit{schema-free}: danh sách entity type được cấu hình riêng cho từng
+domain và truyền vào prompt của mô hình ngôn ngữ lớn khi trích xuất.
+Đối với corpus học thuật của trường Đại học Khoa học Tự nhiên, hệ thống
+sử dụng 19 loại thực thể sau:
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Danh sách entity type cấu hình cho corpus học thuật HCMUS}
+	\label{tab:entity-types-datn}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{4.5cm}|}
+		\hline
+		\multicolumn{3}{|l|}{Các loại thực thể (entity type) được định nghĩa} \\ \hline
+		\texttt{Course}            & \texttt{Major}              & \texttt{KnowledgeBlock} \\ \hline
+		\texttt{Program}           & \texttt{Department}         & \texttt{Concept} \\ \hline
+		\texttt{Skill}             & \texttt{Policy}             & \texttt{LearningOutcome} \\ \hline
+		\texttt{AssessmentMethod}  & \texttt{Topic}              & \texttt{Instructor} \\ \hline
+		\texttt{Semester}          & \texttt{TotalCredits}       & \texttt{SelfStudyHours} \\ \hline
+		\texttt{TrainingTime}      & \texttt{InstructionalTime}  & \texttt{author} \\ \hline
+		\texttt{yearofpublication} & \multicolumn{2}{>{\raggedright\arraybackslash}p{9.0cm}|}{\textit{(không khớp loại nào)} $\rightarrow$ \texttt{Other}} \\ \hline
+	\end{tabular}
+\end{table}
+\end{comment}
+
+Hình~\ref{fig:kg-subgraph-example} minh họa một đoạn đồ thị tri thức được
+trích xuất từ đề cương môn học, trong đó Cơ sở dữ liệu là thực thể canonical,
+CSDL và CSC10002 là alias liên kết qua quan hệ SAME\_AS,
+các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương ứng.
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    every node/.style={font=\small},
+    coursenode/.style={
+        rectangle, rounded corners=5pt,
+        draw=blue!70, fill=blue!10,
+        minimum width=4.2cm, minimum height=1.0cm,
+        align=center, inner sep=6pt
+    },
+    conceptnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=teal!70, fill=teal!8,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    deptnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=gray!60, fill=gray!8,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    aliasnode/.style={
+        rectangle, rounded corners=4pt,
+        draw=blue!40, fill=blue!4,
+        minimum width=3.4cm, minimum height=0.9cm,
+        align=center, inner sep=5pt
+    },
+    instrnode/.style={
+        rectangle, rounded corners=5pt,
+        draw=orange!60, fill=orange!7,
+        minimum width=3.4cm, minimum height=1.0cm,
+        align=center, inner sep=5pt
+    },
+    rel/.style={-Stealth, thick, draw=blue!55},
+    sameas/.style={-Stealth, thick, dashed, draw=orange!70},
+    lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
+    slbl/.style={font=\small, color=orange!80!black, fill=white, inner sep=3pt},
+]
+
+% ── Hàng trên: prerequisite courses ──
+\node[coursenode] (nlp)  at (1.0, 5.0) {Nhập môn Lập trình\\{\small :Course}};
+\node[coursenode] (ctdl) at (7.0, 5.0) {Cấu trúc dữ liệu\\{\small :Course}};
+
+% ── Hàng giữa: central node ──
+\node[coursenode, draw=blue!90, fill=blue!20, font=\small, minimum width=5.5cm]
+    (csdl) at (7.0, 2.5) {Cơ sở dữ liệu\\{\small :Course \quad entity\_id="cơ sở dữ liệu"}};
+
+% ── Alias trái: CSDL ──
+\node[aliasnode] (alias1) at (-1.5, 2.5) {CSDL\\{\small :Course}};
+
+% ── Alias phải: CSC10002 ──
+\node[aliasnode] (alias2) at (14.5, 2.5) {CSC10002\\{\small :Course}};
+
+% ── Hàng dưới: related nodes ──
+\node[instrnode]   (gv)   at (1.0, 0.0)  {Nguyễn Văn A\\{\small :Instructor}};
+\node[deptnode]    (khoa) at (7.0, 0.0)  {Khoa CNTT\\{\small :Department}};
+\node[conceptnode] (sql)  at (13.0, 0.0) {SQL\\{\small :Concept}};
+
+% ── Quan hệ ngữ nghĩa ──
+\draw[rel] (nlp.south)       -- node[lbl, left=2pt]{tiên quyết của}  (csdl.north west);
+\draw[rel] (ctdl.south)      -- node[lbl, right=2pt]{tiên quyết của} (csdl.north);
+\draw[rel] (csdl.south west) -- node[lbl, left=2pt]{giảng dạy bởi}   (gv.north);
+\draw[rel] (csdl.south)      -- node[lbl, right=2pt]{thuộc}           (khoa.north);
+\draw[rel] (csdl.south east) -- node[lbl, right=2pt]{sử dụng}         (sql.north);
+\draw[rel] (alias2.west)     -- node[lbl, above=3pt]{mã học phần của}    (csdl.east);
+
+% ── SAME_AS edge ──
+\draw[sameas] (alias1.east) -- node[slbl, above=5pt]{SAME\_AS} (csdl.west);
+
+\end{tikzpicture}
+}%
+\caption{Ví dụ subgraph trích xuất từ đề cương môn học trong Knowledge Graph}
+\label{fig:kg-subgraph-example}
+\end{figure}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\subsubsection{Kiến trúc triển khai lưu trữ cho LightRAG}
+\label{sec:lightrag_storage}
+
+\indent Để vận hành hiệu quả các quy trình lập chỉ mục và truy xuất tri thức, hệ thống LightRAG được triển khai với kiến trúc lưu trữ hỗn hợp gồm bốn thành phần chuyên biệt. Sơ đồ tổng quan được thể hiện tại Hình~\ref{fig:storage_deployment}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/storage_deployment_overview_nobg.png}
+	\caption{Tổng quan kiến trúc lưu trữ và triển khai LightRAG}
+	\label{fig:storage_deployment}
+\end{figure}
+
+\indent Thành phần thứ nhất là KV\_STORAGE, triển khai trên Redis, chịu trách nhiệm lưu trữ bộ nhớ đệm phản hồi LLM, các đoạn văn bản đã phân mảnh và siêu dữ liệu tài liệu gốc. Thành phần thứ hai là VECTOR\_STORAGE, triển khai trên Qdrant, lưu trữ vector nhúng của thực thể, quan hệ và đoạn văn bản để phục vụ tìm kiếm ngữ nghĩa. Thành phần thứ ba là GRAPH\_STORAGE, triển khai trên Neo4j, lưu toàn bộ cấu trúc đồ thị tri thức với ngôn ngữ truy vấn Cypher. Thành phần thứ tư là DOC\_STATUS\_STORAGE, triển khai trên Redis, theo dõi trạng thái lập chỉ mục từng tài liệu để tránh xử lý trùng lặp.
+
+\begin{table}[H]
+	\centering
+	\caption{Các thành phần lưu trữ trong kiến trúc LightRAG}
+	\label{tab:storage_mapping}
+
+	\renewcommand{\arraystretch}{1.4}
+	\footnotesize
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.5cm}|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{4.5cm}|>{\raggedright\arraybackslash}p{3cm}|}
+		\hline
+		Thành phần & Công nghệ & Lớp triển khai & Dữ liệu lưu trữ \\ \hline
+		KV\_STORAGE & Redis & RedisKVStorage & LLM Response Cache, Text Chunks, Document Information \\ \hline
+		VECTOR\_STORAGE & Qdrant & QdrantVectorDBStorage & Entities Vectors, Relation Vectors, Chunks Vectors \\ \hline
+		GRAPH\_STORAGE & Neo4j & Neo4JStorage & Entity Relation Graph \\ \hline
+		DOC\_STATUS\_STORAGE & Redis & RedisDocStatusStorage & Document Indexing Status \\ \hline
+	\end{tabular}
+\end{table}
+
+% ============================================================
+\clearpage
+\subsection{Thiết kế giao diện}
+
+\subsubsection{Màn hình AI Chat}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{images/aichat.jpg}
+	\caption{Giao diện Màn hình AI Chat}
+	\label{fig:ui_ai_chat}
+\end{figure}
+
+Mục đích: Cung cấp không gian trò chuyện trực tiếp giữa sinh viên và AI Agent để được tư vấn thông tin học vụ, lộ trình môn học và quy chế đào tạo.
+
+Bao gồm:
+
 	
-% 	\textbf{Luồng thay thế} &
-% 	\begin{itemize}
-% 		\item LTT-05A Dịch Vụ AI Không Khả Dụng: Nếu dịch vụ AI bị gián đoạn, hệ thống hiển thị thông báo lỗi thân thiện và gợi ý thử lại sau hoặc tìm kiếm trong các chủ đề diễn đàn hiện có.
-% 		\item LTT-05B Câu Hỏi Ngoài Phạm Vi: Nếu người dùng hỏi vấn đề không liên quan đến học tập, AI phản hồi rằng câu hỏi nằm ngoài phạm vi hỗ trợ và gợi ý người dùng đặt câu hỏi liên quan đến học tập.
-% 	\end{itemize} \\ \hline
+- Thanh lịch sử hội thoại (bên trái)
 	
-% \end{longtable}
+- Khu vực hiển thị hội thoại (trung tâm)
+	
+- Ô nhập câu hỏi và nút gửi (phía dưới)
 
 
-% \subsubsection{Use-case Tạo bài đăng}
+Cách sử dụng:
 
-% \begin{longtable}{|l|p{10cm}|}
-% 	\hline
-% 	\textbf{Tên Use Case} & Tạo bài đăng trên diễn đàn \\ \hline
 	
-% 	\textbf{Tác nhân} & Người dùng đã xác thực \\ \hline
+- Để đặt câu hỏi cho AI Agent:
 	
-% 	\textbf{Mô tả} & Cho phép người dùng tạo bài thảo luận mới trong diễn đàn. \\ \hline
+		
+- Nhập câu hỏi vào ô nhập liệu ở phía dưới màn hình.
+		
+- Nhấn nút gửi.
+		
+- Hệ thống phân tích câu hỏi, truy xuất đồ thị tri thức và trả về câu trả lời chi tiết trong khu vực hội thoại.
 	
-% 	\textbf{Điều kiện tiên quyết} &
-% 	\begin{itemize}
-% 		\item Người dùng đã đăng nhập
-% 		\item Có quyền đăng bài
-% 	\end{itemize} \\ \hline
 	
-% 	\textbf{Hậu điều kiện} &
-% 	\begin{itemize}
-% 		\item Bài đăng được lưu và hiển thị
-% 		\item Gắn với tác giả và thời gian
-% 	\end{itemize} \\ \hline
+- Để xem lại lịch sử hội thoại:
 	
-% 	\textbf{Luồng chính} &
-% 	\begin{enumerate}
-% 		\item Vào forum
-% 		\item Chọn tạo bài mới
-% 		\item Nhập nội dung
-% 		\item Nhấn đăng
-% 		\item Hệ thống kiểm tra và lưu
-% 	\end{enumerate} \\ \hline
+		
+- Chọn phiên hội thoại tại thanh danh sách bên trái.
+		
+- Hệ thống hiển thị toàn bộ nội dung của phiên đó.
 	
-% 	\textbf{Luồng thay thế} &
-% 	\begin{itemize}
-% 		\item LTT-03A: Thiếu nội dung, yêu cầu nhập
-% 	\end{itemize} \\ \hline
-	
-% \end{longtable}
 
-% \subsubsection{Use-case Đăng ký tài khoản}
-% \begin{longtable}{|l|p{10cm}|}
-% 	\hline
-% 	\textbf{Tên Use Case} & Đăng ký tài khoản \\ \hline
-	
-% 	\textbf{Tác nhân} & Người dùng \\ \hline
-	
-% 	\textbf{Mô tả} & Cho phép người dùng tạo tài khoản mới. \\ \hline
-	
-% 	\textbf{Điều kiện tiên quyết} &
-% 	\begin{itemize}
-% 		\item Email chưa tồn tại
-% 		\item Trang đăng ký truy cập được
-% 	\end{itemize} \\ \hline
-	
-% 	\textbf{Hậu điều kiện} &
-% 	\begin{itemize}
-% 		\item Tạo tài khoản thành công
-% 	\end{itemize} \\ \hline
-	
-% 	\textbf{Luồng chính} &
-% 	\begin{enumerate}
-% 		\item Vào trang đăng ký
-% 		\item Nhập thông tin
-% 		\item Xác nhận mật khẩu
-% 		\item Đồng ý điều khoản
-% 		\item Nhấn đăng ký
-% 		\item Hệ thống kiểm tra và tạo tài khoản
-% 	\end{enumerate} \\ \hline
-	
-% 	\textbf{Luồng thay thế} &
-% 	\begin{itemize}
-% 		\item LTT-02A: Email đã tồn tại, thông báo lỗi
-% 	\end{itemize} \\ \hline
-	
-% \end{longtable}
 
-Sơ đồ trình tự (Sequence Diagram) được thiết lập để làm rõ luồng dữ liệu từ khi sinh viên đặt câu hỏi trên giao diện, đi qua tầng điều phối Đa tác nhân (LangGraph) \cite{langgraph2024, wu2023autogen}, truy xuất Đồ thị tri thức (LightRAG) \cite{guo2024lightrag} và trả về kết quả cuối cùng.
+\subsection{Hiện thực phân hệ Ứng dụng di động (Mobile Application)}
+
+\indent Phân hệ di động được phát triển độc lập dựa trên framework Flutter, sử dụng ngôn ngữ lập trình Dart với cơ chế biên dịch trực tiếp sang mã máy native. Kiến trúc mã nguồn được tổ chức theo mô hình quản lý trạng thái tập trung thông qua bộ thư viện \textit{Provider} (gồm \texttt{MultiProvider} và \texttt{ChangeNotifierProvider}), giúp tách biệt hoàn toàn tầng giao diện (UI) và tầng xử lý logic nghiệp vụ, đồng thời duy trì một luồng dữ liệu đồng nhất trên toàn ứng dụng. Phân hệ di động loại bỏ hoàn toàn các tính năng mạng xã hội/diễn đàn, tập trung chuyên biệt vào việc hỗ trợ thông tin học vụ và cá nhân hóa lộ trình học tập của sinh viên thông qua các phân hệ chức năng thực tế sau:
+
+\subsubsection{Phân hệ Trợ lý ảo AI thông minh và Quản lý ngữ cảnh hội thoại}
+\indent Đây là tính năng trung tâm của ứng dụng di động, được cấu hình tự động điều phối hiển thị ngay tại màn hình khởi động thông qua lớp \texttt{SplashScreen}. Giao diện tương tác trò chuyện trực tiếp được thiết kế linh hoạt, tự động phân tách theo trạng thái xác thực của người dùng:
+
+	
+- Chế độ truy cập ẩn danh (Guest Mode): Dành cho người dùng chưa thực hiện đăng nhập vào hệ thống. Khi sinh viên khởi động ứng dụng, luồng điều hướng sẽ đưa thẳng vào màn hình \texttt{ChatbotScreen} ở trạng thái khách. Tại đây, sinh viên có thể tương tác trực tiếp với AI để tra cứu thông tin học vụ đại chúng mà không có thanh trình đơn trượt bên trái (Sidebar) và hệ thống tuân thủ nghiêm ngặt cơ chế bảo mật đóng, hoàn toàn không lưu lại lịch sử trò chuyện cục bộ.
+	
+- Chế độ thành viên đã xác thực (Authenticated Mode): Trạng thái này tự động được kích hoạt ngay sau khi sinh viên đăng nhập thành công vào hệ thống. Lúc này, màn hình AI Chat sẽ trở thành Tab đầu tiên nằm dưới thanh điều hướng chính (\texttt{BottomNavigationBar} của \texttt{MainNavScreen}). Hệ thống kích hoạt một thanh Sidebar dạng \texttt{Drawer} trượt từ cạnh trái màn hình, hiển thị trực quan toàn bộ danh sách lịch sử các phiên trò chuyện cũ (\texttt{ChatSession}). Toàn bộ các phiên trò chuyện này được lưu trữ bền vững tại bộ nhớ đệm thiết bị thông qua gói \texttt{SharedPreferences}, tự động sắp xếp theo mốc thời gian tương tác gần nhất và phân tách ranh giới lịch sử theo từng mã định danh tài khoản riêng biệt (\texttt{student\_id}).
+
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
+		\\ \footnotesize \textit{a) Trợ lý AI ở Chế độ Khách (Không lưu lịch sử)}
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
+		\\ \footnotesize \textit{b) Trợ lý AI ở Chế độ Thành viên (Có lịch sử chat)}
+	\end{minipage}
+	\caption{Giao diện tương tác phân hệ Trợ lý ảo AI trên ứng dụng di động}
+	\label{fig:ui_mobile_chatbot}
+\end{figure}
+
+\indent Phân hệ tư vấn thông minh di động tích hợp hai giải pháp tối ưu hóa trải nghiệm hội thoại nâng cao:
+
+	
+- Cơ chế làm giàu truy vấn theo chuỗi hội thoại (Context Concatenation): Để khắc phục hiện tượng mất ngữ cảnh khi sinh viên đặt câu hỏi quá ngắn hoặc mơ hồ ở các lượt chat sau, ứng dụng tự động kiểm tra mảng dữ liệu tin nhắn. Nếu chuỗi hội thoại đạt từ 3 lượt tương tác trở lên, hệ thống sẽ tự động trích xuất nội dung câu hỏi liền trước (\texttt{lastUser}) và câu trả lời liền trước của bot (\texttt{lastAI}) để ghép nối có cấu trúc trực tiếp vào câu hỏi hiện tại trước khi thực hiện đóng gói JSON gửi lên API máy chủ LightRAG.
+	
+- Bộ phân tích và biên dịch cú pháp Markdown dạng RichText: Để hiển thị câu trả lời từ mô hình ngôn ngữ lớn một cách chuyên nghiệp, ứng dụng hiện thực hóa hàm quét chuỗi ký tự tự động dựa trên biểu thức chính quy. Hệ thống thực hiện băm nhỏ văn bản theo ký tự xuống dòng kép, nhận diện ký tự thẻ \texttt{\#} để phóng to cỡ chữ tiêu đề và tự động chuyển đổi màu sắc sang mã màu xanh chủ đạo của trường (\texttt{0xFF0054A6}), đồng thời nhận diện các cặp ký tự \texttt{**} để gán nhãn kiểu chữ in đậm \texttt{FontWeight.bold} cho các thuật ngữ chuyên ngành hoặc mã học phần quan trọng.
+
+
+\subsubsection{Phân hệ Xác thực tài khoản và Bắt lỗi hệ thống bảo vệ (Fail-safe Auth)}
+\indent Phân hệ quản lý toàn bộ vòng đời xác thực của sinh viên bao gồm Đăng nhập (\texttt{LoginScreen}), Đăng ký (\texttt{RegisterScreen}) và Đăng xuất thông qua kết nối API RESTful mã hóa bảo mật Bearer JWT Token gửi về từ máy chủ Spring Boot. Hệ thống di động tích hợp bộ lọc tự động kích hoạt vi tiến trình \texttt{refreshAccessToken} để làm mới mã truy cập ngầm định khi hết hạn mà không gây gián đoạn trải nghiệm của sinh viên.
+
+\indent Đặc biệt, tại chức năng Quên mật khẩu và Đặt lại mật khẩu, ứng dụng tích hợp một cơ chế xử lý ngoại lệ thông minh (\textit{Fail-safe SMTP Exception Handling}):
+
+	
+- Khi sinh viên nhấn nút yêu cầu link khôi phục, ứng dụng di động sẽ gọi API \texttt{POST /auth/forgot-password}. Trong trường hợp máy chủ đám mây trả về lỗi nghẽn cổng kết nối máy chủ gửi thư (\texttt{Mail server connection failed / SocketTimeoutException}), ứng dụng di động sẽ chủ động bắt lấy ngoại lệ này ngay tại tầng kết nối mạng.
+	
+- Thay vì văng lỗi màn hình đỏ, ứng dụng hiển thị một hộp thoại thông báo thông minh thông tin hệ thống đang bảo trì đường truyền gửi thư và tự động kích hoạt mã Token khôi phục giả lập là \texttt{"DEMO123"} để hỗ trợ cho việc Demo báo cáo đồ án. Sinh viên sử dụng mã này điền vào ô xác nhận cùng mật khẩu mới có cấu trúc kiểm tra định dạng Regex nghiêm ngặt (tối thiểu 6 ký tự gồm cả chữ và số) để thực hiện cập nhật cơ sở dữ liệu thành công.
+
+
+\subsubsection{Phân hệ Tiến trình học tập, Thông báo và Hồ sơ sinh viên}
+\indent Phân hệ này chịu trách nhiệm hiển thị thông tin trực quan hóa và đồng bộ hóa trạng thái học vụ của người học, bao gồm các thành phần:
+
+	
+- Thành phần trực quan tiến trình học tập (Academic Progress): Tại màn hình Trang chủ (\texttt{HomeScreen}), ứng dụng thực hiện phân tích số tín chỉ tích lũy hiện hành được thu thập từ trường dữ liệu \texttt{totalCreditsEarned} trong API nghiệp vụ. Hệ thống sử dụng widget \texttt{LinearProgressIndicator} để dựng đồ thị thanh ngang, tính toán động tỷ lệ phần trăm số môn đã hoàn thành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên. Màn hình cũng tự động phân giải danh sách các thẻ gợi ý bước đi tiếp theo cá nhân hóa (\texttt{AiRecommendation}) gửi về từ tầng phối hợp AI Agent.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
+	\caption{Giao diện quản lý Tiến trình tích lũy và Gợi ý học tập cá nhân hóa}
+	\label{fig:ui_mobile_home_progress}
+\end{figure}
+
+
+	
+- Thành phần Thông báo động (Dynamic Notification Badge): Ứng dụng kết nối lấy danh sách thông báo từ máy chủ, đếm số lượng các phần tử có trường trạng thái \texttt{isRead == false}. Số lượng thông báo chưa đọc này được hiển thị động thông qua widget \texttt{Stack} dưới dạng một hình tròn đỏ (Badge) nằm đè lên icon thông báo trên thanh \texttt{CustomAppBar}, hỗ trợ nút bấm gọi nhanh hàm \texttt{markAllNotificationsAsRead} bất đồng bộ để xóa toàn bộ badge thông báo.
+	
+- Thành phần Hồ sơ đa cấu trúc và đồng bộ dữ liệu đa phần (Multipart Profile): Hiển thị toàn bộ thông tin cá nhân và kết quả điểm số GPA của sinh viên dưới dạng bố cục lưới các thuộc tính rõ ràng. Khi sinh viên kích hoạt chế độ chỉnh sửa (\texttt{\_isEditing = true}), ứng dụng hiển thị các ô nhập liệu chuyên biệt, tích hợp hộp thoại chọn ngày dạng lịch (\texttt{showDatePicker}) cho các trường dữ liệu thời gian. Sinh viên thay đổi ảnh đại diện thông qua gói thư viện \texttt{ImagePicker}, hệ thống tự động đóng gói tệp tin ảnh từ bộ nhớ máy thành luồng dữ liệu nhị phân đa phần (\texttt{MultipartFile}) và thực hiện lệnh \texttt{http.MultipartRequest} dạng \texttt{PUT} để truyền tải trực tiếp và cập nhật lên máy chủ lưu trữ.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
+	\caption{Giao diện Hồ sơ sinh viên và Quản lý thông tin học vụ cá nhân}
+	\label{fig:ui_mobile_profile_info}
+\end{figure}

@@ -6,45 +6,121 @@
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.6cm and 1.2cm, auto, scale=0.7, transform shape]
-		% Nodes
-		\node (in) [startstop, text width=4.5cm] {Nguồn dữ liệu đầu vào \\ \footnotesize(PDF, Scan, Office, v.v.)};
-		\node (web) [process, right=2cm of in, text width=3.5cm] {Smart Scraper \\ (Nội dung Website)};
+	\resizebox{\textwidth}{!}{
+	\begin{tikzpicture}[node distance=1.2cm and 1.2cm, auto]
+		\tikzset{
+			base/.style = {draw, thick, text centered, font=\sffamily\small, rounded corners=5px, inner sep=5pt, align=center},
+			inputDoc/.style = {base, fill=red!80!black, draw=red!40!black, text=white},
+			processBox/.style = {base, fill=green!20, draw=green!60!black, text=black},
+			llmBox/.style = {base, fill=purple!20, draw=purple!60!black, text=black},
+			shaclBox/.style = {base, fill=orange!20, draw=orange!80!black, text=black},
+			storageBox/.style = {base, fill=teal!80!black, draw=teal!40!black, text=white},
+			skipBox/.style = {base, fill=gray!20, draw=gray!60!black, text=gray!80!black},
+			arrow/.style = {thick, -{Stealth[scale=1.2]}},
+			dashed_arrow/.style = {thick, dashed, -{Stealth[scale=1.2]}},
+			label_txt/.style = {font=\scriptsize\itshape, fill=white, inner sep=1pt}
+		}
+
+		% ----------------------------------------------------
+		% INPUT & DEDUPLICATION
+		% ----------------------------------------------------
+		\node (Input) [inputDoc] {Input Documents / Files / URL Links};
 		
-		\node (p1) [smallbox, below=1cm of in, xshift=-1.8cm] {VMiner \\ (PDF/OCR)};
-		\node (p2) [smallbox, below=1cm of in, xshift=1.8cm] {MarkItDown \\ (Office)};
+		\node (DocDedup) [processBox, below=1cm of Input] {Document Deduplication\\(Kiểm tra tài liệu trùng lặp bằng MD5 Hash)};
+		\node (SkipDoc) [skipBox, right=1.5cm of DocDedup] {Bỏ qua\\(Tài liệu đã tồn tại trong KV Storage)};
 		
-		\node (text) [process, below=2.8cm of in, text width=5.5cm] {Văn bản Markdown đồng nhất};
+		\node (Parse) [processBox, below=1cm of DocDedup] {MinerU Parse\\(Bóc tách Layout phức tạp, Bảng, PDF, Toán học)};
+
+		% ----------------------------------------------------
+		% PHASE 1: DUAL CHUNKING
+		% ----------------------------------------------------
+		\node (SectionChunk) [processBox, below left=1.5cm and 1cm of Parse] {Section Chunking\\(Chia theo Heading/Depth)};
+		\node (StdChunk) [processBox, below right=1.5cm and 1cm of Parse] {Standard Chunking\\(Chia theo Token Size)};
 		
-		% Group 1: Pipeline
-		\node (pipe) [groupbox, below=1.2cm of text, minimum width=10.5cm, minimum height=4.5cm] (idx_box) {};
-		\node [above right=0.5mm of idx_box.north west, anchor=south west, font=\small\bfseries] {Quy trình lập chỉ mục LightRAG};
+		\node (Chunking_Phase) [draw, dashed, inner sep=10pt, fit=(SectionChunk) (StdChunk), label={[font=\bfseries]above:1. Phân mảnh Kép (Dual Chunking)}] {};
+
+		\node (SecKV) [storageBox, below left=1cm and -1.5cm of SectionChunk] {Section KV Storage};
+		\node (SecVDB) [storageBox, below right=1cm and -1.5cm of SectionChunk] {Section Vector DB};
+		\node (Section_Storage) [draw, dashed, inner sep=10pt, fit=(SecKV) (SecVDB), label={[font=\bfseries]above:Lưu trữ Chunk Độc Lập}] {};
+
+		\node (TextKV) [storageBox, below left=1cm and -1.5cm of StdChunk] {Text Chunks KV Storage};
+		\node (TextVDB) [storageBox, below right=1cm and -1.5cm of StdChunk] {Text Vector DB};
+		\node (Text_Storage) [draw, dashed, inner sep=10pt, fit=(TextKV) (TextVDB), label={[font=\bfseries]above:Lưu trữ Text Chunk}] {};
+
+		% ----------------------------------------------------
+		% PHASE 2: EXTRACTION, SHACL & RESOLUTION
+		% ----------------------------------------------------
+		\node (Extract) [llmBox, below=1.5cm of Text_Storage] {LLM Extraction\\(Bóc tách Entities \& Relations)};
+		\node (OrphanFilter) [processBox, below=1cm of Extract] {Orphan Filter\\(Loại bỏ Entity cô lập)};
+		\node (LLMAudit) [llmBox, below=1cm of OrphanFilter] {LLM Audit / Critic\\(Đánh giá confidence\_score)};
+		\node (SHACL) [shaclBox, below=1cm of LLMAudit] {SHACL Validation\\(Kiểm tra cấu trúc, rules)};
+		\node (Decision) [shaclBox, below=1cm of SHACL] {Decision Gate\\(Chấp nhận nếu shacl\_pass == True AND score >= 0.8)};
 		
-		\node (chunk) [process, yshift=-1.2cm] at (idx_box.north) {1. Phân mảnh văn bản (Chunking)};
-		\node (extract) [process, below=0.7cm of chunk] {2. Trích xuất tri thức bằng LLM};
-		\node (merge) [process, below=0.7cm of extract] {3. Hợp nhất đồ thị và Khử trùng};
+		\node (EntityResolution) [llmBox, right=1.5cm of Decision] {Entity Resolution (Coreference)\\(Nhận diện từ viết tắt, từ đồng nghĩa\\ -> Đồng nhất Entity \& Nối lại Relation)};
+		\node (Drop) [skipBox, left=1.5cm of Decision] {Bỏ qua (Rejected)};
 		
-		% Group 2: Storage (Tăng cực đại khoảng cách)
-		\node (storage) [groupbox, below=3.5cm of idx_box, minimum width=10.5cm, minimum height=2.5cm, inner sep=15pt] (store_box) {};
-		\node [above right=1mm of store_box.north west, anchor=south west, font=\small\bfseries] {Lớp lưu trữ hỗn hợp (Hybrid Storage)};
-		\node (gdb) [smallbox] at ($(store_box.west)!0.22!(store_box.east)$) {Graph DB};
-		\node (vdb) [smallbox] at ($(store_box.west)!0.5!(store_box.east)$) {Vector DB};
-		\node (kvdb) [smallbox] at ($(store_box.west)!0.78!(store_box.east)$) {KV Store};
+		\node (Extract_Validate) [draw, dashed, inner sep=10pt, fit=(Extract) (OrphanFilter) (LLMAudit) (SHACL) (Decision) (EntityResolution), label={[font=\bfseries]above:2. Trích xuất, Xác thực \& Phân giải (Extraction \& Resolution)}] {};
+
+		% ----------------------------------------------------
+		% PHASE 3: DEDUPLICATION & MERGING
+		% ----------------------------------------------------
+		\node (DedupEnt) [processBox, below left=1.5cm and -1cm of EntityResolution] {Deduped Entities\\(use 'Set' dedupe sau khi Resolution)};
+		\node (DedupRel) [processBox, below right=1.5cm and -1cm of EntityResolution] {Deduped Relations\\(use 'Set' dedupe sau khi nối Relation)};
 		
-		\node (out) [startstop, below=2cm of store_box, text width=6cm] {Đầu ra: Đồ thị tri thức tổng quát};
+		\node (EmbedEnt) [processBox, below left=1cm and -2cm of DedupEnt] {Entity Embedding};
+		\node (UpdateDescEnt) [llmBox, below right=1cm and -2cm of DedupEnt] {Update Entity Description\\(use LLM để tổng hợp mô tả)};
 		
-		% Arrows
-		\draw [arrow] (in) -- (p1);
-		\draw [arrow] (in) -- (p2);
-		\draw [arrow] (p1) -- (text);
-		\draw [arrow] (p2) -- (text);
-		\draw [arrow] (web) |- (text);
-		\draw [arrow] (text) -- (chunk);
-		\draw [arrow] (chunk) -- (extract);
-		\draw [arrow] (extract) -- (merge);
-		\draw [arrow] (merge) -- (store_box);
-		\draw [arrow] (store_box) -- (out);
+		\node (EmbedRel) [processBox, below left=1cm and -2cm of DedupRel] {Relation Embedding};
+		\node (UpdateDescRel) [llmBox, below right=1cm and -2cm of DedupRel] {Update Relation Description\\(use LLM để tổng hợp mô tả)};
+		
+		\node (Merge_Storage) [draw, dashed, inner sep=10pt, fit=(DedupEnt) (DedupRel) (EmbedEnt) (UpdateDescEnt) (EmbedRel) (UpdateDescRel), label={[font=\bfseries]above:3. Chuẩn hóa Set \& Cập nhật Đồ thị}] {};
+
+		\node (EntVDB) [storageBox, below=1.5cm of EmbedEnt] {Entity Vector DB};
+		\node (RelVDB) [storageBox, below=1.5cm of EmbedRel] {Relation Vector DB};
+		\node (KG) [storageBox] at ($(UpdateDescEnt)!0.5!(UpdateDescRel) - (0, 1.5cm)$) {Knowledge Graph\\(Neo4j)};
+
+		% ----------------------------------------------------
+		% ARROWS
+		% ----------------------------------------------------
+		\draw [arrow] (Input) -- (DocDedup);
+		\draw [arrow] (DocDedup) -- node[label_txt, above] {Đã tồn tại} (SkipDoc);
+		\draw [arrow] (DocDedup) -- node[label_txt, right] {Tài liệu mới} (Parse);
+		
+		\draw [arrow] (Parse) -- (SectionChunk);
+		\draw [arrow] (Parse) -- (StdChunk);
+		
+		\draw [dashed_arrow] (SectionChunk) -- (SecKV);
+		\draw [arrow] (SectionChunk) -- node[label_txt, right] {use EB Model} (SecVDB);
+		
+		\draw [dashed_arrow] (StdChunk) -- (TextKV);
+		\draw [arrow] (StdChunk) -- node[label_txt, right] {use EB Model} (TextVDB);
+		
+		\draw [arrow] (StdChunk.south) -- ++(0,-0.5) -| node[label_txt, right, pos=0.2] {use LLM} (Extract.north);
+		
+		\draw [arrow] (Extract) -- (OrphanFilter);
+		\draw [arrow] (OrphanFilter) -- (LLMAudit);
+		\draw [arrow] (LLMAudit) -- (SHACL);
+		\draw [arrow] (SHACL) -- (Decision);
+		
+		\draw [arrow] (Decision) -- node[label_txt, above] {Pass Filter} (EntityResolution);
+		\draw [dashed_arrow] (Decision) -- node[label_txt, above] {Reject} (Drop);
+		
+		\draw [arrow] (EntityResolution) -- (DedupEnt);
+		\draw [arrow] (EntityResolution) -- (DedupRel);
+		
+		\draw [arrow] (DedupEnt) -- node[label_txt, left] {use EB Model} (EmbedEnt);
+		\draw [arrow] (DedupEnt) -- node[label_txt, right] {use LLM} (UpdateDescEnt);
+		
+		\draw [arrow] (DedupRel) -- node[label_txt, left] {use EB Model} (EmbedRel);
+		\draw [arrow] (DedupRel) -- node[label_txt, right] {use LLM} (UpdateDescRel);
+		
+		\draw [dashed_arrow] (EmbedEnt) -- (EntVDB);
+		\draw [dashed_arrow] (EmbedRel) -- (RelVDB);
+		\draw [arrow] (UpdateDescEnt) -- (KG);
+		\draw [arrow] (UpdateDescRel) -- (KG);
+
 	\end{tikzpicture}
+	}
 	\caption{Quy trình tổng quát từ văn bản thô đến đồ thị tri thức}
 	\label{fig:flow_data_kg_main}
 \end{figure}
@@ -55,14 +131,14 @@
 
 \subsection{Tiền xử lý dữ liệu tri thức}
 
-\subsubsection{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}
+\subsubsection{Hệ thống MinerU}
+\textit{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}:
 \indent Trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
 
 \indent Để giải quyết triệt để thách thức này, hệ thống áp dụng công cụ MinerU \cite{mineru_2024} (từ phiên bản 3.2.3 trở lên) làm giải pháp lõi cho quy trình tiền xử lý dữ liệu. Đây là một công cụ trích xuất dữ liệu đa phương thức chất lượng cao, tích hợp các mô hình tiên tiến như Vision-Language Model (VLM) cho việc phân tích bố cục (Layout Analysis), mô hình OCR để nhận diện văn bản trên ảnh, và mô hình Mathematical Formula Recognition (MFR) để chuyển đổi công thức toán học sang chuẩn LaTeX. Sự kết hợp này giúp MinerU không chỉ trích xuất chính xác văn bản mà còn bảo toàn hoàn hảo cấu trúc logic của tài liệu gốc, đặc biệt phù hợp với các giáo trình, bài báo khoa học và tài liệu lưu trữ của trường đại học.
 
-\subsubsection{Luồng xử lý tự động (Hybrid-Auto-Engine)}
-
-\indent Chế độ \texttt{-b hybrid-auto-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
+\textit{Luồng xử lý tự động (Hybrid-Auto-Engine)}:
+\indent Chế độ \texttt{-b hybrid\allowbreak-auto\allowbreak-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
 
 \begin{figure}[H]
 	\centering
@@ -91,47 +167,47 @@
 	\def\yS{-10.8}
 	\def\yE{-12.6}
 
-	%%-- ROW 0
+	%%- ROW 0
 	\node[rnd] (start)      at (\cZ, \yZ) {Bắt đầu xử lý PDF};
 	\node[box] (checkocr)   at (\cO, \yZ) {Phân loại PDF OCR};
 	\node[box] (classify)   at (\cT, \yZ) {PDF có phải dạng scan/ảnh?};
 	\node[box] (ocrdisable) at (\cH, \yZ) {Tắt OCR};
 
-	%%-- ROW 1
+	%%- ROW 1
 	\node[box] (ocrenable)  at (\cT, \yO) {Bật OCR};
 	\node[box] (vlmcheck)   at (\cH, \yO) {Kiểm tra điều kiện VLM\_OCR};
 
-	%%-- ROW 2
+	%%- ROW 2
 	\node[box] (splitwin)   at (\cZ, \yT) {Chia PDF thành các Window};
 	\node[box] (calbatch)   at (\cO, \yT) {Tính toán Batch Ratio};
 	\node[box] (vlmdisable) at (\cT, \yT) {Tắt VLM\_OCR};
 	\node[box] (vlmenable)  at (\cH, \yT) {Bật VLM\_OCR};
 
-	%%-- ROW 3
+	%%- ROW 3
 	\node[box] (loadimg)    at (\cZ, \yH) {Load PDF thành danh sách ảnh PIL};
 	\node[box] (vlmext)     at (\cO, \yH) {VLM Layout Extraction};
 	\node[box] (hasvlm)     at (\cT, \yH) {Bật VLM\_OCR?};
 	\node[box] (maskimg)    at (\cH, \yH) {Masking: Che vùng Ảnh, Bảng...};
 
-	%%-- ROW 4
+	%%- ROW 4
 	\node[box] (ocrdet)     at (\cZ, \yF) {OCR Detector: Nhận diện vùng chữ};
 	\node[box] (mfr)        at (\cO, \yF) {MFR Model: Dịch sang LaTeX};
 	\node[box] (detectform) at (\cT, \yF) {Nhận diện vùng Công thức};
 	\node[box] (chkform)    at (\cH, \yF) {Bật nhận dạng công thức?};
 
-	%%-- ROW 5
+	%%- ROW 5
 	\node[box] (needocr)    at (\cZ, \yI) {Cần nhận diện chữ?};
 	\node[box] (ocrrec)     at (\cO, \yI) {OCR Recognizer: Đọc chữ};
 	\node[box] (filtscore)  at (\cT, \yI) {Lọc OCR score thấp};
 	\node[box] (normbox)    at (\cH, \yI) {Chuẩn hoá toạ độ Bbox};
 
-	%%-- ROW 6
+	%%- ROW 6
 	\node[box] (finalize)   at (\cZ, \yS) {Finalize Middle JSON};
 	\node[box] (loopnode)   at (\cO, \yS) {Còn Window nào không?};
 	\node[box] (mergejson)  at (\cT, \yS) {Nạp kết quả vào middle\_json};
 	\node[box] (mergepage)  at (\cH, \yS) {Gộp Layout, Text OCR, LaTeX};
 
-	%%-- ROW 7
+	%%- ROW 7
 	\node[box] (cleanmem)   at (\cZ, \yE) {Dọn dẹp VRAM / Đóng PDF};
 	\node[rnd] (endnode)    at (\cO, \yE) {Hoàn tất};
 
@@ -224,71 +300,46 @@
 	\label{fig:flow_deduplication}
 \end{figure}
 
-\subsubsection{Hệ thống xử lý tài liệu đa định dạng}
+\subsubsection{Hệ thống thu thập tri thức từ trang web}
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.6cm, auto, scale=0.7, transform shape]
-		% Nodes
-		\node (in) [startstop] {Dữ liệu đầu vào (PDF/Scan)};
-		\node (router) [process, below=of in, text width=6cm] {Bộ định tuyến tự động \\ \footnotesize(pdfminer + langdetect)};
+	\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, transform shape]
+		\node (input) [startstop] {URL Mục tiêu};
+		\node (dom) [process, below=of input] {Nhận diện cấu trúc DOM};
+		\node (check) [decision, below=of dom, text width=3cm] {Đã tồn tại trong \\ Registry hệ thống?};
 		
-		\node (back_box) [groupbox, below=1.5cm of router, minimum width=13cm, minimum height=8cm] (engines) {};
-		\node [above right=2mm of engines.north west, anchor=south west, font=\small\bfseries] {Các công cụ xử lý Backend};
+		\node (llm) [process, left=2.8cm of check, yshift=-1.5cm, text width=3.5cm] {Phân tích LLM \\ (Logic tô pô DOM)};
+		\node (gen) [process, below=1cm of llm] {Tạo bộ chọn \\ CSS/JS tối ưu};
+		\node (save) [process, below=1cm of gen] {Cập nhật Registry \\ (Lưu trữ bộ chọn)};
 		
-		\node (pt) [process, yshift=-1.8cm] at (engines.north) {Hybrid-Auto (Chỉ văn bản) \\ \footnotesize(pdftext/pdfminer)};
-		\node (ocr) [process, below=1cm of pt] {Chế độ OCR tối ưu \\ \footnotesize(PaddleOCR/UniMERNet)};
+		\node (exe) [process, right=2.8cm of check, yshift=-1.5cm, text width=4cm] {Thực thi Scraper Engine \\ (Playwright \& Stealth)};
+		\node (clean) [process, below=1.5cm of exe] {Làm sạch Markdown};
+		\node (out) [startstop, below=4cm of check, yshift=-2cm] {Đầu ra Markdown cuối cùng};
 		
-		\node (vn_box) [groupbox, below=1.2cm of ocr, minimum width=11.5cm, minimum height=2.5cm, fill=blue!3] (vn) {};
-		\node [above right=1mm of vn.north west, anchor=south west, font=\tiny\itshape] {Tối ưu hóa tiếng Việt};
-		\node (dec) [decision, scale=0.7, text width=2.5cm] at (vn.center) {Kiểm tra API?};
-		\node (l_on) [smallbox, left=1cm of dec, text width=2.5cm] {LightOnOCR API};
-		\node (fback) [smallbox, right=1cm of dec, text width=2.5cm] {Dự phòng nội bộ};
-		
-		\node (post) [process, below=2cm of engines, text width=6cm] {Hậu xử lý tập trung \\ \footnotesize(Làm sạch, Bidi, Thứ tự đọc)};
-		\node (out) [startstop, below=of post] {Đầu ra Markdown đồng nhất};
-		
-		% Connections
-		\draw [arrow] (in) -- (router);
-		\draw [arrow] (router) -- node[anchor=west, font=\tiny, xshift=2mm] {Định tuyến Văn bản/Scan} (engines);
-		\draw [arrow] (dec) -- (l_on);
-		\draw [arrow] (dec) -- (fback);
-		\draw [arrow] (engines) -- (post);
-		\draw [arrow] (post) -- (out);
+		\draw [arrow] (input) -- (dom);
+		\draw [arrow] (dom) -- (check);
+		\draw [arrow] (check) -| node [anchor=south, xshift=-1.4cm, font=\footnotesize] {KHÔNG (Mới)} (llm);
+		\draw [arrow] (check) -| node [anchor=south, xshift=1.4cm, font=\footnotesize] {CÓ (Đã biết)} (exe);
+		\draw [arrow] (llm) -- (gen);
+		\draw [arrow] (gen) -- (save);
+		\draw [arrow] (save) |- ($(out.north west)!0.3!(out.north)$);
+		\draw [arrow] (exe) -- (clean);
+		\draw [arrow] (clean) -- (out);
 	\end{tikzpicture}
-	\caption{Chi tiết kiến trúc hệ thống VMiner hỗ trợ đa Backend}
-	\label{fig:architecture_vminer}
+	\caption{Quy trình thu thập tri thức từ trang web với Smart Scraper}
+	\label{fig:flow_scrap_web}
 \end{figure}
 
-\indent Dự án được phát triển dựa trên việc tùy biến hệ thống mã nguồn mở MinerU \cite{mineru}, tập trung vào tối ưu hóa công nghệ nhận dạng ký tự quang học chuyên biệt cho tiếng Việt. Mục tiêu cốt lõi là khắc phục triệt để những hạn chế trong việc nhận diện dấu tiếng Việt và xử lý các cấu trúc bảng biểu phức tạp. Hệ thống tự động hóa hoàn toàn quy trình chuyển đổi tài liệu từ PDF và hình ảnh sang chuẩn Markdown. Bên cạnh đó, dự án tích hợp công cụ MarkItDown \cite{markitdown} để xử lý trực tiếp các định dạng văn phòng phổ biến như Word, Excel, PowerPoint một cách đồng bộ.
+\indent Hệ thống cào web thông minh hoạt động theo quy trình tự động hóa từ việc nhận diện cấu trúc trang đến trích xuất dữ liệu. Logic cốt lõi dựa trên công cụ Smart Scraper Engine với cơ chế vận hành qua bốn bước chính: lấy dấu vân tay, đối chiếu kho lưu trữ, phân tích cấu trúc bằng mô hình ngôn ngữ và thực thi bộ phân giải.
 
-\indent Quá trình chuyển đổi được thực hiện qua các giai đoạn chặt chẽ. Đầu tiên, hệ thống sử dụng các mô hình học sâu để phân tích cấu trúc hình học của trang tài liệu, tự động phân loại các vùng như đoạn văn bản, bảng biểu, hình ảnh và công thức toán học. Sau đó, từng vùng nội dung được điều hướng tới các bộ xử lý chuyên biệt. Các vùng văn bản được gửi đến các thư viện nhận diện ký tự để trích xuất chữ viết chính xác, trong khi các vùng bảng biểu được phân tích bởi các mô hình ngôn ngữ thị giác để tái tạo lại cấu trúc dữ liệu chuẩn xác.
+\indent Quy trình bắt đầu bằng việc tạo ra một bản tóm tắt cấu trúc cây DOM của trang web, tập trung vào các thuộc tính định danh như thẻ HTML, tên lớp và ID. Hệ thống trích xuất một bộ khung xương kỹ thuật của trang web để làm cơ sở cho việc nhận diện. Sau đó, bản tóm tắt này được đối chiếu với kho lưu trữ các bộ phân giải đã biết. Mỗi mục trong kho lưu trữ chứa các thông tin về dấu hiệu nhận biết, bộ chọn nội dung chính, các thành phần cần loại bỏ và chiến lược chờ đợi phù hợp cho từng loại công nghệ web như React, Vue, hay các hệ quản trị nội dung truyền thống.
 
-\begin{figure}[H]
-	\centering
-	\begin{tikzpicture}[node distance=2cm, scale=0.85, transform shape]
-		\node (in) [startstop, text width=4.5cm] {Dữ liệu tệp văn phòng \\ \footnotesize(Docx/Xlsx/Pptx)};
-		\node (router) [decision, below=1.2cm of in, text width=2.5cm] {Nhận diện định dạng?};
-		
-		\node (word) [process, below=1.2cm of router] {Bộ phân giải Word \\ \footnotesize(Pandoc/Mammoth)};
-		\node (excel) [process, left=1.2cm of word] {Bộ phân giải Excel \\ \footnotesize(openpyxl)};
-		\node (ppt) [process, right=1.2cm of word] {Bộ phân giải PPT \\ \footnotesize(python-pptx)};
-		
-		\node (post) [process, below=1.5cm of word, text width=6cm] {Chuẩn hóa Markdown \\ \footnotesize(Làm sạch, Vệ sinh, Metadata)};
-		\node (out) [startstop, below=1.2cm of post] {Đầu ra Markdown đồng nhất};
-		
-		\draw [arrow] (in) -- (router);
-		\draw [arrow] (router) -- node [anchor=west, font=\footnotesize, xshift=1mm] {Mặc định} (word);
-		\draw [arrow] (router) -| node [pos=0.2, anchor=south, font=\footnotesize] {.xlsx} (excel);
-		\draw [arrow] (router) -| node [pos=0.2, anchor=south, font=\footnotesize] {.pptx} (ppt);
-		\draw [arrow] (word) -- (post);
-		\draw [arrow] (excel) |- (post);
-		\draw [arrow] (ppt) |- (post);
-		\draw [arrow] (post) -- (out);
-	\end{tikzpicture}
-	\caption{Sơ đồ hoạt động của hệ thống MarkItDown}
-	\label{fig:architecture_markitdown}
-\end{figure}
+\indent Trong trường hợp gặp một trang web mới không có trong kho lưu trữ, hệ thống sẽ gửi một phần cấu trúc DOM tiêu biểu cho mô hình ngôn ngữ lớn. Mô hình này có nhiệm vụ phân tích logic phân bổ nội dung và tự động sinh ra mã lệnh điều hướng. Mã lệnh này bao gồm các bộ chọn CSS tối ưu để trích xuất văn bản có ý nghĩa và các quy tắc loại bỏ những thành phần gây nhiễu như trình đơn điều hướng, biểu ngữ quảng cáo hoặc các đoạn mã kịch bản. Bộ phân giải mới sinh ra sẽ được kiểm tra và lưu lại vào kho lưu trữ để sử dụng cho các lần truy cập sau, giúp tối ưu hóa hiệu suất và giảm thiểu chi phí gọi API.
+
+\indent Đối với các tên miền mặc định như fit.hcmus.edu.vn và hcmus.edu.vn, hệ thống đã được cấu hình sẵn các bộ phân giải chuyên biệt cho nền tảng DotNetNuke. Do đặc thù của nền tảng này thường chứa nhiều nội dung lồng ghép trong các khung phức tạp, hệ thống sử dụng các bộ chọn mục tiêu như .dnn\_contentPane và \#dnn\_ContentPane để định vị chính xác vùng chứa thông tin học thuật. Quy trình trích xuất văn bản tại đây không chỉ lấy chữ thuần túy mà còn thực hiện chuyển đổi các liên kết quan trọng sang định dạng Markdown để bảo toàn thông tin tham chiếu.
+
+\indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi chúng nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
 
 \subsection{Chiến lược phân đoạn và chuẩn hóa văn bản}
 
@@ -316,13 +367,18 @@
 
 \indent \textit{Giai đoạn 4: Gom nhóm và sinh phân đoạn theo chiến lược DFS (DFS-based Grouping).} Giai đoạn cuối cùng thực hiện việc duyệt cây phân cấp theo chiều sâu (Depth-First Search) để gom nhóm các nút lá thành các phân đoạn hoàn chỉnh, tuân thủ giới hạn kích thước token tối đa đã được cấu hình. Thuật toán duyệt DFS đảm bảo rằng các nút con thuộc cùng một nút cha sẽ được ưu tiên gom vào cùng một phân đoạn, từ đó bảo toàn tính liên kết ngữ nghĩa theo cấu trúc phân cấp gốc. Cụ thể, quy tắc gom nhóm được áp dụng như sau:
 
-\begin{itemize}
-	\item Nếu thành phần là một đoạn văn ngắn (dưới 100 token): gộp với các đoạn văn tiếp theo thuộc cùng mục (section) cho đến khi đạt ngưỡng kích thước tối thiểu.
-	\item Nếu thành phần là một đoạn văn dài (vượt quá giới hạn token): áp dụng kỹ thuật tách nhận biết ranh giới câu (sentence-aware splitting) để tránh cắt ngang ý tưởng.
-	\item Nếu thành phần là bảng biểu: giữ nguyên toàn bộ bảng như một phân đoạn độc lập kèm theo chú thích bảng và ngữ cảnh mục chứa bảng. Đối với bảng quá lớn vượt giới hạn token, áp dụng chiến lược tách theo nhóm hàng kèm giữ nguyên hàng tiêu đề.
-	\item Nếu thành phần là hình ảnh hoặc biểu đồ: tạo phân đoạn hình ảnh chứa mô tả sinh bởi VLM, chú thích (caption) gốc và đoạn văn bản ngữ cảnh trước/sau hình ảnh, thiết lập liên kết chéo giữa các thành phần này.
-	\item Nếu thành phần là slide (đối với tài liệu PPTX): giữ nguyên toàn bộ nội dung slide gồm tiêu đề, khung văn bản, danh sách và ghi chú diễn giả làm một phân đoạn; tách khi nội dung vượt giới hạn.
-\end{itemize}
+
+	
+- Nếu thành phần là một đoạn văn ngắn (dưới 100 token): gộp với các đoạn văn tiếp theo thuộc cùng mục (section) cho đến khi đạt ngưỡng kích thước tối thiểu.
+	
+- Nếu thành phần là một đoạn văn dài (vượt quá giới hạn token): áp dụng kỹ thuật tách nhận biết ranh giới câu (sentence-aware splitting) để tránh cắt ngang ý tưởng.
+	
+- Nếu thành phần là bảng biểu: giữ nguyên toàn bộ bảng như một phân đoạn độc lập kèm theo chú thích bảng và ngữ cảnh mục chứa bảng. Đối với bảng quá lớn vượt giới hạn token, áp dụng chiến lược tách theo nhóm hàng kèm giữ nguyên hàng tiêu đề.
+	
+- Nếu thành phần là hình ảnh hoặc biểu đồ: tạo phân đoạn hình ảnh chứa mô tả sinh bởi VLM, chú thích (caption) gốc và đoạn văn bản ngữ cảnh trước/sau hình ảnh, thiết lập liên kết chéo giữa các thành phần này.
+	
+- Nếu thành phần là slide (đối với tài liệu PPTX): giữ nguyên toàn bộ nội dung slide gồm tiêu đề, khung văn bản, danh sách và ghi chú diễn giả làm một phân đoạn; tách khi nội dung vượt giới hạn.
+
 
 \indent Mỗi phân đoạn được tạo ra sẽ được nhúng (inject) thêm thông tin đường dẫn phân cấp (breadcrumb context) vào đầu nội dung, theo định dạng:
 
@@ -336,12 +392,13 @@
 
 \begin{table}[H]
 	\centering
-	\renewcommand{\arraystretch}{1.4}
 	\caption{So sánh hai chiến lược phân đoạn trong hệ thống}
 	\label{tab:so_sanh_chunking}
+
+	\renewcommand{\arraystretch}{1.4}
 	\begin{tabular}{|p{3.5cm}|p{5.5cm}|p{5.5cm}|}
 		\hline
-		\textbf{Tiêu chí} & \textbf{Chiến lược 1: Kích thước cố định} & \textbf{Chiến lược 2: Phân cấp đa phương thức} \\ \hline
+		Tiêu chí & Chiến lược 1: Kích thước cố định & Chiến lược 2: Phân cấp đa phương thức \\ \hline
 		Mục đích chính & Trích xuất thực thể và quan hệ cho đồ thị tri thức & Truy xuất ngữ cảnh chính xác cho RAG \\ \hline
 		Đơn vị phân đoạn & Cửa sổ token cố định (1200 token) & Đơn vị ngữ nghĩa tự nhiên (đoạn văn, bảng, hình) \\ \hline
 		Bảo toàn cấu trúc & Không, xử lý văn bản thuần tuyến tính & Có, bảo toàn cấu trúc phân cấp gốc \\ \hline
@@ -360,17 +417,22 @@
 
 \indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở intfloat/multilingual-e5-large-instruct được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn VN-MTEB (Vietnamese Massive Text Embedding Benchmark) công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm:
 
-\begin{itemize}
-	\item \textbf{Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning):} Điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
-	\item \textbf{Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment):} Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
-	\item \textbf{Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu:} Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
-\end{itemize}
+
+	
+- Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning): Điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
+	
+- Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment): Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
+	
+- Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu: Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+
 
 \indent Về mặt kiến trúc vận hành thực tế hệ thống, mô hình nhúng mở multilingual-e5-large-instruct sở hữu dung lượng tham số ở mức trung bình (560 triệu tham số) \cite{multilingual_e5}, mở ra hai kịch bản triển khai linh hoạt đáp ứng hoàn hảo từng môi trường hạ tầng:
-\begin{itemize}
-	\item \textbf{Môi trường phát triển và thử nghiệm (Local Deployment):} Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện sentence-transformers và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (Self-contained) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
-	\item \textbf{Môi trường vận hành thực tế (Production Hosting API):} Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống chuyển sang mô hình Self-hosted API độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (Microservice) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như TEI (Text Embeddings Inference) của Hugging Face hoặc Triton Inference Server của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (Dynamic Batching) và lượng hóa ma trận về định dạng Float16, giúp nén tối đa độ trễ sinh vector nhúng thời gian thực xuống dưới 10 mili giây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
-\end{itemize}
+
+	
+- Môi trường phát triển và thử nghiệm (Local Deployment): Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện sentence-transformers và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (Self-contained) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
+	
+- Môi trường vận hành thực tế (Production Hosting API): Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống chuyển sang mô hình Self-hosted API độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (Microservice) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như TEI (Text Embeddings Inference) của Hugging Face hoặc Triton Inference Server của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (Dynamic Batching) và lượng hóa ma trận về định dạng Float16, giúp nén tối đa độ trễ sinh vector nhúng thời gian thực xuống dưới 10 mili giây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
+
 
 \subsection{Hệ thống thu thập tri thức từ trang web}
 
@@ -457,9 +519,9 @@
 
 \indent Để tối ưu hóa chi phí tính toán và duy trì tính nhất quán ngữ nghĩa, LightRAG sử dụng một lời nhắc có cấu trúc (structured prompt) yêu cầu mô hình ngôn ngữ lớn (LLM) thực hiện đồng thời hai nhiệm vụ trích xuất trong một lần gọi API duy nhất. 
 
-\indent \textbf{Nhiệm vụ 1: Nhận diện thực thể (Entity Extraction).} Mô hình được yêu cầu xác định tất cả các thực thể quan trọng xuất hiện trong chunk. Đối với mỗi thực thể, LLM phải trích xuất các thuộc tính cốt lõi bao gồm tên định danh (Entity Name), loại thực thể (Entity Type) như PERSON, ORGANIZATION, CONCEPT, EVENT,... và một đoạn văn bản ngắn mô tả (Entity Description) giải thích vai trò, đặc điểm và ngữ cảnh của thực thể đó. Khác với NER truyền thống \cite{ner_survey}, phương pháp này khai thác tối đa khả năng hiểu ngữ nghĩa sâu của LLM để tạo ra các mô tả tri thức phong phú.
+\indent Nhiệm vụ 1: Nhận diện thực thể (Entity Extraction). Mô hình được yêu cầu xác định tất cả các thực thể quan trọng xuất hiện trong chunk. Đối với mỗi thực thể, LLM phải trích xuất các thuộc tính cốt lõi bao gồm tên định danh (Entity Name), loại thực thể (Entity Type) như PERSON, ORGANIZATION, CONCEPT, EVENT,... và một đoạn văn bản ngắn mô tả (Entity Description) giải thích vai trò, đặc điểm và ngữ cảnh của thực thể đó. Khác với NER truyền thống \cite{ner_survey}, phương pháp này khai thác tối đa khả năng hiểu ngữ nghĩa sâu của LLM để tạo ra các mô tả tri thức phong phú.
 
-\indent \textbf{Nhiệm vụ 2: Trích xuất quan hệ (Relation Extraction).} Sau khi xác định các thực thể, mô hình thực hiện quét các cặp thực thể để tìm kiếm các mối liên kết có ý nghĩa. Các thuộc tính trích xuất bao gồm hai thực thể tham gia (Source \& Target), các từ khóa định nghĩa bản chất liên kết (Relationship Keywords) và mô tả chi tiết (Relationship Description) lý do tại sao hai thực thể này có liên quan đến nhau dựa trên bằng chứng trong văn bản.
+\indent Nhiệm vụ 2: Trích xuất quan hệ (Relation Extraction). Sau khi xác định các thực thể, mô hình thực hiện quét các cặp thực thể để tìm kiếm các mối liên kết có ý nghĩa. Các thuộc tính trích xuất bao gồm hai thực thể tham gia (Source \& Target), các từ khóa định nghĩa bản chất liên kết (Relationship Keywords) và mô tả chi tiết (Relationship Description) lý do tại sao hai thực thể này có liên quan đến nhau dựa trên bằng chứng trong văn bản.
 
 \subsubsection{Cơ chế Gleaning: Tự chỉnh sửa và Thu nhặt bổ sung}
 
@@ -504,7 +566,7 @@
 
 \indent Một thách thức lớn trong việc xây dựng đồ thị tri thức cho môi trường học thuật là sự khác biệt sâu sắc về cấu trúc và ngôn từ giữa các nguồn tài liệu. Đề cương chi tiết môn học thường mang tính quy phạm, ngắn gọn và sử dụng dày đặc các mã ký hiệu viết tắt như G1, G2 (mục tiêu môn học), CLO (chuẩn đầu ra), hay các thuật ngữ quản lý đào tạo như tích lũy, tiên quyết. Trong khi đó, dữ liệu từ hệ thống website của khoa lại mang tính chất thông tin đại chúng, chứa nhiều tin tức, sự kiện và mô tả tổng quát. Một lời nhắc trích xuất tổng quát duy nhất khó có thể bao quát tốt cả hai dạng tài liệu này: lời nhắc tối ưu cho đề cương sẽ bỏ sót ngữ cảnh tin tức, còn lời nhắc tối ưu cho website lại không nhận diện được các mã ký hiệu chuyên ngành. Để giải quyết vấn đề này, hệ thống triển khai mô-đun luồng xử lý lời nhắc linh hoạt (Dynamic Prompt Flow) đặt tại \texttt{lightrag/prompt\_flow}, với cơ chế tự động điều phối lời nhắc theo miền tri thức (domain) của từng phân đoạn.
 
-\indent Về mặt thiết kế, mô-đun áp dụng đồng thời ba mẫu thiết kế phần mềm: \textit{Registry}, \textit{Strategy} và \textit{Protocol}. Mỗi miền tri thức được hiện thực thành một mô-đun chiến lược (strategy) tuân thủ giao diện \texttt{EntityExtractionModule}, bắt buộc cung cấp đúng bốn hằng số lời nhắc: lời nhắc hệ thống (\texttt{ENTITY\_EXTRACTION\_SYSTEM\_PROMPT}), tập ví dụ mẫu (\texttt{ENTITY\_EXTRACTION\_EXAMPLES}), lời nhắc người dùng (\texttt{ENTITY\_EXTRACTION\_USER\_PROMPT}) và lời nhắc thu nhặt bổ sung (\texttt{ENTITY\_CONTINUE\_EXTRACTION\_USER\_PROMPT}). Bộ điều phối (\texttt{PromptDispatcher}) duy trì một sổ đăng ký (Registry) ánh xạ tên miền sang mô-đun tương ứng; khi gặp một nhãn miền chưa được đăng ký, hệ thống tự động lùi về miền mặc định \texttt{curriculum}. Thiết kế này cho phép bổ sung một miền tri thức mới mà không phải sửa đổi mã nguồn của tầng trích xuất, đảm bảo khả năng mở rộng.
+\indent Về mặt thiết kế, mô-đun áp dụng đồng thời ba mẫu thiết kế phần mềm: \textit{Registry}, \textit{Strategy} và \textit{Protocol}. Mỗi miền tri thức được hiện thực thành một mô-đun chiến lược (strategy) tuân thủ giao diện \texttt{EntityExtractionModule}, bắt buộc cung cấp đúng bốn hằng số lời nhắc: lời nhắc hệ thống (\texttt{ENTITY\_\allowbreak EXTRACTION\_\allowbreak SYSTEM\_\allowbreak PROMPT}), tập ví dụ mẫu (\texttt{ENTITY\_\allowbreak EXTRACTION\_\allowbreak EXAMPLES}), lời nhắc người dùng (\texttt{ENTITY\_\allowbreak EXTRACTION\_\allowbreak USER\_\allowbreak PROMPT}) và lời nhắc thu nhặt bổ sung (\texttt{ENTITY\_\allowbreak CONTINUE\_\allowbreak EXTRACTION\_\allowbreak USER\_\allowbreak PROMPT}). Bộ điều phối (\texttt{PromptDispatcher}) duy trì một sổ đăng ký (Registry) ánh xạ tên miền sang mô-đun tương ứng; khi gặp một nhãn miền chưa được đăng ký, hệ thống tự động lùi về miền mặc định \texttt{curriculum}. Thiết kế này cho phép bổ sung một miền tri thức mới mà không phải sửa đổi mã nguồn của tầng trích xuất, đảm bảo khả năng mở rộng.
 
 \indent Hệ thống hiện hỗ trợ bốn miền tri thức đặc thù cho dữ liệu đào tạo bậc đại học. Miền \texttt{curriculum} dành cho chương trình đào tạo, tập trung vào ngành, khoa, khối kiến thức, môn học, mục tiêu chương trình (PO), chuẩn đầu ra (ELO), số tín chỉ và điều kiện tiên quyết. Miền \texttt{course} dành cho đề cương chi tiết học phần, ưu tiên các chuẩn đầu ra môn học (CLO), nội dung chương, hình thức kiểm tra và tài liệu tham khảo. Miền \texttt{teacher} dành cho danh sách nhân sự giảng dạy, phân biệt giảng viên cơ hữu, thỉnh giảng và cán bộ hỗ trợ cùng học hàm, học vị. Cuối cùng, miền \texttt{resolution} dành cho các văn bản pháp lý, hành chính thuần túy như nghị quyết hội đồng trường hay quy chế tổ chức.
 
@@ -550,15 +612,15 @@
 
 \indent Để đảm bảo tính toàn vẹn và chất lượng của dữ liệu tri thức trước khi đưa vào đồ thị chính thức, hệ thống tích hợp một bộ kiểm chứng lấy cảm hứng từ chuẩn SHACL (Shapes Constraint Language) \cite{shacl_w3c}. SHACL cung cấp một ngôn ngữ để mô tả các ràng buộc về cấu trúc và ngữ nghĩa của dữ liệu đồ thị, cho phép tự động hóa việc phát hiện các lỗi phổ biến trong kết quả trích xuất bằng mô hình ngôn ngữ lớn \cite{shacl_wikidata}. Toàn bộ logic kiểm chứng được hiện thực trong mô-đun \texttt{lightrag/shacl}, tổ chức thành một quy trình ba lớp bảo vệ (3-Guard) thực thi tuần tự trên kết quả trích xuất của từng phân đoạn.
 
-\indent \textbf{Lớp bảo vệ thứ nhất (Guard 1) -- Khử trùng lặp.} Hệ thống đối chiếu mã định danh phân đoạn (\texttt{chunk\_id}) với kho lưu trữ hiện có. Nếu phân đoạn đã tồn tại, hệ thống chuyển sang trạng thái nạp lại (\texttt{RE\_INGEST}) và điều chỉnh cách tính bậc kết nối của thực thể để tránh cộng dồn trùng lặp; ngược lại, phân đoạn mới được cho phép tiếp tục (\texttt{PROCEED}). Lớp này ngăn việc xử lý lại dữ liệu dư thừa và bảo vệ tính toàn vẹn của đồ thị.
+\indent Lớp bảo vệ thứ nhất (Guard 1) -- Khử trùng lặp. Hệ thống đối chiếu mã định danh phân đoạn (\texttt{chunk\_id}) với kho lưu trữ hiện có. Nếu phân đoạn đã tồn tại, hệ thống chuyển sang trạng thái nạp lại (\texttt{RE\_INGEST}) và điều chỉnh cách tính bậc kết nối của thực thể để tránh cộng dồn trùng lặp; ngược lại, phân đoạn mới được cho phép tiếp tục (\texttt{PROCEED}). Lớp này ngăn việc xử lý lại dữ liệu dư thừa và bảo vệ tính toàn vẹn của đồ thị.
 
-\indent \textbf{Lớp bảo vệ thứ hai (Guard 2) -- Kiểm tra cấu trúc và đối chiếu bằng chứng.} Đây là trọng tâm của quy trình. Mỗi thực thể và quan hệ được kiểm tra qua một tập các định nghĩa hình dạng (Shapes). Đối với thực thể, các quy tắc bao gồm: bắt buộc có tên hợp lệ (\texttt{missing\_name}, mức lỗi), bắt buộc có kiểu xác định khác ``UNKNOWN'' (\texttt{missing\_type}, mức lỗi), bắt buộc có siêu dữ liệu nguồn gốc \texttt{source\_id} (\texttt{no\_provenance}, mức lỗi), và cảnh báo thực thể bị cô lập khi số kết nối nhỏ hơn ngưỡng tối thiểu (\texttt{isolated\_entity}). Đáng chú ý, số kết nối của một thực thể được tính bằng cách kết hợp bậc cục bộ (trong phạm vi phân đoạn) với bậc toàn cục truy vấn đồng thời từ cơ sở dữ liệu đồ thị Neo4j, nhằm tránh báo cô lập sai đối với những thực thể đã có liên kết ở các phân đoạn trước. Đối với quan hệ, hệ thống kiểm tra sự tồn tại của thực thể nguồn và đích, phát hiện quan hệ tự trỏ (\texttt{self\_loop}), độ dài tối thiểu của mô tả (mặc định 15 ký tự) và dải giá trị hợp lệ của trọng số trong khoảng $[0, 1]$. Ngoài ra, một bộ chặn ngôn ngữ (language guard) sẽ từ chối mọi giá trị chứa ký tự nằm ngoài bảng chữ Latinh và tiếng Việt (\texttt{contains\_foreign\_script}), loại bỏ các trường hợp mô hình ngôn ngữ vô tình sinh ra ký tự ngoại lai. Mỗi vi phạm được gán một trong ba mức nghiêm trọng: lỗi (error), cảnh báo (warning) hoặc thông tin (info).
+\indent Lớp bảo vệ thứ hai (Guard 2) -- Kiểm tra cấu trúc và đối chiếu bằng chứng. Đây là trọng tâm của quy trình. Mỗi thực thể và quan hệ được kiểm tra qua một tập các định nghĩa hình dạng (Shapes). Đối với thực thể, các quy tắc bao gồm: bắt buộc có tên hợp lệ (\texttt{missing\_name}, mức lỗi), bắt buộc có kiểu xác định khác ``UNKNOWN'' (\texttt{missing\_type}, mức lỗi), bắt buộc có siêu dữ liệu nguồn gốc \texttt{source\_id} (\texttt{no\_provenance}, mức lỗi), và cảnh báo thực thể bị cô lập khi số kết nối nhỏ hơn ngưỡng tối thiểu (\texttt{isolated\_entity}). Đáng chú ý, số kết nối của một thực thể được tính bằng cách kết hợp bậc cục bộ (trong phạm vi phân đoạn) với bậc toàn cục truy vấn đồng thời từ cơ sở dữ liệu đồ thị Neo4j, nhằm tránh báo cô lập sai đối với những thực thể đã có liên kết ở các phân đoạn trước. Đối với quan hệ, hệ thống kiểm tra sự tồn tại của thực thể nguồn và đích, phát hiện quan hệ tự trỏ (\texttt{self\_loop}), độ dài tối thiểu của mô tả (mặc định 15 ký tự) và dải giá trị hợp lệ của trọng số trong khoảng $[0, 1]$. Ngoài ra, một bộ chặn ngôn ngữ (language guard) sẽ từ chối mọi giá trị chứa ký tự nằm ngoài bảng chữ Latinh và tiếng Việt (\texttt{contains\_foreign\_script}), loại bỏ các trường hợp mô hình ngôn ngữ vô tình sinh ra ký tự ngoại lai. Mỗi vi phạm được gán một trong ba mức nghiêm trọng: lỗi (error), cảnh báo (warning) hoặc thông tin (info).
 
 \indent Điểm khác biệt cốt lõi của bộ kiểm chứng là cơ chế đối chiếu bằng chứng văn bản một cách xác định (deterministic text-grounding). Thay vì hỏi mô hình ngôn ngữ ``thực thể này có trong văn bản không?'' rồi tin vào câu trả lời, hệ thống tự tính toán bằng chứng: trước tiên tìm khớp chính xác chuỗi con (điểm số 1.0), nếu không có thì dùng so khớp mờ (fuzzy matching qua \texttt{rapidfuzz} hoặc \texttt{difflib}) với ngưỡng chấp nhận 0.9. Kết quả trả về không phải một ý kiến mà là chính đoạn văn bản khớp được kèm theo vị trí ký tự trong phân đoạn -- đóng vai trò bằng chứng có thể kiểm tra lại. Đối với quan hệ, hệ thống yêu cầu cả hai đầu mút đều có bằng chứng và đồng xuất hiện trong cùng một cửa sổ 200 ký tự, qua đó củng cố độ tin cậy rằng quan hệ là có thật chứ không phải hai lần nhắc rời rạc.
 
 \indent Quyết định cuối cùng cho mỗi thực thể và quan hệ được tổng hợp tại một tầng quyết định thuần túy theo nguyên tắc phân cấp niềm tin: các kiểm tra xác định (cấu trúc và bằng chứng văn bản) giữ quyền quyết định, còn mô hình ngôn ngữ phản biện (critic LLM) chỉ được phép nâng mức xem xét chứ không được tự ý chấp nhận. Cụ thể, nếu vi phạm cấu trúc ở mức lỗi thì dữ liệu bị đề xuất từ chối (\texttt{REJECTED}); nếu hợp lệ về cấu trúc và có bằng chứng văn bản thì được phê duyệt (\texttt{APPROVED}); nếu hợp lệ về cấu trúc nhưng thiếu bằng chứng xác định, dữ liệu chỉ được đưa vào danh sách chờ xem xét (\texttt{PENDING\_REVIEW}) khi độ tin cậy của mô hình phản biện đạt ngưỡng 0.8, ngược lại vẫn bị từ chối. Các thực thể bị cô lập hoặc quan hệ tự trỏ cũng được tự động chuyển sang trạng thái chờ xem xét.
 
-\indent Kết quả kiểm chứng trực tiếp điều hướng dữ liệu vào vùng đệm Staging thay vì hợp nhất ngay vào đồ thị chính thức. Mỗi mục dữ liệu được lưu kèm danh sách vi phạm (\texttt{shacl\_violations}), cờ hợp lệ (\texttt{shacl\_pass}), trạng thái đề xuất (\texttt{status\_suggestion}) và bằng chứng đối chiếu (\texttt{grounding}). \textbf{Lớp bảo vệ thứ ba (Guard 3)} tổng hợp báo cáo trên toàn bộ phân đoạn và chỉ đánh dấu sẵn sàng nạp vào đồ thị (\texttt{guard3\_staging\_ready}) khi không còn bất kỳ mục nào bị từ chối. Hình~\ref{fig:flow_shacl_3guard} minh họa toàn bộ quy trình ba lớp bảo vệ. Sự kết hợp giữa kiểm chứng theo Shapes, đối chiếu bằng chứng xác định và cơ chế Staging tạo nên một quy trình kiểm soát chất lượng chặt chẽ, vừa tự động phát hiện sai sót của mô hình ngôn ngữ, vừa cung cấp nhật ký minh bạch để người quản trị can thiệp, chỉnh sửa và phê duyệt, qua đó bảo đảm đồ thị tri thức cuối cùng luôn nhất quán và đáng tin cậy.
+\indent Kết quả kiểm chứng trực tiếp điều hướng dữ liệu vào vùng đệm Staging thay vì hợp nhất ngay vào đồ thị chính thức. Mỗi mục dữ liệu được lưu kèm danh sách vi phạm (\texttt{shacl\_violations}), cờ hợp lệ (\texttt{shacl\_pass}), trạng thái đề xuất (\texttt{status\_suggestion}) và bằng chứng đối chiếu (\texttt{grounding}). Lớp bảo vệ thứ ba (Guard 3) tổng hợp báo cáo trên toàn bộ phân đoạn và chỉ đánh dấu sẵn sàng nạp vào đồ thị (\texttt{guard3\_staging\_ready}) khi không còn bất kỳ mục nào bị từ chối. Hình~\ref{fig:flow_shacl_3guard} minh họa toàn bộ quy trình ba lớp bảo vệ. Sự kết hợp giữa kiểm chứng theo Shapes, đối chiếu bằng chứng xác định và cơ chế Staging tạo nên một quy trình kiểm soát chất lượng chặt chẽ, vừa tự động phát hiện sai sót của mô hình ngôn ngữ, vừa cung cấp nhật ký minh bạch để người quản trị can thiệp, chỉnh sửa và phê duyệt, qua đó bảo đảm đồ thị tri thức cuối cùng luôn nhất quán và đáng tin cậy.
 
 \begin{figure}[H]
 	\centering
@@ -614,19 +676,19 @@ Cách tiếp cận này được xây dựng trên nền tảng của hai công 
 cứu trong lĩnh vực căn chỉnh thực thể (\textit{entity alignment}) giữa
 các knowledge graph:
 
-\begin{itemize}
-    \item \textbf{HELEA}~\cite{helea2024} chứng minh hiệu quả của
+
+HELEA~\cite{helea2024} chứng minh hiệu quả của
     pipeline hai giai đoạn: đầu tiên truy hồi ứng viên bằng embedding
     similarity, sau đó dùng mô hình ngôn ngữ lớn để xếp hạng lại
     (\textit{reranking}). Cơ chế này vừa đảm bảo không bỏ sót ứng viên
     tiềm năng, vừa tận dụng khả năng suy luận ngữ nghĩa sâu của LLM.
 
-    \item \textbf{EasyEA}~\cite{easyea2024} chứng minh rằng mô hình
+EasyEA~\cite{easyea2024} chứng minh rằng mô hình
     ngôn ngữ lớn, khbi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
     quyết định căn chỉnh thực thể chính xác theo phương thức
     \textit{zero-shot} kbhông cần dữ liệu huấn luyện nhãn, phù hợp
     với bối cảnh corpus tiếng Việt học thuật hiện tại.
-\end{itemize}
+
 
 Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
 nhất đồ thị.
@@ -673,13 +735,13 @@ nhất đồ thị.
 
 %% INPUT
 \node[inputbox] (input) {%
-    \textbf{Thực thể đầu vào từ giai đoạn trích xuất}\\
+    Thực thể đầu vào từ giai đoạn trích xuất\\
     \small\{tên thực thể, mô tả ngữ nghĩa, loại thực thể\}
 };
 
 %% STAGE 1 — Candidate Retrieval
 \node[stagebox, below=0.55cm of input] (s1) {%
-    \textbf{Giai đoạn 1 : Candidate Retrieval}\\[6pt]
+    Giai đoạn 1 : Candidate Retrieval\\[6pt]
     Mỗi thực thể đầu vào được biểu diễn dưới dạng một vector embedding
     bằng cách kết hợp tên và mô tả ngữ nghĩa. Vector này được dùng
     để truy vấn vector store nhằm tìm tối đa $K$ thực thể đã tồn
@@ -700,7 +762,7 @@ nhất đồ thị.
 
 %% STAGE 2 — LLM Decision
 \node[stagebox, below=0.55cm of dec] (s2) {%
-    \textbf{Giai đoạn 2 : LLM Decision}\\[6pt]
+    Giai đoạn 2 : LLM Decision\\[6pt]
     Mô hình ngôn ngữ lớn nhận đồng thời thông tin của thực thể
     mục tiêu và danh sách ứng viên. Dựa trên phân tích ngữ nghĩa
     tổng hợp, bao gồm so sánh tên gọi, mô tả, và các quy tắc
@@ -711,7 +773,7 @@ nhất đồ thị.
 
 %% OUTPUT
 \node[outputbox, below=0.55cm of s2] (output) {%
-    \textbf{Kết quả phân giải}:
+    Kết quả phân giải:
     ánh xạ đồng nhất hoặc tạo nút mới độc lập
 };
 
@@ -732,7 +794,7 @@ giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mớ
 \label{fig:entity-resolution-flow}
 \end{figure}
 
-\paragraph{Giai đoạn 1 : Candidate Retrieval.}
+Giai đoạn 1: Candidate Retrieval.
 Mỗi thực thể cần phân giải được biểu diễn dưới dạng một vector embedding bằng cách kết hợp cả tên lẫn
 mô tả của thực thể đó thành một chuỗi đầu vào thống nhất. Cách biểu
 diễn này cho phép vector nắm bắt đồng thời hai chiều thông tin: chiều
@@ -745,7 +807,7 @@ viên có $\cos(\mathbf{v}_1, \mathbf{v}_2) \geq \tau$ mới được coi là
 với giai đoạn truy hồi ứng viên trong kiến trúc HELEA~\cite{helea2024},
 đảm bảo không bỏ sót các cặp thực thể có ngữ nghĩa gần nhau.
 
-\paragraph{Giai đoạn 2 : LLM Decision.}
+Giai đoạn 2: LLM Decision.
 Khi giai đoạn Candidate Retrieval xác định được ít nhất một ứng viên
 tiềm năng, mô hình ngôn ngữ lớn được kích hoạt để đưa ra phán quyết
 cuối cùng. Không giống với các phương pháp truyền thống chỉ dựa vào
@@ -772,7 +834,7 @@ alignment theo hướng tạo ra \textit{tập hợp cặp đồng nhất} giữ
 knowledge graph độc lập không ai trong số họ đề xuất xóa bỏ hoặc
 hợp nhất vật lý các nút. Quan hệ SAME\_AS là biểu diễn ngữ nghĩa
 chuẩn của kết quả alignment, tương đương với thuộc tính
-\textbf{owl:sameAs} trong các chuẩn ngữ nghĩa web (\textit{Semantic
+owl:sameAs trong các chuẩn ngữ nghĩa web (\textit{Semantic
 Web})~\cite{owlsemweb2004}. \textit{Thứ hai}, hợp nhất vật lý là
 thao tác không thể hoàn tác: nếu mô hình ngôn ngữ lớn đưa ra quyết
 định nhầm, dữ liệu của nút bị xóa không thể phục hồi.
@@ -906,8 +968,8 @@ chỉ xuất phát từ nút chuẩn, đảm bảo tri thức không bị phân 
 
 Song song với việc xây dựng đồ thị quan hệ, hệ thống duy trì một cơ sở
 dữ liệu vector (\textit{vector store}) được đồng bộ liên tục. Sau mỗi
-thao tác hợp nhất, toàn bộ thực thể và quan hệ --- với mô tả đã được
-tổng hợp --- đều được cập nhật vào vector store. Kiến trúc lưu trữ kép
+thao tác hợp nhất, toàn bộ thực thể và quan hệ - với mô tả đã được
+tổng hợp - đều được cập nhật vào vector store. Kiến trúc lưu trữ kép
 này (\textit{dual storage}) là nền tảng cho hai chế độ truy vấn của
 LightRAG: đồ thị tri thức phục vụ duyệt cấu trúc quan hệ tường minh,
 trong khi vector store cho phép tìm kiếm ngữ nghĩa linh hoạt khi câu
@@ -927,12 +989,13 @@ cứu tham chiếu.
 \centering
 \caption{So sánh các thành phần thiết kế với công trình liên quan}
 \label{tab:er-comparison}
+
 \begin{tabular}{p{4.5cm} >{\centering\arraybackslash}p{2cm} >{\centering\arraybackslash}p{2cm} p{6cm}}
 \toprule
-\textbf{Thành phần} &
-\textbf{HELEA} &
-\textbf{EasyEA} &
-\textbf{Phương án đề tài} \\
+Thành phần &
+HELEA &
+EasyEA &
+Phương án đề tài \\
 \midrule
 
 Embedding kết hợp tên \& mô tả
@@ -975,7 +1038,7 @@ dữ liệu căn chỉnh thực thể được gán nhãn, khiến việc huấn
 khả thi. Phương án zero-shot mà EasyEA kiểm chứng giải quyết đúng hạn
 chế này. Đối với ngữ cảnh triple láng giềng, EasyEA chỉ ra rằng việc
 bổ sung các bộ ba quan hệ liên quan của ứng viên vào prompt giúp LLM
-phân biệt tốt hơn các trường hợp thực thể mơ hồ --- ví dụ, một thực
+phân biệt tốt hơn các trường hợp thực thể mơ hồ - ví dụ, một thực
 thể là \textit{học phần} và một thực thể là \textit{phần mềm} có thể
 cùng mang tên ``Cơ sở dữ liệu'' nhưng có bộ quan hệ hoàn toàn khác
 nhau trong knowledge graph. Việc tích hợp thành phần này được xác định
@@ -991,92 +1054,119 @@ là hướng phát triển ưu tiên trong giai đoạn tiếp theo.
 \begin{figure}[H]
 	\centering
 	\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[node distance=1.2cm and 1.2cm, auto]
+		\begin{tikzpicture}[node distance=1cm and 1cm, auto]
 			\tikzset{
-				base/.style = {draw, thick, text centered, font=\sffamily\small, fill=white, minimum height=0.7cm},
-				startstop/.style = {base, ellipse, minimum width=2.5cm},
-				process/.style = {base, rectangle, minimum width=2.2cm},
-				decision/.style = {base, diamond, aspect=2, inner sep=0pt, minimum width=2.5cm},
+				base/.style = {draw, thick, text centered, font=\sffamily\small, rounded corners=5px, inner sep=5pt, align=center},
+				inputQuery/.style = {base, fill=pink!80!red, draw=purple!80!black, text=white},
+				outputResp/.style = {base, fill=teal!80!black, draw=teal!60!black, text=white},
+				retrieveBox/.style = {base, fill=pink!20, draw=pink!60!black, text=black},
+				generateBox/.style = {base, fill=yellow!20, draw=yellow!60!black, text=black},
+				storageBox/.style = {base, fill=green!60!black, draw=green!40!black, text=white},
+				memoryBox/.style = {base, fill=blue!20, draw=blue!60!black, text=black, very thick, shape=cylinder, shape border rotate=90, aspect=0.2},
+				llmBox/.style = {base, fill=purple!20, draw=purple!60!black, text=black},
 				arrow/.style = {thick, -{Stealth[scale=1.2]}},
-				label_txt/.style = {font=\scriptsize\itshape}
+				dashed_arrow/.style = {thick, dashed, -{Stealth[scale=1.2]}},
+				label_txt/.style = {font=\scriptsize\itshape, fill=white, inner sep=1pt}
 			}
+
+			% Query & Memory
+			\node (Query) [inputQuery] {Query\\(Câu hỏi của user)};
+			\node (MemoryStore) [memoryBox, right=3cm of Query] {Conversation Memory\\(Lịch sử Chat \& Ngữ cảnh)};
 			
-			% --- KHỐI ĐẦU VÀO & CACHE ---
-			\node (query) [startstop] {User Prompt / Query};
-			\node (cache_dec) [decision, right=1.5cm of query] {Prompt Cache?};
-			\node (instant) [process, above=1.5cm of cache_dec] {Instant Return (Cache HIT)};
+			% Pre-Process
+			\node (QueryRewrite) [llmBox, below=1cm of Query] {Query Rewriting / Coreference\\(Sử dụng LLM + Memory để làm rõ câu hỏi,\\ giải quyết đại từ nhân xưng)};
+			\node (PreProcess_box) [draw, dashed, inner sep=10pt, fit=(QueryRewrite), label={[font=\bfseries]above:0. Query Processing}] {};
+
+			% Retrieve Phase Start
+			\node (SysPromptRet) [retrieveBox, below=1.5cm of QueryRewrite] {System Prompt};
+			\node (ExtractPrompt) [retrieveBox, left=1cm of SysPromptRet] {Keywords Extraction Prompt};
 			
-			% --- KHỐI KEYWORDS ---
-			\node (low_level) [process, right=1.5cm of cache_dec] {Low-level};
-			\node (high_level) [process, right=0.4cm of low_level] {High-level};
-			\node (keywords_box) [draw, dashed, inner sep=0.3cm, fit=(low_level) (high_level), label={[font=\scriptsize\bfseries]above:Keywords Extraction}] {};
+			\node (KW_Extract) [llmBox, below=1cm of SysPromptRet] {keywords\_extraction};
 			
-			% --- KHỐI ENGINE & RETRIEVAL ---
-			\node (engine_dec) [decision, below=1.5cm of $(low_level.south)!0.5!(high_level.south)$] {Engine Mode?};
+			\node (LowKW) [retrieveBox, below left=1cm and 0.5cm of KW_Extract] {low\_level\_keywords\\(Thực thể)};
+			\node (HighKW) [retrieveBox, below right=1cm and 0.5cm of KW_Extract] {high\_level\_keywords\\(Chủ đề)};
 			
-			\node (local) [process, right=1.2cm of engine_dec] {LOCAL};
-			\node (global) [process, right=0.3cm of local] {GLOBAL};
-			\node (hybrid) [process, right=0.3cm of global] {HYBRID};
-			\node (mix) [process, right=0.3cm of hybrid] {MIX};
-			\node (retrieval_box) [draw, dashed, inner sep=0.4cm, fit=(local) (mix), label={[font=\scriptsize\bfseries]above:Information Retrieval Sub-system}] {};
+			\node (Embed1) [retrieveBox, below=0.8cm of LowKW] {Embedding};
+			\node (Embed2) [retrieveBox, below=0.8cm of HighKW] {Embedding};
 			
-			% --- CỘT TRUNG TÂM (TRỤC CHÍNH) ---
-			\node (agg) [process, below=1.2cm of local] {Context Aggregation};
-			\node (rerank_dec) [decision, right=1.5cm of agg] {Rerank?};
-			\node (cross_enc) [process, below=1cm of rerank_dec] {Cross-Encoder};
-			\node (shortcut_dec) [decision, below=1cm of cross_enc] {Short cut?};
-			\node (llm) [process, below=1.5cm of shortcut_dec] {LLM Generation};
-			\node (final) [startstop, below=1cm of llm] {Final Response};
+			\node (StoreVDB_Ent) [storageBox, below=0.8cm of Embed1] {Store in Vector DB Storage\\(Qdrant Vector DB Storage)};
+			\node (StoreVDB_Rel) [storageBox, below=0.8cm of Embed2] {Store in Vector DB Storage\\(Qdrant Vector DB Storage)};
 			
-			% --- CỘT BÊN PHẢI (OUTPUT & FORMATTING) ---
-			\node (prompt_const) [process, right=2cm of rerank_dec] {Prompt Construction};
+			\node (TopK_Ent) [retrieveBox, below=0.8cm of StoreVDB_Ent] {TopK Entities Results};
+			\node (TopK_Rel) [retrieveBox, below=0.8cm of StoreVDB_Rel] {TopK Relations Results};
 			
-			% Ép tọa độ để dóng hàng cực chuẩn
-			\node (formatted) [process] at (prompt_const |- cross_enc) {Formatted}; 
-			\node (raw_context) [process] at (prompt_const |- shortcut_dec) {Raw Context}; 
+			\node (StoreKG) [storageBox] at ($(TopK_Ent)!0.5!(TopK_Rel) - (0, 1.5cm)$) {Store in Knowledge Graph\\(Neo4j)};
 			
-			% Khung gom cụm Short-cut Data
-			\node (shortcut_group) [draw, dashed, fit=(formatted) (raw_context), inner sep=0.3cm, label={[font=\scriptsize\bfseries]above:Short-cut Data}] {};
+			\node (RelRel) [retrieveBox, below=2cm of TopK_Ent, xshift=1cm] {Related Relations};
+			\node (RelText_Local) [retrieveBox, left=0.5cm of RelRel] {Related text\_units};
+			\node (LocalCtx) [retrieveBox, below=1cm of RelRel, xshift=-1cm] {Local Query Context};
 			
-			% --- VẼ ĐƯỜNG NỐI LUỒNG CHÍNH ---
-			\draw [arrow] (query) -- (cache_dec);
-			\draw [arrow] (cache_dec) -- node[label_txt, left] {HIT} (instant);
-			\draw [arrow] (cache_dec) -- node[label_txt, above] {MISS} (low_level);
+			\node (RelEnt) [retrieveBox, below=2cm of TopK_Rel, xshift=-1cm] {Related Entities};
+			\node (RelText_Global) [retrieveBox, right=0.5cm of RelEnt] {Related text\_units};
+			\node (GlobalCtx) [retrieveBox, below=1cm of RelEnt, xshift=1cm] {Global Query Context};
 			
-			\draw [arrow] (keywords_box.south) -- (engine_dec);
-			\draw [arrow] (engine_dec) -- (local);
-			\draw [arrow] (local.south) -- (agg);
-			\draw [arrow] (agg) -- (rerank_dec);
+			\node (Retrieve_box) [draw, dashed, inner sep=15pt, fit=(ExtractPrompt) (SysPromptRet) (KW_Extract) (LowKW) (HighKW) (Embed1) (Embed2) (TopK_Ent) (TopK_Rel) (RelText_Local) (RelRel) (LocalCtx) (RelText_Global) (RelEnt) (GlobalCtx), label={[font=\bfseries]above:1. Retrieve (Pink Box)}] {};
+
+			% Generation Phase
+			\node (CombCtx) [generateBox] at ($(LocalCtx)!0.5!(GlobalCtx) - (0, 2cm)$) {combined context};
+			\node (SysTempGen) [generateBox, left=1cm of CombCtx] {System Template Prompt};
+			\node (SysPromptGen) [generateBox, below=1cm of CombCtx] {System Prompt};
 			
-			% Luồng Trục Dọc
-			\draw [arrow] (rerank_dec) -- node[label_txt, left] {Yes} (cross_enc);
-			\draw [arrow] (cross_enc) -- (shortcut_dec);
-			\draw [arrow] (shortcut_dec) -- node[label_txt, left] {No} (llm);
-			\draw [arrow] (llm) -- (final);
+			\node (Generation_box) [draw, dashed, inner sep=15pt, fit=(CombCtx) (SysTempGen) (SysPromptGen), label={[font=\bfseries]above:2. Generation (Yellow Box)}] {};
 			
-			% --- LUỒNG BÊN PHẢI ---
-			\draw [arrow] (rerank_dec) -- node[label_txt, above] {No} (prompt_const);
-			\draw [arrow] (prompt_const) -- (formatted);
+			\node (Response) [outputResp, below=1cm of SysPromptGen] {Response\\(Câu trả lời)};
+
+			% Arrows
+			\draw [arrow] (Query) -- (QueryRewrite);
+			\draw [dashed_arrow] (MemoryStore) -- node[label_txt, right] {Cung cấp lịch sử} (QueryRewrite.east);
 			
-			% Tách nhánh Yes của Short cut đi vào 2 cục dữ liệu
-			\coordinate (sc_split) at ($(shortcut_dec.east) + (0.8,0)$);
-			\draw [thick] (shortcut_dec.east) -- node[label_txt, above] {Yes} (sc_split);
-			\draw [arrow] (sc_split) -- (raw_context.west);
-			\draw [arrow] (sc_split) |- (formatted.west);
+			\draw [arrow] (QueryRewrite) -- (SysPromptRet);
+			\draw [arrow] (ExtractPrompt) -- (SysPromptRet);
+			\draw [arrow] (SysPromptRet) -- node[label_txt, right] {use LLM} (KW_Extract);
 			
-			% --- HỆ THỐNG GỘP ĐƯỜNG VỀ FINAL (MERGE BUS) ---
-			\coordinate (merge_p) at ($(shortcut_group.east) + (0.8, 0)$);
-			\coordinate (instant_far) at ($(merge_p) + (0.8, 0)$);
-			\coordinate (final_entry) at ($(final.east) + (0.5, 0)$);
+			\draw [arrow] (KW_Extract) -- (LowKW);
+			\draw [arrow] (KW_Extract) -- (HighKW);
 			
-			\draw [thick] (formatted.east) -| (merge_p);
-			\draw [thick] (raw_context.east) -| (merge_p);
-			\draw [thick] (merge_p) |- (final_entry);
+			\draw [arrow] (LowKW) -- node[label_txt, right] {use EB Model} (Embed1);
+			\draw [arrow] (HighKW) -- node[label_txt, right] {use EB Model} (Embed2);
 			
-			\draw [thick] (instant.east) -| (instant_far);
-			\draw [thick] (instant_far) |- (final_entry);
+			\draw [arrow] (Embed1) -- (StoreVDB_Ent);
+			\draw [arrow] (Embed2) -- (StoreVDB_Rel);
 			
-			\draw [arrow] (final_entry) -- (final.east);
+			\draw [arrow] (StoreVDB_Ent) -- (TopK_Ent);
+			\draw [arrow] (StoreVDB_Rel) -- (TopK_Rel);
+			
+			\draw [arrow] (TopK_Ent) -- (StoreKG);
+			\draw [arrow] (StoreKG) -- (RelRel);
+			
+			\draw [arrow] (TopK_Rel) -- (StoreKG);
+			\draw [arrow] (StoreKG) -- (RelEnt);
+			
+			\draw [arrow] (TopK_Ent) -- (RelText_Local);
+			\draw [arrow] (TopK_Rel) -- (RelText_Global);
+			
+			\draw [arrow] (TopK_Ent) -- (LocalCtx);
+			\draw [arrow] (RelRel) -- (LocalCtx);
+			\draw [arrow] (RelText_Local) -- (LocalCtx);
+			
+			\draw [arrow] (TopK_Rel) -- (GlobalCtx);
+			\draw [arrow] (RelEnt) -- (GlobalCtx);
+			\draw [arrow] (RelText_Global) -- (GlobalCtx);
+			
+			\draw [arrow] (LocalCtx) -- (CombCtx);
+			\draw [arrow] (GlobalCtx) -- (CombCtx);
+			
+			\draw [dashed_arrow] (MemoryStore.east) -- ++(1,0) |- node[label_txt, pos=0.75, right] {Bổ sung hội thoại cũ} (CombCtx.east);
+			
+			\draw [arrow] (CombCtx) -- (SysPromptGen);
+			\draw [arrow] (SysTempGen) -- (SysPromptGen);
+			
+			\draw [arrow] (QueryRewrite.west) -- ++(-3,0) |- (SysPromptGen.west);
+			
+			\draw [arrow] (SysPromptGen) -- node[label_txt, right] {use LLM} (Response);
+			
+			\draw [dashed_arrow] (Response.east) -- ++(3.5,0) |- node[label_txt, pos=0.25, right] {Cập nhật Memory} (MemoryStore.east);
+
 		\end{tikzpicture}
 	}
 	\caption{Quy trình truy vấn đa chế độ và cơ chế tối ưu phản hồi trong LightRAG}
@@ -1100,31 +1190,31 @@ Phân hệ trợ lý ảo được xây dựng trên nền tảng LangGraph và 
 
 Hệ thống bao gồm năm thành phần xử lý chuyên biệt, được hiện thực dưới dạng các hàm trạng thái (stateless functions) và phối hợp theo một đồ thị có hướng do LangGraph điều phối, thay vì các tác nhân tự hành lập kế hoạch nhiều lượt.
 
-Thứ nhất, \textbf{Analyze Agent} (\texttt{analyze\_agent}) là thành phần trung tâm của khâu định tuyến. Bằng một lần gọi mô hình ngôn ngữ lớn với định dạng đầu ra JSON, agent này phân loại ý định người dùng, đưa ra quyết định điều phối (\texttt{direct\_answer}, \texttt{retrieve} hoặc \texttt{reject}), chọn chế độ truy vấn LightRAG, viết lại câu hỏi thành dạng độc lập (standalone query), và trích xuất hai tập từ khóa: từ khóa mức thấp (cụ thể, như mã môn học, tên giảng viên) và mức cao (khái quát, như chính sách, so sánh). Agent cũng đảm nhiệm vai trò kiểm duyệt: khi phát hiện nội dung không phù hợp, quyết định bị ép sang \texttt{reject}.
+Thứ nhất, Analyze Agent (\texttt{analyze\_agent}) là thành phần trung tâm của khâu định tuyến. Bằng một lần gọi mô hình ngôn ngữ lớn với định dạng đầu ra JSON, agent này phân loại ý định người dùng, đưa ra quyết định điều phối (\texttt{direct\_answer}, \texttt{retrieve} hoặc \texttt{reject}), chọn chế độ truy vấn LightRAG, viết lại câu hỏi thành dạng độc lập (standalone query), và trích xuất hai tập từ khóa: từ khóa mức thấp (cụ thể, như mã môn học, tên giảng viên) và mức cao (khái quát, như chính sách, so sánh). Agent cũng đảm nhiệm vai trò kiểm duyệt: khi phát hiện nội dung không phù hợp, quyết định bị ép sang \texttt{reject}.
 
-Thứ hai, \textbf{Generator Agent} (\texttt{generator}) chịu trách nhiệm dựng ngữ cảnh sinh chứ không trực tiếp gọi mô hình. Với nhánh truy xuất, persona của trợ lý được đặt vào trường \texttt{user\_prompt} để LightRAG vẫn giữ được khuôn mẫu nội bộ và chèn ngữ cảnh tri thức \texttt{context\_data}; với nhánh trả lời trực tiếp, agent dựng một \texttt{system\_prompt} đầy đủ; còn với nhánh từ chối, agent trả về một thông điệp từ chối lịch sự đã soạn sẵn.
+Thứ hai, Generator Agent (\texttt{generator}) chịu trách nhiệm dựng ngữ cảnh sinh chứ không trực tiếp gọi mô hình. Với nhánh truy xuất, persona của trợ lý được đặt vào trường \texttt{user\_prompt} để LightRAG vẫn giữ được khuôn mẫu nội bộ và chèn ngữ cảnh tri thức \texttt{context\_data}; với nhánh trả lời trực tiếp, agent dựng một \texttt{system\_prompt} đầy đủ; còn với nhánh từ chối, agent trả về một thông điệp từ chối lịch sự đã soạn sẵn.
 
-Thứ ba, \textbf{Summarizer Agent} (\texttt{summarizer}) nén lịch sử hội thoại khi vượt quá bốn lượt thành một đến hai câu súc tích, nhằm giảm số token mà Analyze Agent phải xử lý và duy trì ngữ cảnh cốt lõi qua các phiên dài.
+Thứ ba, Summarizer Agent (\texttt{summarizer}) nén lịch sử hội thoại khi vượt quá bốn lượt thành một đến hai câu súc tích, nhằm giảm số token mà Analyze Agent phải xử lý và duy trì ngữ cảnh cốt lõi qua các phiên dài.
 
-Thứ tư, \textbf{Long-term Memory Agent} (\texttt{longterm}) quản lý hồ sơ người dùng bền vững trên MongoDB. Thay vì tóm tắt lại toàn bộ hồ sơ, agent chỉ trích xuất các sự kiện ổn định (chuyên ngành, sở thích trả lời, định hướng học tập dài hạn) dưới dạng JSON rồi hợp nhất chúng vào hồ sơ hiện có bằng mã Python có khử trùng lặp, tránh hiện tượng trôi dạt nội dung tóm tắt.
+Thứ tư, Long-term Memory Agent (\texttt{longterm}) quản lý hồ sơ người dùng bền vững trên MongoDB. Thay vì tóm tắt lại toàn bộ hồ sơ, agent chỉ trích xuất các sự kiện ổn định (chuyên ngành, sở thích trả lời, định hướng học tập dài hạn) dưới dạng JSON rồi hợp nhất chúng vào hồ sơ hiện có bằng mã Python có khử trùng lặp, tránh hiện tượng trôi dạt nội dung tóm tắt.
 
-Cuối cùng, \textbf{LLM Factory} (\texttt{llm}) là lớp trừu tượng hóa nhà cung cấp mô hình, cho phép chuyển đổi linh hoạt giữa OpenAI và Ollama (mô hình cục bộ) qua biến môi trường và tự chuẩn hóa các tham số khác biệt giữa hai nền tảng.
+Cuối cùng, LLM Factory (\texttt{llm}) là lớp trừu tượng hóa nhà cung cấp mô hình, cho phép chuyển đổi linh hoạt giữa OpenAI và Ollama (mô hình cục bộ) qua biến môi trường và tự chuẩn hóa các tham số khác biệt giữa hai nền tảng.
 
 \subsection{Quy trình điều phối và Luồng dữ liệu}
 
 Đồ thị điều phối được biên dịch cùng một bộ lưu điểm kiểm tra (checkpointer) trên MongoDB và gồm bốn nút thực thi tuần tự: \texttt{analyzer} $\rightarrow$ \texttt{prepare\_context} $\rightarrow$ \texttt{generate} $\rightarrow$ (có điều kiện) \texttt{update\_long\_term} $\rightarrow$ \texttt{END}. Quy trình thực thi được mô tả qua các bước logic sau:
 
-\textbf{Bước 1: Phân tích và Định tuyến.}
+Bước 1: Phân tích và Định tuyến.
 Khi nhận câu hỏi $Q$, nút \texttt{analyzer} gọi \textit{Analyze Agent} (sau khi đã tóm tắt lịch sử qua \textit{Summarizer}) để xác định ý định, quyết định điều phối, chế độ truy vấn và các từ khóa. Kết quả phân tích được chuẩn hóa: nếu nội dung không phù hợp thì quyết định bị ép sang \texttt{reject}; nếu giá trị không hợp lệ thì lùi an toàn về \texttt{retrieve}.
 
-\textbf{Bước 2: Chuẩn bị ngữ cảnh.}
+Bước 2: Chuẩn bị ngữ cảnh.
 Nút \texttt{prepare\_context} không gọi mô hình ngôn ngữ. Nó chỉ nạp bộ nhớ dài hạn $M$ từ MongoDB khi khâu phân tích xác định là cần thiết, rồi dựng gói yêu cầu sinh $G$ (\texttt{generation\_request}) chứa câu hỏi, chế độ truy vấn, persona và các từ khóa. Việc tách riêng bước này giúp luồng phát trực tuyến (streaming) có thể dừng tại đây trước khi sinh.
 
-\textbf{Bước 3: Sinh câu trả lời.}
+Bước 3: Sinh câu trả lời.
 Nút \texttt{generate} phân nhánh theo quyết định điều phối: với \texttt{retrieve}, hệ thống gọi LightRAG kèm các từ khóa đã trích sẵn để truy xuất tri thức từ đồ thị; với \texttt{direct\_answer}, hệ thống gọi trực tiếp mô hình ngôn ngữ mà không truy xuất (phù hợp cho chào hỏi, trò chuyện hoặc lời khuyên học tập chung); với \texttt{reject}, hệ thống trả về thông điệp từ chối đã soạn sẵn.
 
-\textbf{Bước 4: Cập nhật bộ nhớ dài hạn (có điều kiện).}
-Khác với cập nhật theo chu kỳ cố định, hệ thống chỉ kích hoạt nút \texttt{update\_long\_term} khi khâu phân tích đánh dấu cờ \texttt{should\_update\_long\_term} -- tức khi người dùng cung cấp một sự kiện ổn định đáng ghi nhớ. Khi đó, \textit{Long-term Memory Agent} trích xuất và hợp nhất thông tin mới vào hồ sơ; ngược lại, đồ thị kết thúc ngay sau bước sinh để giảm độ trễ.
+Bước 4: Cập nhật bộ nhớ dài hạn (có điều kiện).
+Khác với cập nhật theo chu kỳ cố định, hệ thống chỉ kích hoạt nút \texttt{update\_long\_term} khi khâu phân tích đánh dấu cờ \texttt{should\_update\_long\_term} - tức khi người dùng cung cấp một sự kiện ổn định đáng ghi nhớ. Khi đó, \textit{Long-term Memory Agent} trích xuất và hợp nhất thông tin mới vào hồ sơ; ngược lại, đồ thị kết thúc ngay sau bước sinh để giảm độ trễ.
 
 \subsection{Cơ chế truy xuất tri thức (LightRAG Integration)}
 Khác với RAG truyền thống dựa thuần túy trên độ tương đồng vector, hệ thống sử dụng LightRAG để truy xuất trên cấu trúc đồ thị tri thức (Knowledge Graph). Điểm tối ưu quan trọng là các từ khóa đã được Analyze Agent trích xuất sẵn ở mức cao và mức thấp được truyền thẳng vào LightRAG:
@@ -1157,568 +1247,53 @@ Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa n�
 	\end{algorithmic}
 \end{algorithm}
 
-\begin{comment} % Tạm comment 3.3 Thiết kế ứng dụng - đã tách ra Chapter4_ThietKeUngDung
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4}
+\section{Thiết lập thực nghiệm}
 
-\section{Thiết kế ứng dụng}
+\subsection{Thiết lập thực nghiệm phân hệ trích xuất (MinerU)}
 
-\subsection{Thiết kế và cài đặt hệ thống (UML \& Use Case)}
+\subsubsection{Đối tượng nghiên cứu}
+Đối tượng nghiên cứu chính của phân hệ này là dữ liệu tri thức dạng văn bản phi cấu trúc trong môi trường học thuật, cụ thể là các tài liệu liên quan đến Chương trình đào tạo, quy chế học vụ, sổ tay sinh viên, và lộ trình môn học tại các trường đại học. Các công cụ trích xuất tài liệu đa phương thức sẽ được sử dụng để xử lý nguồn dữ liệu này.
 
-\subsubsection{Actor}
+\subsubsection{Môi trường thực nghiệm}
+Hệ thống được triển khai thực nghiệm trên hạ tầng máy chủ đám mây nhằm đảm bảo khả năng tính toán mạnh mẽ cho các tác vụ xử lý ảnh và văn bản. Quá trình xử lý tài liệu đầu vào sử dụng công cụ MinerU (từ phiên bản 3.2.3) tích hợp các mô hình Vision-Language Model (VLM), OCR và Mathematical Formula Recognition (MFR). 
 
-Hệ thống có actor chính là: \textbf{Người dùng}.
+\subsubsection{Mô tả dữ liệu và quá trình thu thập}
+Để thực nghiệm và đánh giá chất lượng của bộ giải mã MinerU, nghiên cứu đã tiến hành thu thập tập dữ liệu Chương trình đào tạo chuẩn của sáu ngành và khối ngành thuộc Khoa, bao gồm: Cử nhân tài năng, Công nghệ thông tin, Hệ thống thông tin, Khoa học máy tính, Kỹ thuật phần mềm, và Trí tuệ nhân tạo. Nhằm đảm bảo tính đại diện, tài liệu được phân rã theo từng khóa tuyển sinh từ năm 2022 đến năm 2025. 
 
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
+\subsubsection{Độ đo để đánh giá (Performance Metrics)}
+Phương pháp đánh giá được thực hiện thông qua việc đối sánh kết quả trích xuất tự động với nhãn chuẩn (Ground Truth). Để đánh giá mức độ chính xác cơ bản, nghiên cứu sử dụng CER (Character Error Rate) và WER (Word Error Rate) nhằm phản ánh tỷ lệ sai sót ở cấp độ ký tự và từ. Tương tự, Edit Distance Sim (Độ tương đồng khoảng cách sửa đổi) được áp dụng để đo lường sự sai khác chuỗi tổng thể. Nhằm định lượng mức độ trùng khớp văn bản sâu hơn, BLEU và METEOR được sử dụng để đánh giá độ bảo toàn n-gram. Đặc biệt, đối với cấu trúc dữ liệu phức tạp, TEDS-Struct và TEDS-Content (Tree-Edit-Distance-based Similarity) đóng vai trò đo lường chuyên biệt cho mức độ bảo toàn cấu trúc bảng biểu. 
 
-	\begin{tabular}{|c|l|p{9cm}|}
-		\hline
-		\textbf{STT} & \textbf{Actor} & \textbf{Ý nghĩa / Ghi chú} \\
-		\hline
-		1 & \centering Người dùng & Là thành phần đáng chú ý nhất của hệ thống. Nhóm người trực tiếp trải nghiệm hệ thống và đưa ra ý kiến, góp ý cho nhà phát triển.  \\
-		\hline
-	\end{tabular}
-	\caption{Danh sách Actor}
-	
-\end{table}
+Biện luận về độ quan trọng của các chỉ số: Đối với kiến trúc truy xuất tăng cường đồ thị, các chỉ số BLEU, TEDS-Struct, TEDS-Content và Edit Distance Sim đóng vai trò then chốt nhất. Nếu mô hình bóc tách thất bại trong việc tái tạo cấu trúc bảng (TEDS-Struct thấp), lượng tri thức sẽ bị suy biến. Chỉ số BLEU cao minh chứng văn bản bảo toàn chính xác các cụm từ gốc, giúp LLM không sai lệch ngữ cảnh. Edit Distance Sim đảm bảo tính nguyên vẹn của mã học phần, tạo tiền đề để thuật toán đối soát và hợp nhất thực thể hoạt động ổn định.
 
-% ================= IMAGE =================
-% Thêm hình Use Case tại đây
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.8\textwidth]{images/Sơ đồ UC.drawio.png }
-	\caption{Sơ đồ Use Case hệ thống}
-\end{figure}
-\subsubsection{Danh sách Use Case}
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.5}
-	\setlength{\tabcolsep}{10pt}
-	
-	\begin{tabular}{|c|p{5cm}|p{5cm}|p{3cm}|}
-		\hline
-		STT & Tên UC & Mô tả & Actor \\
-		\hline
-		1 & Đăng ký & Người dùng tạo tài khoản mới & Người dùng \\
-		\cline{1-3}
-		2 & Đăng nhập & Người dùng đăng nhập bằng email và mật khẩu & \\
-		\cline{1-3}
-		3 & Xem thông tin cá nhân & Hiển thị thông tin người dùng & \\
-		\cline{1-3}
-		4 & Cập nhật thông tin & Chỉnh sửa thông tin cá nhân & \\
-		\cline{1-3}
-		5 & Chat với AI Agent & Chat với AI Agent để trả lời câu hỏi học tập & \\
-		\cline{1-3}
-		
-		\hline
-	\end{tabular}
-	\caption{Danh sách Use Case}
-\end{table}
+\subsection{Thiết lập thực nghiệm Hệ thống Đồ thị tri thức và Đa tác nhân}
 
-\subsubsection{Yêu cầu phi chức năng}
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.5} % mặc định là 1.0
-	\begin{tabular}{|c|l|p{9cm}|}
-		\hline
-		\textbf{STT} & \textbf{Yêu cầu} & \textbf{Ý nghĩa / Mô tả} \\
-		\hline
-		1 & Hiệu suất & Tốc độ phản hồi câu trả lời phải đảm bảo tải trong vòng  $\leq 5$ giây để đảm bảo trải nghiệm người dùng.\\
-		\hline
-		2 & Khả năng mở rộng & Hê thống phải mở rộng được để xử lý lượng lớn người dùng. \\
-		\hline
-		3 & Khả dụng & Hệ thống phải hoạt động liên tục với uptime $\geq 99.9\%$/năm \\
-		\hline
-		4 & Khả năng sử dụng & UI/UX đơn giản, dễ hiểu.\\
-		\hline
-	\end{tabular}
-	\caption{Yêu cầu phi chức năng}
-\end{table}
-\subsection{Đặc tả Use-Case}
-\setcounter{secnumdepth}{3}
-\renewcommand{\arraystretch}{1}
-\subsubsection{Use-case Chat với AI Agent}
-\label{sec:uc-create-post}
+\subsubsection{Đối tượng nghiên cứu}
+Bên cạnh dữ liệu tài liệu, đối tượng nghiên cứu trong hệ thống bao gồm các mô hình ngôn ngữ lớn (LLMs) và cơ sở dữ liệu đồ thị tri thức nhằm phục vụ việc xây dựng kiến trúc truy xuất tăng cường (GraphRAG). Hệ thống hướng tới việc phục vụ nhóm người dùng cuối là sinh viên, giúp họ giải đáp các thắc mắc học vụ một cách chính xác.
 
-\begin{longtable}{|l|p{10cm}|}
-	\hline
-	\textbf{Tên Use Case} & Chat với AI Agent để Trả Lời Câu Hỏi Học Tập \\ \hline
-	
-	\textbf{Tác nhân} & Người dùng đã xác thực \\ \hline
-	
-	\textbf{Mô tả} &Cho phép người dùng tương tác với AI agent tích hợp để đặt câu hỏi liên quan đến học tập và nhận câu trả lời thông minh.
-	\\ \hline
-	
-	\textbf{Điều kiện tiên quyết} &
-	\begin{itemize}
-		\item Dịch vụ AI agent đang hoạt động và khả dụng.
-		\item Người dùng có quyền truy cập tính năng AI chat (đã đăng nhập).
-	\end{itemize} \\ \hline
-	
-	\textbf{Hậu điều kiện} &
-	\begin{itemize}
-		\item Người dùng nhận được phản hồi liên quan đến câu hỏi học tập của mình.
-		\item Cuộc hội thoại được lưu trong phiên làm việc (và tùy chọn lưu vào lịch sử người dùng).
-		
-	\end{itemize} \\ \hline
-	
-	\textbf{Luồng chính} &
-	\begin{enumerate}
-		\item Người dùng điều hướng đến phần AI Chat.
-		
-		\item Người dùng nhập câu hỏi liên quan đến học tập vào ô nhập chat.
-		
-		\item Hệ thống chuyển tiếp câu hỏi đến hệ thống AI Agents.
-		
-		\item AI agent xử lý câu hỏi và tạo ra phản hồi.
-		
-		\item Hệ thống hiển thị phản hồi của AI trong giao diện chat.
-		\item Người dùng có thể đặt câu hỏi tiếp theo; các bước 2–6 lặp lại.
-		
-	\end{enumerate} \\ \hline
-	
-	\textbf{Luồng thay thế} &
-	\begin{itemize}
-		\item LTT-05A Dịch Vụ AI Không Khả Dụng: Nếu dịch vụ AI bị gián đoạn, hệ thống hiển thị thông báo lỗi thân thiện và gợi ý thử lại sau hoặc tìm kiếm trong các chủ đề diễn đàn hiện có.
-		\item LTT-05B Câu Hỏi Ngoài Phạm Vi: Nếu người dùng hỏi vấn đề không liên quan đến học tập, AI phản hồi rằng câu hỏi nằm ngoài phạm vi hỗ trợ và gợi ý người dùng đặt câu hỏi liên quan đến học tập.
-	\end{itemize} \\ \hline
-	
-\end{longtable}
+\subsubsection{Môi trường thực nghiệm}
+Đối với quá trình đánh giá chất lượng đồ thị tri thức bằng phương pháp LLM-as-a-Judge, nhóm nghiên cứu đã lựa chọn mô hình Qwen/Qwen2.5-72B-Instruct làm trọng tài (Judge). Đây là dòng mô hình mã nguồn mở hàng đầu hiện nay, có khả năng tư duy logic (reasoning) và am hiểu sâu sắc ngữ pháp tiếng Việt, giúp phân tách được các khái niệm chuyên môn phức tạp mà các mô hình nhỏ thường nhầm lẫn. Các quy trình phân tích động, điều phối đa tác nhân (Multi-agent) được xây dựng dựa trên nền tảng LangGraph, trong khi việc lưu trữ và truy vấn đồ thị được quản lý bởi cơ sở dữ liệu đồ thị đồ thị (Neo4j).
 
+\subsubsection{Mô tả dữ liệu và quá trình thu thập}
+Về phía đồ thị tri thức, hệ thống đã xây dựng hai phiên bản đồ thị để đối soát chất lượng: Phiên bản gốc (Origin - kiến trúc LightRAG nguyên bản) và Phiên bản tối ưu (tích hợp chuẩn ngôn ngữ SHACL). Việc lấy mẫu đánh giá đồ thị được thực hiện ở các quy mô N=10, N=200, và N=500, dựa trên lý thuyết hội tụ tri thức để đảm bảo bao phủ các quan hệ hiếm gặp và đạt độ tin cậy thống kê 95\%.
 
+Bên cạnh đó, nhằm đánh giá khả năng sinh câu trả lời của hệ thống (RAG Metrics), một bộ dữ liệu kiểm thử (Benchmark Dataset) gồm 200 câu hỏi chuẩn đã được xây dựng. Các câu hỏi này được trích xuất từ các tình huống thực tế của sinh viên Khoa Công nghệ Thông tin trên các diễn đàn, xoay quanh chủ đề quy chế đào tạo, sổ tay học vụ và lộ trình môn học.
 
-\subsubsection{Use-case Đăng ký tài khoản}
-\begin{longtable}{|l|p{10cm}|}
-	\hline
-	\textbf{Tên Use Case} & Đăng ký tài khoản \\ \hline
-	
-	\textbf{Tác nhân} & Người dùng \\ \hline
-	
-	\textbf{Mô tả} & Cho phép người dùng tạo tài khoản mới. \\ \hline
-	
-	\textbf{Điều kiện tiên quyết} &
-	\begin{itemize}
-		\item Email chưa tồn tại
-		\item Trang đăng ký truy cập được
-	\end{itemize} \\ \hline
-	
-	\textbf{Hậu điều kiện} &
-	\begin{itemize}
-		\item Tạo tài khoản thành công
-	\end{itemize} \\ \hline
-	
-	\textbf{Luồng chính} &
-	\begin{enumerate}
-		\item Vào trang đăng ký
-		\item Nhập thông tin
-		\item Xác nhận mật khẩu
-		\item Đồng ý điều khoản
-		\item Nhấn đăng ký
-		\item Hệ thống kiểm tra và tạo tài khoản
-	\end{enumerate} \\ \hline
-	
-	\textbf{Luồng thay thế} &
-	\begin{itemize}
-		\item LTT-02A: Email đã tồn tại, thông báo lỗi
-	\end{itemize} \\ \hline
-	
-\end{longtable}
+\subsubsection{Độ đo để đánh giá (Performance Metrics)}
 
-% Sơ đồ trình tự (Sequence Diagram) được thiết lập để làm rõ luồng dữ liệu từ khi sinh viên đặt câu hỏi trên giao diện, đi qua tầng điều phối Đa tác nhân (LangGraph) \cite{langgraph2024, wu2023autogen}, truy xuất Đồ thị tri thức (LightRAG) \cite{guo2024lightrag} và trả về kết quả cuối cùng.
-\subsection{Kiến trúc hệ thống}
+Đánh giá chất lượng đồ thị tri thức.
+Khi triển khai kiến trúc LightRAG vào bài toán dữ liệu có tính hệ thống cao, rủi ro lớn nhất là việc mô hình ngôn ngữ sẽ gặp "ảo giác" (Hallucination) hoặc thiết lập các chuỗi quan hệ rác. Hệ thống ứng dụng phương pháp phân tích tĩnh và động (Hybrid Assessment) thông qua ba trụ cột:
 
-% Quy tắc: Luôn dẫn dắt người đọc đến hình ảnh trước khi mô tả chi tiết
-Mô hình kiến trúc tổng thể của hệ thống được đề xuất dựa trên kiến trúc đa tầng (Multi-tier Architecture), nhằm đảm bảo tính tách biệt giữa giao diện người dùng, logic nghiệp vụ và các phân hệ xử lý trí tuệ nhân tạo. Sơ đồ chi tiết được thể hiện tại Hình~\ref{fig:kien_truc_he_thong}.
+- Nhóm 1 - Đánh giá cấu trúc đồ thị (SHACL): Chuẩn SHACL của W3C được lựa chọn vì có thể kiểm tra ràng buộc cấu trúc đồ thị mà không yêu cầu tập dữ liệu nhãn thủ công. Nó giúp tìm kiếm các Nút mồ côi (Dangling Nodes) thông qua duyệt đồ thị có hướng để phát hiện các đỉnh không có mối quan hệ kết nối, ngăn chặn tình trạng tri thức bị phân mảnh. Đồng thời, Độ phủ văn bản (Chunk Coverage) được đo lường để đảm bảo không bỏ sót thông tin trọng yếu.
 
-\begin{figure}[!htbp]
-	\centering
-	\includegraphics[width=1\textwidth]{images/system_architecture_ver2.drawio.png} 
-	\caption{Mô hình kiến trúc hệ thống tổng thể}
-	\label{fig:kien_truc_he_thong}
-\end{figure}
+- Nhóm 2 - Đánh giá độ hữu cơ của quan hệ (LLM-as-a-Judge): Phương pháp này đánh giá độ lắng đọng trích xuất, với tiêu chí cốt lõi là Độ có cơ sở (Groundedness). Nó bắt buộc mọi mối quan hệ phải tồn tại chứng cứ tường minh từ các đoạn văn bản gốc, ngăn chặn hiện tượng âm tính giả và ảo giác của LLM.
 
-Dưới đây là mô tả chi tiết về chức năng và vai trò của từng tầng trong kiến trúc:
+- Nhóm 3 - Đánh giá hợp nhất thực thể (V-Measure): Đo lường hiệu quả việc hợp nhất các thực thể trùng lặp, giải quyết bài toán deduplication. Hệ thống theo dõi tỷ lệ Bỏ sót gộp (C1 Rate - Under-merge) nhằm giảm thiểu tình trạng một thực thể bị phân tách thành nhiều nút. Trái lại, Độ thuần khiết (C2 Rate - Purity - Over-merge) được duy trì để ngăn chặn việc đồng nhất hóa sai lầm các thực thể mang bản chất riêng biệt. Từ sự kết hợp của những yếu tố trên, Overall V-Measure được tính toán như một chỉ số tổng quát đại diện cho sự cân bằng hoàn hảo. 
 
-\subsubsection{Tầng Giao diện (Client Layer)}
-Tầng Giao diện được xây dựng trên nền tảng framework Next.js, cung cấp giao diện tương tác hiện đại và tối ưu trải nghiệm người dùng. Tại tầng này, hệ thống triển khai hai luồng giao tiếp chủ đạo:
+Đánh giá chất lượng sinh văn bản (RAG Metrics).
+Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) được sử dụng với các chỉ số:
+- Độ liên quan của câu trả lời (Answer Relevance): Đảm bảo phản hồi đáp ứng đúng trọng tâm truy vấn.
+- Độ trung thực (Faithfulness): Đo lường khả năng bám sát ngữ cảnh từ đồ thị, hạn chế "ảo giác".
+- Độ gọi bối cảnh (Context Recall): Đánh giá khả năng truy xuất thành công các khái niệm phân tán.
 
-\begin{itemize}
-	\item \textbf{Luồng nghiệp vụ truyền thống:} Thực hiện gọi API tới máy chủ Spring Boot qua giao thức HTTPS. Luồng này chịu trách nhiệm cho các tính năng cốt lõi như quản lý tiến trình học tập, tương tác diễn đàn và thiết lập mục tiêu cá nhân.
-	\item \textbf{Luồng tư vấn thông minh:} Kết nối trực tiếp đến máy chủ AI (LihgtRAG Server) để xử lý các truy vấn qua cửa sổ Chat. Việc kết nối trực tiếp này hỗ trợ cơ chế phản hồi dạng dòng (streaming), giúp tối ưu hóa tốc độ và trải nghiệm hội thoại. Ngoài ra, hệ thống tích hợp Supabase Real-time SDK để cập nhật các thông báo tức thời (Real-time Notification) dựa trên biến động của cơ sở dữ liệu.
-\end{itemize}
-
-\subsubsection{Tầng Nghiệp vụ (Application Layer)}
-Đóng vai trò là trung tâm điều phối dữ liệu, máy chủ nghiệp vụ được phát triển trên nền tảng Spring Boot 3.4 với các module chính:
-
-\begin{itemize}
-	\item \textbf{An ninh hệ thống:} Triển khai Spring Security phối hợp cùng JWT (JSON Web Token) để thực thi các quy trình xác thực (Authentication) và phân quyền (Authorization) nghiêm ngặt.
-	\item \textbf{Xử lý nghiệp vụ (Core Services):} Chịu trách nhiệm quản lý thực thể diễn đàn, dữ liệu sinh viên và lộ trình học tập. Tầng này ứng dụng Spring Data JPA và Hibernate để tối ưu hóa việc tương tác với hệ quản trị cơ sở dữ liệu PostgreSQL.
-	\item \textbf{Luồng sự kiện (Event Engine):} Sử dụng cơ chế Spring Events để xử lý các tác vụ bất đồng bộ (Async Event). Khi có sự kiện mới (như thông báo từ P.CTSV), hệ thống sẽ tự động kích hoạt gửi Notification và Email qua Gmail SMTP Service mà không gây ảnh hưởng đến hiệu năng của luồng xử lý chính.
-\end{itemize}
-
-\subsubsection{Tầng Điều phối (AI Processing Layer)}
-Đây là tầng xử lý logic thông minh, được xây dựng để khai thác tối đa sức mạnh của hệ sinh thái AI:
-
-\begin{itemize}
-	\item \textbf{Hệ thống Đa tác nhân (Multi-Agent System):} Sử dụng framework LangGraph để vận hành các AI Agents chuyên biệt bao gồm Analyze Agent, Long-term Memory Agent, Orchestration Agent, Generator Agent, Evaluator Agent. Các tác nhân này có khả năng tự suy luận và phối hợp để đưa ra lời giải đáp tối ưu nhất.
-	\item \textbf{Cơ chế RAG tiên tiến (LightRAG):} Đảm bảo tính chính xác của thông tin thông qua việc truy xuất ngữ cảnh (RAG Retrieval) từ tập tin dữ liệu đặc thù (môn học, chương trình đào tạo), giúp hạn chế tối đa hiện tượng "ảo giác" (hallucination) của mô hình ngôn ngữ lớn.
-	\item \textbf{Lưu trữ hội thoại:} Toàn bộ lịch sử Chat được lưu trữ tại MongoDB. Việc sử dụng cơ sở dữ liệu NoSQL giúp đáp ứng tính linh hoạt và khả năng mở rộng đối với các dữ liệu hội thoại có cấu trúc không cố định.
-\end{itemize}
-
-\subsubsection{Tầng Dữ liệu và Hạ tầng (Data \& Infrastructure Layer)}
-Hệ thống áp dụng chiến lược Polyglot Persistence để tối ưu hóa việc lưu trữ cho từng loại dữ liệu khác nhau:
-
-\begin{itemize}
-	\item \textbf{PostgreSQL:} Quản lý dữ liệu quan hệ có cấu trúc như hồ sơ sinh viên và nội dung diễn đàn.
-	\item \textbf{MongoDB:} Chuyên biệt cho việc lưu trữ và truy xuất nhanh lịch sử tương tác giữa người dùng và AI.
-	\item \textbf{Foundation Models:} Tích hợp các mô hình ngôn ngữ lớn (Llama 3 hoặc OpenAI) thông qua API để thực hiện quá trình suy luận dựa trên dữ liệu từ phân hệ RAG.
-	\item \textbf{Supabase Cloud:} Cung cấp hạ tầng lưu trữ tệp tin (Storage) và cơ chế tín hiệu thời gian thực dựa trên Write-Ahead Logging (WAL) của cơ sở dữ liệu.
-\end{itemize}
-
-\subsection{Hiện thực phân hệ ứng dụng di động (Mobile Application)}
-
-\indent Phân hệ di động được phát triển độc lập trên nền tảng framework Flutter và ngôn ngữ lập trình Dart, đóng vai trò là lớp Client di động kết nối đồng bộ dữ liệu với hệ thống máy chủ trung tâm qua các RESTful API. Kiến trúc mã nguồn ứng dụng mô hình quản lý trạng thái tập trung thông qua bộ thư viện Provider (gồm MultiProvider và ChangeNotifierProvider) nhằm tách biệt hoàn toàn tầng giao diện (UI) và logic xử lý nghiệp vụ. Do các chức năng nghiệp vụ chính tương đồng với phân hệ Web, phân hệ di động tập trung triển khai và cấu hình các thành phần kỹ thuật đặc thù trên thiết bị di động bao gồm:
-
-\begin{itemize}
-	\item \textbf{Thành phần trợ lý ảo AI:} Hiện thực hóa lớp ChatbotScreen kết nối với máy chủ LightRAG. Phân hệ tích hợp giải pháp xử lý nối chuỗi văn bản (Context Concatenation) để bảo toàn bối cảnh cuộc hội thoại và sử dụng bộ dịch cú pháp Markdown để hiển thị định dạng câu trả lời từ mô hình ngôn ngữ lớn trực quan trên giao diện RichText.
-	\item \textbf{Thành phần xác thực tài khoản:} Quản lý toàn bộ vòng đời đăng nhập, đăng ký và làm mới mã truy cập ngầm định (refreshAccessToken) qua Bearer JWT Token. Phân hệ di động cấu hình bộ lọc tự động bắt ngoại lệ tầng kết nối mạng (SocketTimeoutException) tại tính năng khôi phục mật khẩu, hỗ trợ luồng mã Token giả lập "DEMO123" nhằm đảm bảo tính ổn định tối đa cho chu trình thử nghiệm đồ án.
-	\item \textbf{Thành phần đồng bộ và tải tệp tin:} Xử lý hiển thị động các thông báo chưa đọc (Badge) trên thanh công cụ CustomAppBar bằng widget Stack. Đồng thời, phân hệ hiện thực hóa luồng đóng gói tệp tin hình ảnh nhị phân đa phần (MultipartFile) từ bộ nhớ máy thông qua thư viện ImagePicker để đồng bộ trực tiếp lên hạ tầng lưu trữ đám mây qua lệnh gọi http.MultipartRequest.
-\end{itemize}
-
-
-
-
-
-
-
-
-
-
-
-
-\clearpage
-\subsection{Thiết kế Cơ sở dữ liệu}
-
-Để đáp ứng các yêu cầu phức tạp, hệ thống phân chia cơ sở dữ liệu thành ba cụm chính bao gồm cơ sở dữ liệu quan hệ PostgreSQL để xử lý các dữ liệu có cấu trúc chặt chẽ, cơ sở dữ liệu phi cấu trúc MongoDB để lưu trữ lịch sử trò chuyện linh hoạt, và cơ sở dữ liệu đồ thị để lưu trữ mạng lưới tri thức phục vụ cho LightRAG.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[trim=7cm 0cm 7cm 0cm, clip, width=1\textwidth]{images/diagramdb.pdf}  
-	\caption{Mô hình sơ đồ cơ sở dữ liệu quan hệ tổng quan}
-	\label{fig:mo_hinh_db}
-\end{figure}
-
-% ---------------------------------------------------------
-\subsubsection{Thiết kế Cơ sở dữ liệu Quan hệ (PostgreSQL)} 
-
-{
-	\renewcommand{\arraystretch}{1.4} 
-	\begin{longtable}{|c|p{4cm}|p{9cm}|}
-		\caption{Danh sách các bảng trong cơ sở dữ liệu quan hệ} \label{tab:danh_sach_bang} \\
-		\hline
-		\textbf{STT} & \textbf{Tên bảng} & \textbf{Ý nghĩa} \\ \hline
-		\endfirsthead
-		
-		\hline
-		\textbf{STT} & \textbf{Tên bảng} & \textbf{Ý nghĩa} \\ \hline
-		\endhead
-		
-		\hline
-		\endfoot
-		
-		1 & students & Bảng trung tâm lưu trữ thông tin cá nhân của sinh viên, thông tin định danh (student\_code), email, mật khẩu và trạng thái tài khoản. \\ \hline
-		2 & roles & Danh mục các vai trò/quyền hạn trong hệ thống (Ví dụ: STUDENT, ADMIN, v.v.). \\ \hline
-		3 & student\_roles & Bảng trung gian kết nối Sinh viên và Vai trò, cho phép một sinh viên có thể đảm nhận nhiều vai trò khác nhau. \\ \hline
-		4 & academic\_goals & Lưu trữ các mục tiêu học tập cụ thể của từng sinh viên (số tín chỉ mục tiêu, ngày dự kiến tốt nghiệp). \\ \hline
-		5 & courses & Danh mục thông tin về các môn học, mã môn học, tên môn và số lượng tín chỉ của môn đó. \\ \hline
-		6 & student\_courses & Quản lý lộ trình học tập của sinh viên: đăng ký môn nào, học kỳ nào, điểm số và trạng thái (Đang học, Hoàn thành, Trượt). \\ \hline
-		7 & forums & Lưu trữ thông tin về các diễn đàn thảo luận, nhóm học tập (tên diễn đàn, mô tả, quyền riêng tư). \\ \hline
-		8 & forum memberships & Quản lý danh sách thành viên và vai trò của sinh viên trong từng diễn đàn cụ thể. \\ \hline
-		9 & posts & Lưu trữ các bài viết/bài đăng do sinh viên tạo ra trong các diễn đàn. \\ \hline
-		10 & post\_likes & Ghi lại lịch sử các lượt "Thích" của sinh viên đối với các bài viết. \\ \hline
-		11 & comments & Lưu trữ các bình luận trong bài viết, hỗ trợ cấu trúc lồng nhau (bình luận phản hồi bình luận khác). \\ \hline
-		12 & notifications & Hệ thống thông báo cá nhân cho sinh viên về các sự kiện hoặc cập nhật mới. \\ \hline
-		13 & password reset tokens & Lưu trữ các mã (token) bảo mật phục vụ cho quy trình khôi phục mật khẩu. \\ \hline
-		14 & refresh\_tokens & Lưu trữ các token phiên làm việc để duy trì trạng thái đăng nhập. \\ \hline
-	\end{longtable}
-}
-
-\subsubsection{Ràng buộc Khóa ngoại}
-{
-	\renewcommand{\arraystretch}{1.4} 
-	\begin{longtable}{|c|p{3.5cm}|p{2.5cm}|p{3.2cm}|p{2.8cm}|}
-		\caption{Mô tả khóa ngoại của các bảng trong CSDL quan hệ} \label{tab:khoa_ngoai} \\
-		\hline
-		\textbf{STT} & \textbf{Tên Bảng} & \textbf{Tên cột} & \textbf{Bảng tham chiếu} & \textbf{Cột tham chiếu} \\ \hline
-		\endfirsthead
-		
-		\hline
-		\textbf{STT} & \textbf{Tên Bảng} & \textbf{Tên cột} & \textbf{Bảng tham chiếu} & \textbf{Cột tham chiếu} \\ \hline
-		\endhead
-		
-		\hline
-		\endfoot
-		
-		1 & academic\_goals & student\_id & students & id \\ \hline
-		2 & comments & student\_id & students & id \\ \hline
-		3 & comments & post\_id & posts & id \\ \hline
-		4 & comments & parent\_id & comments & id (tự tham chiếu) \\ \hline
-		5 & forum memberships & forum\_id & forums & id \\ \hline
-		6 & forum memberships & student\_id & students & id \\ \hline
-		7 & forums & author\_id & students & id \\ \hline
-		8 & notifications & student\_id & students & id \\ \hline
-		9 & password reset tokens & student\_id & students & id \\ \hline
-		10 & post\_likes & post\_id & posts & id \\ \hline
-		11 & post\_likes & student\_id & students & id \\ \hline
-		12 & posts & student\_id & students & id \\ \hline
-		13 & posts & forum\_id & forums & id \\ \hline
-		14 & refresh\_tokens & student\_id & students & id \\ \hline
-		15 & student\_courses & student\_id & students & id \\ \hline
-		16 & student\_courses & course\_id & courses & id \\ \hline
-		17 & student\_roles & student\_id & students & id \\ \hline
-		18 & student\_roles & role\_id & roles & id \\ \hline
-	\end{longtable}
-}
-
-% ---------------------------------------------------------
-\subsubsection{Thiết kế Cơ sở dữ liệu Phi cấu trúc (MongoDB)}
-Để phục vụ cho tác nhân duy trì bộ nhớ dài hạn (Long-term Memory Agent) và quản lý trạng thái luồng suy luận trong kiến trúc LangGraph, hệ thống sử dụng MongoDB. Dữ liệu được tổ chức linh hoạt để lưu trữ lịch sử hội thoại và các điểm kiểm soát (checkpoints) của AI Agent.
-
-{
-	\renewcommand{\arraystretch}{1.4} 
-	\begin{longtable}{|c|p{4.5cm}|p{8.5cm}|}
-		\caption{Danh sách các Collection trong cơ sở dữ liệu hcmus\_langgraph} \label{tab:mongo_collections} \\
-		\hline
-		\textbf{STT} & \textbf{Tên Collection} & \textbf{Ý nghĩa dữ liệu thực tế} \\ \hline
-		\endfirsthead
-		\hline
-		\textbf{STT} & \textbf{Tên Collection} & \textbf{Ý nghĩa dữ liệu thực tế} \\ \hline
-		\endhead
-		\hline
-		\endfoot
-		
-		1 & session\_info & Lưu trữ thông tin định danh của phiên chat bao gồm: session\_id, user\_id, tiêu đề cuộc hội thoại (title) và thời gian cập nhật gần nhất. \\ \hline
-		2 & long\_term\_memory & Lưu trữ các tri thức hoặc thông tin quan trọng được đúc kết từ các cuộc hội thoại cũ để AI Agent sử dụng cho các lần tương tác sau. \\ \hline
-		3 & checkpoints & Lưu trữ trạng thái hiện tại (State) của luồng LangGraph, cho phép hệ thống phục hồi lại đúng bước đang xử lý khi có lỗi hoặc ngắt quãng. \\ \hline
-		4 & checkpoint\_writes & Ghi lại nhật ký các thay đổi của trạng thái Agent qua từng bước thực hiện trong luồng điều phối (Orchestration). \\ \hline
-	\end{longtable}
-}
-
-% ---------------------------------------------------------
-\subsubsection{Thiết kế Cơ sở dữ liệu Đồ thị (Knowledge Graph)}
-Hệ thống sử dụng LightRAG để xây dựng Đồ thị tri thức học vụ phục vụ cho việc lưu trữ các thông tin phức tạp, liên kết qua mối quan hệ. Thay vì cấu trúc bảng (Table), dữ liệu được biểu diễn dưới dạng Thực thể (Nodes) và Mối quan hệ (Edges/Relationships).
-
-% ---------------------------------------------------------
-\subsubsection{Kiến trúc triển khai lưu trữ cho LightRAG}
-
-\indent Để vận hành hiệu quả các quy trình lập chỉ mục và truy xuất tri thức, hệ thống LightRAG được triển khai với kiến trúc lưu trữ hỗn hợp gồm bốn thành phần chuyên biệt, mỗi thành phần đảm nhận một vai trò riêng biệt trong toàn bộ luồng xử lý dữ liệu. Sơ đồ tổng quan kiến trúc lưu trữ và triển khai được thể hiện tại Hình~\ref{fig:storage_deployment}.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/storage_deployment_overview_nobg.png}
-	\caption{Tổng quan kiến trúc lưu trữ và triển khai LightRAG}
-	\label{fig:storage_deployment}
-\end{figure}
-
-\indent Thành phần thứ nhất là \textbf{KV\_STORAGE}, được triển khai trên nền tảng Redis thông qua lớp trừu tượng RedisKVStorage. Thành phần này chịu trách nhiệm lưu trữ ba loại dữ liệu quan trọng: bộ nhớ đệm phản hồi từ mô hình ngôn ngữ lớn (LLM Response Cache) nhằm tránh gọi lại các truy vấn đã xử lý trước đó, các đoạn văn bản đã phân mảnh (Text Chunks) phục vụ cho việc đối chiếu ngữ cảnh, và thông tin siêu dữ liệu của tài liệu gốc (Document Information) bao gồm tên tài liệu, số trang và trạng thái xử lý. Việc sử dụng Redis cho tầng lưu trữ khóa giá trị mang lại tốc độ truy xuất cực nhanh nhờ cơ chế lưu trữ trực tiếp trong bộ nhớ chính (in-memory), phù hợp với yêu cầu phản hồi thời gian thực của hệ thống.
-
-\indent Thành phần thứ hai là \textbf{VECTOR\_STORAGE}, được triển khai trên Qdrant thông qua lớp QdrantVectorDBStorage. Qdrant là cơ sở dữ liệu vector chuyên dụng, chịu trách nhiệm lưu trữ và tìm kiếm tương đồng trên ba loại biểu diễn vector nhúng: vector nhúng của thực thể (Entities Vectors) biểu diễn ngữ nghĩa của các nút trong đồ thị tri thức, vector nhúng của quan hệ (Relation Vectors) biểu diễn ngữ nghĩa của các cạnh kết nối giữa các thực thể, và vector nhúng của đoạn văn bản (Chunks Vectors) biểu diễn nội dung ngữ nghĩa của các phân đoạn tài liệu gốc. Qdrant hỗ trợ tìm kiếm láng giềng gần nhất (Approximate Nearest Neighbor) với hiệu suất cao, cho phép hệ thống thực hiện truy xuất ngữ nghĩa mờ (fuzzy semantic search) một cách nhanh chóng ngay cả khi kho tri thức có quy mô lớn.
-
-\indent Thành phần thứ ba là \textbf{GRAPH\_STORAGE}, được triển khai trên Neo4j thông qua lớp Neo4JStorage. Neo4j là cơ sở dữ liệu đồ thị hàng đầu, lưu trữ toàn bộ cấu trúc quan hệ tường minh của đồ thị tri thức dưới dạng Entity Relation Graph. Mỗi nút trong Neo4j đại diện cho một thực thể (khái niệm, môn học, giảng viên, khoa), và mỗi cạnh biểu diễn mối quan hệ ngữ nghĩa giữa các thực thể đó. Neo4j cung cấp ngôn ngữ truy vấn Cypher cho phép thực hiện các phép duyệt đồ thị phức tạp, hỗ trợ trực tiếp cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG.
-
-\indent Thành phần thứ tư là \textbf{DOC\_STATUS\_STORAGE}, cũng được triển khai trên Redis thông qua lớp RedisDocStatusStorage. Thành phần này theo dõi trạng thái lập chỉ mục (Document Indexing Status) của từng tài liệu trong hệ thống, bao gồm các trạng thái như đang chờ xử lý, đang lập chỉ mục, hoàn tất hoặc lỗi. Việc tách biệt thành phần theo dõi trạng thái ra khỏi kho lưu trữ dữ liệu chính giúp hệ thống quản lý hiệu quả quy trình nạp dữ liệu gia tăng (incremental indexing), tránh xử lý trùng lặp các tài liệu đã được lập chỉ mục trước đó.
-
-\indent Bốn thành phần lưu trữ trên được liên kết thông qua hai luồng xử lý chính. \textbf{Luồng lập chỉ mục (Indexing Pipeline)} tiếp nhận tài liệu và nội dung từ người dùng, sau đó LightRAG Engine thực hiện phân mảnh văn bản, trích xuất thực thể và quan hệ, rồi phân phối dữ liệu đến từng thành phần tương ứng: các đoạn văn bản và thông tin tài liệu được ghi vào Redis (KV\_STORAGE), các vector nhúng được lập chỉ mục trong Qdrant (VECTOR\_STORAGE), đồ thị quan hệ thực thể được cập nhật trong Neo4j (GRAPH\_STORAGE), và trạng thái xử lý được ghi nhận vào Redis (DOC\_STATUS\_STORAGE). \textbf{Luồng truy xuất (Retrieval Pipeline)} hoạt động theo chiều ngược lại: khi nhận truy vấn từ người dùng, LightRAG Engine đồng thời truy vấn các thành phần lưu trữ để thu thập ngữ cảnh phù hợp, sau đó tổng hợp và chuyển tiếp đến mô hình ngôn ngữ lớn để sinh phản hồi cuối cùng.
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.4}
-	\caption{Các thành phần lưu trữ trong kiến trúc LightRAG}
-	\label{tab:storage_mapping}
-	\begin{tabular}{|p{3.5cm}|p{2.5cm}|p{4cm}|p{4.5cm}|}
-		\hline
-		\textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Lớp triển khai} & \textbf{Dữ liệu lưu trữ} \\ \hline
-		KV\_STORAGE & Redis & RedisKV \newline Storage & LLM Response Cache, Text Chunks, Document Information \\ \hline
-		VECTOR\_ \newline STORAGE & Qdrant & QdrantVectorDB \newline Storage & Entities Vectors, Relation Vectors, Chunks Vectors \\ \hline
-		GRAPH\_ \newline STORAGE & Neo4j & Neo4JStorage & Entity Relation Graph \\ \hline
-		DOC\_STATUS\_ \newline STORAGE & Redis & RedisDocStatus \newline Storage & Document Indexing Status \\ \hline
-	\end{tabular}
-\end{table}
-
-\indent Trong kiến trúc triển khai lưu trữ hỗn hợp này, Redis đảm bảo tốc độ truy xuất nhanh cho dữ liệu khóa giá trị và bộ nhớ đệm, Qdrant tối ưu hóa tìm kiếm tương đồng vector ở quy mô lớn, còn Neo4j cung cấp khả năng duyệt và truy vấn đồ thị phức tạp. Sự phối hợp giữa bốn thành phần tạo nên nền tảng vững chắc cho cả hai luồng lập chỉ mục và truy xuất của LightRAG, đảm bảo hiệu năng và tính mở rộng của toàn bộ hệ thống.
-
-\clearpage
-\subsection{Thiết kế giao diện}
-
-% ---- Màn hình 1 ----
-\subsubsection{Màn hình Diễn đàn - Trang chủ}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/diendan_trangchu.jpg} 
-	\caption{Giao diện Màn hình Diễn đàn - Trang chủ}
-	\label{fig:ui_dien_dan_trang_chu}
-\end{figure}
-
-\textbf{Mục đích:} Giúp người dùng xem tổng quan các bài viết thảo luận, theo dõi thông tin học tập và các chủ đề thịnh hành trên diễn đàn.
-
-\textbf{Cách sử dụng:}
-Để xem danh sách bài viết, người dùng thực hiện cuộn trang để duyệt qua các bài viết mới nhất hoặc nổi bật nhất, từ đó hệ thống sẽ tự động tải và hiển thị nội dung tương ứng. Khi muốn xem chi tiết một bài viết cụ thể, người dùng chỉ cần chọn vào tiêu đề của bài viết đó để hệ thống chuyển hướng sang màn hình hiển thị nội dung chi tiết.
-
-% ---- Màn hình 2 ----
-\subsubsection{Màn hình AI Chat}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/aichat.jpg} 
-	\caption{Giao diện Màn hình AI Chat}
-	\label{fig:ui_ai_chat}
-\end{figure}
-
-\textbf{Mục đích:} Cung cấp không gian trò chuyện trực tiếp giữa sinh viên và AI Agent (Cố vấn học tập) để được tư vấn lộ trình, tra cứu môn học cá nhân hóa.
-
-\textbf{Cách sử dụng:}
-Trong quá trình trò chuyện và nhận tư vấn từ AI, với điều kiện hệ thống có kết nối mạng ổn định, người dùng nhập câu hỏi hoặc yêu cầu tư vấn vào khung văn bản và chọn gửi để AI Agent thực hiện phân tích dữ liệu và truy xuất đồ thị tri thức trước khi trả về câu trả lời chi tiết. Ngoài ra, người dùng có thể xem lại lịch sử tư vấn bằng cách cuộn lên hoặc chọn các phiên trò chuyện cũ tại thanh danh sách để hệ thống hiển thị lại toàn bộ nội dung hội thoại trước đó.
-
-% ---- Màn hình 3 ----
-\subsubsection{Màn hình Diễn đàn - Tạo bài viết}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/tao_post.jpg} 
-	\caption{Giao diện Màn hình Diễn đàn - Tạo bài viết}
-	\label{fig:ui_tao_bai_viet}
-\end{figure}
-
-\textbf{Mục đích:} Cho phép sinh viên soạn thảo, đính kèm hình ảnh minh họa và đăng tải các câu hỏi hoặc bài chia sẻ kinh nghiệm học tập lên các cộng đồng trong diễn đàn.
-
-\textbf{Cách sử dụng:}
-Để tạo và đăng bài viết mới, người dùng cần đăng nhập thành công vào hệ thống, sau đó thực hiện nhập tiêu đề, soạn thảo nội dung chi tiết và đính kèm các thẻ phân loại chủ đề cùng hình ảnh minh họa nếu cần thiết. Sau khi chọn nút đăng bài, hệ thống sẽ lưu trữ thông tin và tự động chuyển hướng người dùng đến màn hình chi tiết của bài viết vừa được khởi tạo.
-
-% ---- Màn hình 4 ----
-\subsubsection{Màn hình Diễn đàn - Chi tiết bài viết}
-
-\begin{figure}[H]
-	\centering
-	\begin{minipage}[t]{0.48\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{images/post_detail1.jpg} 
-		\\ \textit{a) Nội dung bài viết}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{images/post_detail2.jpg} 
-		\\ \textit{b) Khu vực bình luận}
-	\end{minipage}
-	\caption{Giao diện Màn hình Diễn đàn - Chi tiết bài viết}
-	\label{fig:ui_chi_tiet_bai}
-\end{figure}
-
-\textbf{Mục đích:} Hiển thị toàn bộ nội dung của một bài viết cụ thể và cho phép người dùng tương tác (bình luận, like, unlike).
-
-\textbf{Cách sử dụng:}
-Khi có nhu cầu bình luận vào bài viết, sau khi đăng nhập, người dùng cuộn xuống phần bình luận để nhập nội dung trao đổi và gửi đi, giúp hệ thống cập nhật và hiển thị phản hồi mới cho các người dùng khác cùng theo dõi. Bên cạnh đó, việc đánh giá bài viết hoặc bình luận được thực hiện bằng cách chọn biểu tượng tương ứng để hệ thống ghi nhận tương tác và cập nhật tổng lượt đánh giá hiển thị trên giao diện.
-
-% ---- Màn hình 5 ----
-\subsubsection{Màn hình Tìm kiếm}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\textwidth]{images/search_post.jpg} 
-	\caption{Giao diện Màn hình Tìm kiếm}
-	\label{fig:ui_tim_kiem}
-\end{figure}
-
-\textbf{Mục đích:} Giúp người dùng tra cứu nhanh chóng và chính xác các bài viết, chủ đề thảo luận hoặc tài liệu đã có trên diễn đàn.
-
-\textbf{Cách sử dụng:}
-\begin{itemize}
-	\item \textbf{Để tìm kiếm thông tin:}
-	\begin{enumerate}
-		\item Người dùng nhập từ khóa cần tìm (ví dụ: tên bài post, các chủ đề trong nội dung bài post) vào thanh tìm kiếm.
-		\item Chọn biểu tượng "Kính lúp" hoặc nhấn phím Enter.
-		\item Hệ thống sẽ truy xuất dữ liệu và trả về danh sách các kết quả khớp với từ khóa. Người dùng chọn vào một kết quả để đi đến màn hình Chi tiết bài viết.
-	\end{enumerate}
-\end{itemize}
-
-\subsection{Giao diện phân hệ Ứng dụng di động (Mobile Application)}
-
-\indent Giao diện của phân hệ di động được thiết kế tối ưu cho màn hình dọc của thiết bị smartphone, tập trung vào việc sắp xếp các phần tử UI gọn gàng, hỗ trợ thao tác cuộn vuốt dễ dàng bằng một tay và đảm bảo trải nghiệm tương tác học vụ liền mạch cho sinh viên.
-
-% --- Màn hình 1 ---
-\subsubsection{Màn hình AI Chatbot - Cố vấn học tập thông minh}
-
-\begin{figure}[H]
-	\centering
-	\begin{minipage}[t]{0.48\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
-		
-		\footnotesize a) Chế độ Khách (Không lưu lịch sử)
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
-		
-		\footnotesize b) Chế độ Thành viên (Có lịch sử chat)
-	\end{minipage}
-	\caption{Giao diện màn hình AI Chatbot trên phân hệ di động}
-	\label{fig:ui_mobile_chatbot}
-\end{figure}
-
-\textbf{Mục đích:} Cung cấp không gian tương tác hội thoại trực tiếp giữa sinh viên và AI Agent để tra cứu môn học, tư vấn lộ trình đào tạo cá nhân hóa và giải đáp các thắc mắc về học chế tín chỉ.
-
-\textbf{Mô tả bố cục giao diện:} Màn hình sử dụng cấu trúc hiển thị dòng thời gian tin nhắn tăng dần theo chiều dọc. Thanh nhập liệu được cố định chắc chắn ở đáy màn hình tích hợp cơ chế tự động thu nhỏ vùng hiển thị khi bàn phím ảo xuất hiện. Ở chế độ Thành viên, một trình đơn kéo Sidebar dạng Drawer được tích hợp ẩn ở cạnh trái, cho phép người dùng chạm để mở rộng danh sách các phiên hội thoại cũ.
-
-\textbf{Cách sử dụng:}
-\begin{enumerate}
-	\item Người dùng tiến hành nhập câu hỏi hoặc yêu cầu tư vấn học tập vào khung văn bản ở đáy màn hình.
-	\item Chọn nút Gửi. Hệ thống AI Agent phân tích dữ liệu thực tế, truy xuất Đồ thị tri thức LightRAG và thực hiện hiển thị câu trả lời tức thời dạng dòng (streaming).
-	\item Ở trạng thái đã đăng nhập (Thành viên), nội dung cuộc chuyện sẽ được ghi nhớ tự động vào SharedPreferences cục bộ và hiển thị trên menu Drawer để sinh viên có thể xem lại.
-\end{enumerate}
-
-% --- Màn hình 2 ---
-\subsubsection{Màn hình quản lý tiến trình học tập}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
-	\caption{Giao diện màn hình Quản lý tiến trình học tập trên phân hệ di động}
-	\label{fig:ui_mobile_khoa_hoc}
-\end{figure}
-
-\textbf{Mục đích:} Giúp người học theo dõi trực quan tổng số tín chỉ học phần tích lũy hiện hành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên và quan sát danh sách lộ trình gợi ý học tập tiếp theo được cá nhân hóa do AI Agent đề xuất.
-
-\textbf{Mô tả bố cục giao diện:} Màn hình được tổ chức theo cấu trúc các khối chức năng xếp chồng theo một cột dọc duy nhất. Khu vực phía trên hiển thị biểu đồ thanh ngang Linear Progress Bar phản ánh phần trăm hoàn thành chặng đường tích lũy tín chỉ tốt nghiệp hiện tại của sinh viên. Khu vực phía dưới là một danh sách cuộn bao gồm các thẻ môn học (cards) được AI gợi ý riêng biệt để đăng ký trong học kỳ kế tiếp.
-
-\textbf{Cách sử dụng:}
-\begin{enumerate}
-	\item Sinh viên truy cập vào màn hình Trang chủ (Home) để kiểm tra nhanh thanh tiến độ tích lũy tín chỉ học tập tổng quan của mình.
-	\item Hệ thống tự động phân tích dữ liệu điểm số từ cơ sở dữ liệu PostgreSQL để kết xuất đồ thị thanh ngang phản ánh phần trăm hoàn thành lộ trình đào tạo.
-	\item Sinh viên cuộn xuống dưới để xem chi tiết các thẻ khuyến nghị môn học và lộ trình học tập tối ưu tiếp theo.
-\end{enumerate}
-
-% --- Màn hình 3 ---
-\subsubsection{Màn hình hồ sơ cá nhân sinh viên}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
-	\caption{Giao diện màn hình Hồ sơ cá nhân sinh viên trên phân hệ di động}
-	\label{fig:ui_mobile_infomation}
-\end{figure}
-
-\textbf{Mục đích:} Hiển thị chi tiết toàn bộ thông tin định danh cá nhân học vụ của sinh viên bao gồm mã số sinh viên, ngành học, lớp học, ngày sinh, giới tính và kết quả điểm số GPA tổng kết hiện tại.
-
-\textbf{Mô tả bố cục giao diện:} Phần ảnh đại diện (Avatar) hình tròn lớn được đặt trang trọng ở vị trí trung tâm phía trên cùng. Toàn bộ thông tin lý lịch trích ngang của sinh viên được phân bổ khoa học bên dưới thành một lưới các ô thuộc tính văn bản phân hàng rõ ràng, giúp người đọc dễ dàng rà soát thông tin học tập cá nhân.
-
-\textbf{Cách sử dụng:}
-\begin{enumerate}
-	\item Sinh viên truy cập vào phân hệ mục Hồ sơ để kiểm tra toàn bộ thông tin cá nhân và điểm số hiện tại của bản thân.
-	\item Khi muốn thay đổi các thông tin liên lạc cơ bản hoặc tải lên ảnh đại diện mới từ thiết bị, người dùng nhấn vào biểu tượng chỉnh sửa, nhập dữ liệu mới và thực hiện lưu thay đổi.
-	\item Ứng dụng ghi nhận dữ liệu mới, thực hiện đóng gói tệp tin và gọi API đồng bộ hóa dữ liệu trực tiếp về hệ quản trị cơ sở dữ liệu trung tâm.
-\end{enumerate}
+Đánh giá hiệu năng điều phối (Agentic Metrics).
+Đo lường độ chính xác trong việc điều phối luồng xử lý (Routing Accuracy) của Tác nhân Orchestrator và Tốc độ phản hồi trung bình (Average Latency) từ lúc nhận câu hỏi đến khi xuất ra câu trả lời.

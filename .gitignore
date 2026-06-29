@@ -63,3 +63,5 @@ yarn-error.log*
 mmd/
 SourceCode/
 scratch/
+test*
+fix*

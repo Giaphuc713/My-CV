@@ -4,29 +4,13 @@
 \section{Kết quả đạt được}
 Đề tài đã nghiên cứu và xây dựng thành công "Hệ thống hỗ trợ thông tin học tập cho sinh viên sử dụng AI Agents". Bằng việc kết hợp sức mạnh của Đồ thị tri thức \cite{hogan2021knowledge} và kiến trúc điều phối Đa tác nhân \cite{langgraph2024}, hệ thống đã góp phần giải quyết bài toán phân mảnh thông tin trong giáo dục đại học \cite{zawacki2019systematic}.
 
-Những đóng góp chính của đề tài bao gồm:
-\begin{itemize}
-	\item Số hóa và cấu trúc hóa thành công kho dữ liệu học vụ phức tạp thành Đồ thị tri thức (LightRAG) có khả năng suy luận nhanh chóng \cite{guo2024lightrag}.
-	\item Xây dựng luồng xử lý Đa tác nhân thông minh, cho phép AI tự động chọn lọc công cụ tìm kiếm phù hợp với từng dạng câu hỏi của sinh viên.
-	\item Triển khai hệ thống đánh giá tự động thông minh (LLM-as-a-Judge) \cite{zheng2023judging} kết hợp RAGAS \cite{es2023ragas} giúp đo lường và tinh chỉnh chất lượng câu trả lời một cách khách quan.
-\end{itemize}
-Nhìn chung, hệ thống đã giúp sinh viên dễ dàng tra cứu, thấu hiểu mối liên hệ giữa các môn học tiên quyết và lập kế hoạch học tập hiệu quả.
+Những đóng góp chính của đề tài bao gồm ba khía cạnh quan trọng. Thứ nhất, nghiên cứu đã số hóa và cấu trúc hóa thành công kho dữ liệu học vụ phức tạp thành Đồ thị tri thức (LightRAG) có khả năng suy luận nhanh chóng \cite{guo2024lightrag}. Thứ hai, hệ thống đã xây dựng một luồng xử lý Đa tác nhân thông minh, cho phép AI tự động chọn lọc công cụ tìm kiếm phù hợp với từng dạng câu hỏi của sinh viên. Cuối cùng, dự án triển khai hệ thống đánh giá tự động thông minh (LLM-as-a-Judge) \cite{zheng2023judging} kết hợp RAGAS \cite{es2023ragas} giúp đo lường và tinh chỉnh chất lượng câu trả lời một cách khách quan. Nhìn chung, hệ thống đã giúp sinh viên dễ dàng tra cứu, thấu hiểu mối liên hệ giữa các môn học tiên quyết và lập kế hoạch học tập hiệu quả.
 
 \section{Hạn chế của hệ thống}
-Dù đạt được những kết quả khả quan, hệ thống vẫn còn tồn tại một số giới hạn về mặt kỹ thuật:
-\begin{itemize}
-	\item \textbf{Độ trễ xử lý (Latency):} Do bản chất của việc duy trì hội thoại đa tác nhân \cite{wu2023autogen} và suy luận phức tạp của mô hình LLM, tốc độ phản hồi của hệ thống vẫn còn tương đối chậm, đặc biệt khi có nhiều người dùng truy vấn đồng thời.
-	\item \textbf{Hạn chế trong số hóa tài liệu tiếng Việt:} Việc bóc tách cấu trúc bảng biểu phức tạp từ các file PDF quy chế đào tạo đôi khi vẫn gặp lỗi nhận diện (OCR), dẫn đến việc Đồ thị tri thức bị khuyết dữ liệu ở một vài tiểu mục nhỏ.
-\end{itemize}
+Dù đạt được những kết quả khả quan, hệ thống vẫn còn tồn tại một số giới hạn về mặt kỹ thuật. Trở ngại lớn nhất hiện nay nằm ở độ trễ xử lý (Latency); do bản chất của việc duy trì hội thoại đa tác nhân \cite{wu2023autogen} và suy luận phức tạp của mô hình LLM, tốc độ phản hồi của hệ thống vẫn còn tương đối chậm, đặc biệt khi có nhiều người dùng truy vấn đồng thời. Kế đến là những hạn chế trong việc số hóa tài liệu tiếng Việt, khi quá trình bóc tách cấu trúc bảng biểu phức tạp từ các file PDF quy chế đào tạo đôi khi vẫn gặp lỗi nhận diện (OCR), dẫn đến việc Đồ thị tri thức bị khuyết dữ liệu ở một vài tiểu mục nhỏ.
 
 \section{Hướng phát triển trong tương lai}
 Qua quá trình nghiên cứu và thực hiện đề tài, nhóm đã đạt được các mục tiêu trọng tâm về lý thuyết, giải pháp và thực nghiệm. Về lý thuyết, nhóm xây dựng thành công quy trình đánh giá đồ thị tri thức đa tầng dựa trên các nghiên cứu về hệ thống RAG hiện đại \cite{lightrag, graphrag, dong2015kbt}. Về giải pháp, việc đề xuất kiến trúc vùng đệm lưu trữ kết hợp với quy tắc SHACL đã tối ưu hóa cấu trúc đồ thị và đảm bảo tính liên kết chặt chẽ \cite{shacl_w3c}. Thực nghiệm trên toàn bộ kho học liệu của khoa Công nghệ Thông tin đã minh chứng tính ổn định của hệ thống với kết quả vượt trội so với các kiến trúc truyền thống. 
 
 Trong thời gian tới, nhóm dự kiến hoàn thiện giao diện cho phép giảng viên trực tiếp tham gia phê duyệt thực thể, hướng tới mục tiêu đạt được độ chính xác tuyệt đối. Đồng thời, việc tự động hóa đồng bộ thuật ngữ Anh-Việt trong đề cương chi tiết sẽ được chú ý phát triển. Cuối cùng, một module gợi ý lộ trình học tập cá nhân hóa dựa trên đồ thị tri thức sư phạm sẽ được tích hợp để hỗ trợ sinh viên trong việc định hướng nghề nghiệp và xây dựng kế hoạch học tập tối ưu.
-Để khắc phục các hạn chế hiện tại và đưa hệ thống vào ứng dụng thực tiễn ở quy mô toàn trường, các hướng nghiên cứu tiếp theo bao gồm:
-\begin{itemize}
-	\item \textbf{Nâng cấp công cụ xử lý tài liệu:} Nghiên cứu tích hợp các mô hình chuyên biệt để bóc tách chính xác 100\% các bảng biểu môn học từ file PDF.
-	\item \textbf{Tối ưu hóa hiệu năng:} Triển khai kỹ thuật Semantic Caching nhằm lưu trữ lại các câu trả lời cho những câu hỏi thường gặp, giúp giảm thời gian phản hồi.
-	\item \textbf{Mở rộng hệ sinh thái sinh viên:} Tích hợp trực tiếp hệ thống AI Agent vào cổng thông tin đào tạo của trường, cho phép AI tự động cập nhật lịch học, điểm số và gợi ý đăng ký môn học theo thời gian thực để hỗ trợ giáo dục thông minh toàn diện \cite{kasneci2023chatgpt}.
-\end{itemize}
-
+Để khắc phục các hạn chế hiện tại và đưa hệ thống vào ứng dụng thực tiễn ở quy mô toàn trường, các hướng nghiên cứu tiếp theo sẽ tập trung vào ba nhiệm vụ chính. Trước mắt, nhóm sẽ nâng cấp công cụ xử lý tài liệu thông qua việc nghiên cứu tích hợp các mô hình chuyên biệt để bóc tách chính xác hoàn toàn các bảng biểu môn học từ file PDF. Kế đó, vấn đề tối ưu hóa hiệu năng sẽ được giải quyết bằng việc triển khai kỹ thuật Semantic Caching nhằm lưu trữ lại các câu trả lời cho những câu hỏi thường gặp, giúp giảm đáng kể thời gian phản hồi. Về dài hạn, định hướng quan trọng nhất là mở rộng hệ sinh thái sinh viên bằng cách tích hợp trực tiếp hệ thống AI Agent vào cổng thông tin đào tạo của trường. Điều này sẽ cho phép AI tự động cập nhật lịch học, điểm số và gợi ý đăng ký môn học theo thời gian thực để hỗ trợ giáo dục thông minh toàn diện \cite{kasneci2023chatgpt}.
