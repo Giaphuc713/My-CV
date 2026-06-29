@@ -7,119 +7,180 @@
 \begin{figure}[H]
 	\centering
 	\resizebox{\textwidth}{!}{
-	\begin{tikzpicture}[node distance=1.2cm and 1.2cm, auto]
-		\tikzset{
-			base/.style = {draw, thick, text centered, font=\sffamily\small, rounded corners=5px, inner sep=5pt, align=center},
-			inputDoc/.style = {base, fill=red!80!black, draw=red!40!black, text=white},
-			processBox/.style = {base, fill=green!20, draw=green!60!black, text=black},
-			llmBox/.style = {base, fill=purple!20, draw=purple!60!black, text=black},
-			shaclBox/.style = {base, fill=orange!20, draw=orange!80!black, text=black},
-			storageBox/.style = {base, fill=teal!80!black, draw=teal!40!black, text=white},
-			skipBox/.style = {base, fill=gray!20, draw=gray!60!black, text=gray!80!black},
-			arrow/.style = {thick, -{Stealth[scale=1.2]}},
-			dashed_arrow/.style = {thick, dashed, -{Stealth[scale=1.2]}},
-			label_txt/.style = {font=\scriptsize\itshape, fill=white, inner sep=1pt}
-		}
+	% ============================================================
+%  COLOR DEFINITIONS (named, so they never collide with TikZ's
+%  own use of '#' as a macro-parameter token)
+% ============================================================
+\definecolor{cInputFill}{HTML}{B71C1C}
+\definecolor{cInputDraw}{HTML}{7F0000}
+\definecolor{cProcessFill}{HTML}{B9F6CA}
+\definecolor{cProcessDraw}{HTML}{69F0AE}
+\definecolor{cLLMFill}{HTML}{E1BEE7}
+\definecolor{cLLMDraw}{HTML}{AB47BC}
+\definecolor{cSHACLFill}{HTML}{FFE0B2}
+\definecolor{cSHACLDraw}{HTML}{FB8C00}
+\definecolor{cStorageFill}{HTML}{00695C}
+\definecolor{cStorageDraw}{HTML}{004D40}
+\definecolor{cSkipFill}{HTML}{EEEEEE}
+\definecolor{cSkipDraw}{HTML}{9E9E9E}
+\definecolor{cSkipText}{HTML}{757575}
 
-		% ----------------------------------------------------
-		% INPUT & DEDUPLICATION
-		% ----------------------------------------------------
-		\node (Input) [inputDoc] {Input Documents / Files / URL Links};
-		
-		\node (DocDedup) [processBox, below=1cm of Input] {Document Deduplication\\(Kiểm tra tài liệu trùng lặp bằng MD5 Hash)};
-		\node (SkipDoc) [skipBox, right=1.5cm of DocDedup] {Bỏ qua\\(Tài liệu đã tồn tại trong KV Storage)};
-		
-		\node (Parse) [processBox, below=1cm of DocDedup] {MinerU Parse\\(Bóc tách Layout phức tạp, Bảng, PDF, Toán học)};
+% ============================================================
+%  GLOBAL STYLE DEFINITIONS
+%  (Defining everything here keeps every box visually consistent
+%   and means we only ever change ONE place if colors need to change)
+% ============================================================
+\tikzset{
+    >=Stealth,
+    every node/.style = {font=\sffamily\small},
+    % --- distances: generous, fixed, so nothing ever auto-collides ---
+    node distance = 12mm and 14mm,
+    % --- box styles, matched to the legend colors in the original diagram ---
+    inputDoc/.style = {rectangle, rounded corners=3pt, draw=cInputDraw, very thick,
+        fill=cInputFill!85, text=white, minimum width=42mm, minimum height=10mm,
+        align=center, text width=40mm},
+    processBox/.style = {rectangle, rounded corners=3pt, draw=cProcessDraw!70!black, thick,
+        fill=cProcessFill, text=black, minimum width=42mm, minimum height=12mm,
+        align=center, text width=40mm},
+    llmBox/.style = {rectangle, rounded corners=3pt, draw=cLLMDraw, thick,
+        fill=cLLMFill, text=black, minimum width=42mm, minimum height=12mm,
+        align=center, text width=40mm},
+    shaclBox/.style = {rectangle, rounded corners=3pt, draw=cSHACLDraw, thick,
+        fill=cSHACLFill, text=black, minimum width=46mm, minimum height=12mm,
+        align=center, text width=44mm},
+    storageBox/.style = {cylinder, shape border rotate=90, aspect=0.25, draw=cStorageDraw, thick,
+        fill=cStorageFill, text=white, minimum width=30mm, minimum height=12mm,
+        align=center, text width=26mm, font=\sffamily\scriptsize},
+    skipBox/.style = {rectangle, rounded corners=3pt, draw=cSkipDraw, thick, dashed,
+        fill=cSkipFill, text=cSkipText, minimum width=34mm, minimum height=10mm,
+        align=center, text width=32mm},
+    % --- phase container style (frame only, no auto-label) ---
+    phaseBox/.style = {rectangle, rounded corners=6pt, draw=black!55, thick, dashed,
+        inner xsep=10mm, inner ysep=10mm},
+    % --- standalone phase title node, placed manually above each frame ---
+    phaseTitle/.style = {font=\sffamily\bfseries\normalsize, anchor=south west},
+    % --- edges ---
+    solidEdge/.style = {-{Stealth[length=2.5mm]}, thick},
+    dottedEdge/.style = {-{Stealth[length=2.5mm]}, thick, dash pattern=on 2pt off 2pt},
+    edgeLabel/.style = {font=\sffamily\scriptsize\itshape, fill=white, inner sep=1pt}
+}
 
-		% ----------------------------------------------------
-		% PHASE 1: DUAL CHUNKING
-		% ----------------------------------------------------
-		\node (SectionChunk) [processBox, below left=1.5cm and 1cm of Parse] {Section Chunking\\(Chia theo Heading/Depth)};
-		\node (StdChunk) [processBox, below right=1.5cm and 1cm of Parse] {Standard Chunking\\(Chia theo Token Size)};
-		
-		\node (Chunking_Phase) [draw, dashed, inner sep=10pt, fit=(SectionChunk) (StdChunk), label={[font=\bfseries]above:1. Phân mảnh Kép (Dual Chunking)}] {};
 
-		\node (SecKV) [storageBox, below left=1cm and -1.5cm of SectionChunk] {Section KV Storage};
-		\node (SecVDB) [storageBox, below right=1cm and -1.5cm of SectionChunk] {Section Vector DB};
-		\node (Section_Storage) [draw, dashed, inner sep=10pt, fit=(SecKV) (SecVDB), label={[font=\bfseries]above:Lưu trữ Chunk Độc Lập}] {};
+\begin{tikzpicture}
 
-		\node (TextKV) [storageBox, below left=1cm and -1.5cm of StdChunk] {Text Chunks KV Storage};
-		\node (TextVDB) [storageBox, below right=1cm and -1.5cm of StdChunk] {Text Vector DB};
-		\node (Text_Storage) [draw, dashed, inner sep=10pt, fit=(TextKV) (TextVDB), label={[font=\bfseries]above:Lưu trữ Text Chunk}] {};
+% ============================================================
+%  INPUT & DEDUPLICATION  (top strip — own row, nothing else
+%  is allowed to share this vertical band)
+% ============================================================
+\node[inputDoc] (input) {Input Documents / Files / URL Links};
+\node[processBox, below=of input] (dedup) {Document Deduplication\\(Kiểm tra tài liệu trùng lặp\\bằng MD5 Hash)};
+\node[skipBox, right=30mm of dedup] (skipdoc) {Bỏ qua\\(Tài liệu đã tồn tại\\trong KV Storage)};
+\node[processBox, below=of dedup] (parse) {MinerU Parse\\(Bóc tách Layout phức tạp,\\Bảng, PDF, Toán học)};
 
-		% ----------------------------------------------------
-		% PHASE 2: EXTRACTION, SHACL & RESOLUTION
-		% ----------------------------------------------------
-		\node (Extract) [llmBox, below=1.5cm of Text_Storage] {LLM Extraction\\(Bóc tách Entities \& Relations)};
-		\node (OrphanFilter) [processBox, below=1cm of Extract] {Orphan Filter\\(Loại bỏ Entity cô lập)};
-		\node (LLMAudit) [llmBox, below=1cm of OrphanFilter] {LLM Audit / Critic\\(Đánh giá confidence\_score)};
-		\node (SHACL) [shaclBox, below=1cm of LLMAudit] {SHACL Validation\\(Kiểm tra cấu trúc, rules)};
-		\node (Decision) [shaclBox, below=1cm of SHACL] {Decision Gate\\(Chấp nhận nếu shacl\_pass == True AND score >= 0.8)};
-		
-		\node (EntityResolution) [llmBox, right=1.5cm of Decision] {Entity Resolution (Coreference)\\(Nhận diện từ viết tắt, từ đồng nghĩa\\ -> Đồng nhất Entity \& Nối lại Relation)};
-		\node (Drop) [skipBox, left=1.5cm of Decision] {Bỏ qua (Rejected)};
-		
-		\node (Extract_Validate) [draw, dashed, inner sep=10pt, fit=(Extract) (OrphanFilter) (LLMAudit) (SHACL) (Decision) (EntityResolution), label={[font=\bfseries]above:2. Trích xuất, Xác thực \& Phân giải (Extraction \& Resolution)}] {};
+\draw[solidEdge] (input) -- (dedup);
+\draw[solidEdge] (dedup) -- (skipdoc) node[edgeLabel, midway, above]{Đã tồn tại};
+\draw[solidEdge] (dedup) -- (parse) node[edgeLabel, midway, right]{Tài liệu mới};
 
-		% ----------------------------------------------------
-		% PHASE 3: DEDUPLICATION & MERGING
-		% ----------------------------------------------------
-		\node (DedupEnt) [processBox, below left=1.5cm and -1cm of EntityResolution] {Deduped Entities\\(use 'Set' dedupe sau khi Resolution)};
-		\node (DedupRel) [processBox, below right=1.5cm and -1cm of EntityResolution] {Deduped Relations\\(use 'Set' dedupe sau khi nối Relation)};
-		
-		\node (EmbedEnt) [processBox, below left=1cm and -2cm of DedupEnt] {Entity Embedding};
-		\node (UpdateDescEnt) [llmBox, below right=1cm and -2cm of DedupEnt] {Update Entity Description\\(use LLM để tổng hợp mô tả)};
-		
-		\node (EmbedRel) [processBox, below left=1cm and -2cm of DedupRel] {Relation Embedding};
-		\node (UpdateDescRel) [llmBox, below right=1cm and -2cm of DedupRel] {Update Relation Description\\(use LLM để tổng hợp mô tả)};
-		
-		\node (Merge_Storage) [draw, dashed, inner sep=10pt, fit=(DedupEnt) (DedupRel) (EmbedEnt) (UpdateDescEnt) (EmbedRel) (UpdateDescRel), label={[font=\bfseries]above:3. Chuẩn hóa Set \& Cập nhật Đồ thị}] {};
+% ============================================================
+%  PHASE 1 — DUAL CHUNKING + STORAGE
+%  Its own dashed container, placed entirely below Parse,
+%  wide enough to host two parallel branches without touching
+%  the input strip above.
+% ============================================================
+\node[processBox, below left=24mm and 22mm of parse] (sectionchunk) {Section Chunking\\(Chia theo Heading/Depth)};
+\node[processBox, below right=24mm and 22mm of parse] (stdchunk) {Standard Chunking\\(Chia theo Token Size)};
 
-		\node (EntVDB) [storageBox, below=1.5cm of EmbedEnt] {Entity Vector DB};
-		\node (RelVDB) [storageBox, below=1.5cm of EmbedRel] {Relation Vector DB};
-		\node (KG) [storageBox] at ($(UpdateDescEnt)!0.5!(UpdateDescRel) - (0, 1.5cm)$) {Knowledge Graph\\(Neo4j)};
+\draw[solidEdge] (parse) -- (sectionchunk);
+\draw[solidEdge] (parse) -- (stdchunk);
 
-		% ----------------------------------------------------
-		% ARROWS
-		% ----------------------------------------------------
-		\draw [arrow] (Input) -- (DocDedup);
-		\draw [arrow] (DocDedup) -- node[label_txt, above] {Đã tồn tại} (SkipDoc);
-		\draw [arrow] (DocDedup) -- node[label_txt, right] {Tài liệu mới} (Parse);
-		
-		\draw [arrow] (Parse) -- (SectionChunk);
-		\draw [arrow] (Parse) -- (StdChunk);
-		
-		\draw [dashed_arrow] (SectionChunk) -- (SecKV);
-		\draw [arrow] (SectionChunk) -- node[label_txt, right] {use EB Model} (SecVDB);
-		
-		\draw [dashed_arrow] (StdChunk) -- (TextKV);
-		\draw [arrow] (StdChunk) -- node[label_txt, right] {use EB Model} (TextVDB);
-		
-		\draw [arrow] (StdChunk.south) -- ++(0,-0.5) -| node[label_txt, right, pos=0.2] {use LLM} (Extract.north);
-		
-		\draw [arrow] (Extract) -- (OrphanFilter);
-		\draw [arrow] (OrphanFilter) -- (LLMAudit);
-		\draw [arrow] (LLMAudit) -- (SHACL);
-		\draw [arrow] (SHACL) -- (Decision);
-		
-		\draw [arrow] (Decision) -- node[label_txt, above] {Pass Filter} (EntityResolution);
-		\draw [dashed_arrow] (Decision) -- node[label_txt, above] {Reject} (Drop);
-		
-		\draw [arrow] (EntityResolution) -- (DedupEnt);
-		\draw [arrow] (EntityResolution) -- (DedupRel);
-		
-		\draw [arrow] (DedupEnt) -- node[label_txt, left] {use EB Model} (EmbedEnt);
-		\draw [arrow] (DedupEnt) -- node[label_txt, right] {use LLM} (UpdateDescEnt);
-		
-		\draw [arrow] (DedupRel) -- node[label_txt, left] {use EB Model} (EmbedRel);
-		\draw [arrow] (DedupRel) -- node[label_txt, right] {use LLM} (UpdateDescRel);
-		
-		\draw [dashed_arrow] (EmbedEnt) -- (EntVDB);
-		\draw [dashed_arrow] (EmbedRel) -- (RelVDB);
-		\draw [arrow] (UpdateDescEnt) -- (KG);
-		\draw [arrow] (UpdateDescRel) -- (KG);
+% storage sub-row, far enough below chunking that long box text
+% (which can wrap to 3 lines) never collides with chunking boxes
+\node[storageBox, below=20mm of sectionchunk, xshift=-12mm] (seckv) {Section KV Storage};
+\node[storageBox, right=8mm of seckv] (secvdb) {Section Vector DB};
 
-	\end{tikzpicture}
+\node[storageBox, below=20mm of stdchunk, xshift=-12mm] (textkv) {Text Chunks\\KV Storage};
+\node[storageBox, right=8mm of textkv] (textvdb) {Text Vector DB};
+
+\draw[dottedEdge] (sectionchunk) -- (seckv);
+\draw[solidEdge]  (sectionchunk) -- (secvdb) node[edgeLabel, pos=0.65, above]{use EB Model};
+\draw[dottedEdge] (stdchunk) -- (textkv);
+\draw[solidEdge]  (stdchunk) -- (textvdb) node[edgeLabel, pos=0.65, above]{use EB Model};
+
+% phase 1 dashed frame: fit around everything from sectionchunk/stdchunk
+% down to the storage row, with generous padding so the dashed border
+% never touches a box edge
+\begin{scope}[on background layer]
+\node[phaseBox, fit=(sectionchunk)(stdchunk)(seckv)(secvdb)(textkv)(textvdb)] (phase1) {};
+\node[phaseTitle, yshift=5mm] at (phase1.north west) {1. Phân mảnh Kép (Dual Chunking)};
+\end{scope}
+
+% ============================================================
+%  PHASE 2 — EXTRACTION, SHACL VALIDATION & RESOLUTION
+%  Placed below phase 1 with a large vertical gap so phase1's
+%  dashed frame and phase2's title (drawn above its own frame)
+%  never collide.
+% ============================================================
+\node[llmBox, below=32mm of textkv] (extract) {LLM Extraction\\(Bóc tách Entities \& Relations)};
+\node[processBox, right=16mm of extract] (orphan) {Orphan Filter\\(Loại bỏ Entity cô lập)};
+\node[llmBox, right=16mm of orphan] (audit) {LLM Audit / Critic\\(Đánh giá confidence\_score)};
+
+\node[shaclBox, below=14mm of orphan] (shacl) {SHACL Validation\\(Kiểm tra cấu trúc, rules)};
+\node[shaclBox, below=14mm of shacl] (decision) {Decision Gate\\(Chấp nhận nếu shacl\_pass\\== True AND score $\geq$ 0.8)};
+
+\node[llmBox, below=20mm of decision] (resolution) {Entity Resolution (Coreference)\\(Nhận diện từ viết tắt, từ đồng nghĩa\\$\rightarrow$ Đồng nhất Entity \&\\Nối lại Relation)};
+\node[skipBox, right=26mm of decision] (drop) {Bỏ qua\\(Rejected)};
+
+\draw[solidEdge] (textkv.west) -- ++(-15mm,0) |- (extract.west);
+\node[edgeLabel] at ($(textkv.west) + (-15mm,-14mm)$) {use LLM};
+\draw[solidEdge] (extract) -- (orphan);
+\draw[solidEdge] (orphan) -- (audit);
+\draw[solidEdge] (audit) |- (shacl);
+\draw[solidEdge] (shacl) -- (decision);
+\draw[solidEdge] (decision) -- (resolution) node[edgeLabel, midway, left]{Pass Filter};
+\draw[dottedEdge] (decision) -- (drop) node[edgeLabel, midway, above]{Reject};
+
+\begin{scope}[on background layer]
+\node[phaseBox, fit=(extract)(audit)(shacl)(decision)(resolution)(drop)] (phase2) {};
+\node[phaseTitle, xshift=22mm, yshift=5mm] at (phase2.north west) {2. Trích xuất, Xác thực \& Phân giải (Extraction \& Resolution)};
+\end{scope}
+
+% ============================================================
+%  PHASE 3 — DEDUPLICATION, EMBEDDING & GRAPH UPDATE
+%  Again separated by a large vertical gap from phase 2 so
+%  Phase 3's title (above its frame) clears Phase 2's frame.
+% ============================================================
+\node[processBox, below=38mm of resolution, xshift=-30mm] (dedupent) {Deduped Entities\\(use 'Set' dedupe sau khi\\Resolution)};
+\node[processBox, right=24mm of dedupent] (deduprel) {Deduped Relations\\(use 'Set' dedupe sau khi\\nối Relation)};
+
+\node[processBox, below=16mm of dedupent] (embedent) {Entity Embedding};
+\node[processBox, below=16mm of deduprel] (embedrel) {Relation Embedding};
+
+\node[llmBox, left=18mm of embedent] (updent) {Update Entity Description\\(use LLM để tổng hợp mô tả)};
+\node[llmBox, right=18mm of embedrel] (updrel) {Update Relation Description\\(use LLM để tổng hợp mô tả)};
+
+\node[storageBox, below=18mm of embedent] (entvdb) {Entity Vector DB};
+\node[storageBox, below=18mm of embedrel] (relvdb) {Relation Vector DB};
+\node[storageBox, below=18mm of updent] (kg) {Knowledge Graph\\(Redis)};
+
+\draw[solidEdge] (resolution.south) -| (dedupent.north);
+\draw[solidEdge] (resolution.south) -| (deduprel.north);
+
+\draw[solidEdge] (dedupent) -- (embedent) node[edgeLabel, midway, right]{use EB Model};
+\draw[solidEdge] (dedupent.west) to[out=180,in=90] node[edgeLabel, pos=0.3, above]{use LLM} (updent.north);
+\draw[solidEdge] (deduprel) -- (embedrel) node[edgeLabel, midway, left]{use EB Model};
+\draw[solidEdge] (deduprel.east) to[out=0,in=90] node[edgeLabel, pos=0.3, above]{use LLM} (updrel.north);
+
+\draw[dottedEdge] (embedent) -- (entvdb);
+\draw[dottedEdge] (embedrel) -- (relvdb);
+\draw[solidEdge] (updent) -- (kg);
+\draw[solidEdge] (updrel.south) to[out=270,in=0] (kg.east);
+
+\begin{scope}[on background layer]
+\node[phaseBox, fit=(dedupent)(deduprel)(updent)(updrel)(entvdb)(relvdb)(kg)] (phase3) {};
+\node[phaseTitle, yshift=5mm] at (phase3.north west) {3. Chuẩn hóa Set \& Cập nhật Đồ thị};
+\end{scope}
+
+\end{tikzpicture}
 	}
 	\caption{Quy trình tổng quát từ văn bản thô đến đồ thị tri thức}
 	\label{fig:flow_data_kg_main}
@@ -730,7 +791,7 @@ nhất đồ thị.
         minimum height=0.9cm, inner sep=6pt
     },
     arrow/.style={-Stealth, thick, color=gray!70},
-    dasharrow/.style={-Stealth, thick, dashed, color=orange!60},
+    dasharrow/.style={-Stealth, thick, dashed, color=orange!60}
 ]
 
 %% INPUT
@@ -1054,118 +1115,170 @@ là hướng phát triển ưu tiên trong giai đoạn tiếp theo.
 \begin{figure}[H]
 	\centering
 	\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[node distance=1cm and 1cm, auto]
-			\tikzset{
-				base/.style = {draw, thick, text centered, font=\sffamily\small, rounded corners=5px, inner sep=5pt, align=center},
-				inputQuery/.style = {base, fill=pink!80!red, draw=purple!80!black, text=white},
-				outputResp/.style = {base, fill=teal!80!black, draw=teal!60!black, text=white},
-				retrieveBox/.style = {base, fill=pink!20, draw=pink!60!black, text=black},
-				generateBox/.style = {base, fill=yellow!20, draw=yellow!60!black, text=black},
-				storageBox/.style = {base, fill=green!60!black, draw=green!40!black, text=white},
-				memoryBox/.style = {base, fill=blue!20, draw=blue!60!black, text=black, very thick, shape=cylinder, shape border rotate=90, aspect=0.2},
-				llmBox/.style = {base, fill=purple!20, draw=purple!60!black, text=black},
-				arrow/.style = {thick, -{Stealth[scale=1.2]}},
-				dashed_arrow/.style = {thick, dashed, -{Stealth[scale=1.2]}},
-				label_txt/.style = {font=\scriptsize\itshape, fill=white, inner sep=1pt}
-			}
+		\begin{tikzpicture}[
+			>={Stealth[scale=1.2]},
+			base/.style={align=center, font=\sffamily\small, inner sep=0.3cm, thick},
+			inputQuery/.style={base, rectangle, rounded corners=5pt, fill=magenta!80!black, text=white, draw=magenta!90!black, minimum width=3.5cm},
+			outputResp/.style={base, rectangle, rounded corners=5pt, fill=teal!80!black, text=white, draw=teal!90!black, minimum width=4cm},
+			retrieveBox/.style={base, rectangle, rounded corners=5pt, fill=pink!10, draw=pink!60!black, minimum width=3.5cm},
+			generateBox/.style={base, rectangle, rounded corners=5pt, fill=yellow!10, draw=yellow!60!black, minimum width=4.5cm},
+			storageBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=green!70!black, text=white, draw=green!40!black, minimum height=1.3cm, minimum width=4cm},
+			memoryBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=blue!10, draw=blue!70!black, minimum height=1.3cm, text width=4cm},
+			llmBox/.style={base, rectangle, rounded corners=5pt, fill=purple!10, draw=purple!60!black, minimum width=4.5cm},
+			decisionBox/.style={base, diamond, aspect=2.5, fill=orange!20, draw=orange!70!black, inner sep=2pt, text width=3cm},
+			groupLabel/.style={font=\bfseries\sffamily\large, right},
+			labelTag/.style={font=\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt} % Nhãn đè lên vạch không bị rối
+		]
 
-			% Query & Memory
-			\node (Query) [inputQuery] {Query\\(Câu hỏi của user)};
-			\node (MemoryStore) [memoryBox, right=3cm of Query] {Conversation Memory\\(Lịch sử Chat \& Ngữ cảnh)};
-			
-			% Pre-Process
-			\node (QueryRewrite) [llmBox, below=1cm of Query] {Query Rewriting / Coreference\\(Sử dụng LLM + Memory để làm rõ câu hỏi,\\ giải quyết đại từ nhân xưng)};
-			\node (PreProcess_box) [draw, dashed, inner sep=10pt, fit=(QueryRewrite), label={[font=\bfseries]above:0. Query Processing}] {};
+			% ==========================================
+			% LAYER 0: BACKGROUND GROUPS 
+			% ==========================================
+			\begin{scope}[on background layer]
+				% 0. Pre-Process Group
+				\filldraw[fill=blue!5, draw=blue!40, dashed, rounded corners=15pt, very thick] (-15, 6) rectangle (16.5, 0);
+				\node[groupLabel, color=blue!70!black] at (-14.7, 5.3) {0. Query Processing \& Routing (Analyzer Agent)};
+				
+				% 1. Retrieve Group 
+				\filldraw[fill=green!5, draw=green!40, dashed, rounded corners=15pt, very thick] (-15, -0.5) rectangle (16.5, -13.5);
+				\node[groupLabel, color=green!70!black] at (-14.7, -1.2) {1. Retrieve Context (LightRAG)};
+				
+				% 2. Generation Group
+				\filldraw[fill=yellow!5, draw=yellow!40, dashed, rounded corners=15pt, very thick] (-15, -14) rectangle (16.5, -17);
+				\node[groupLabel, color=yellow!70!black] at (-14.7, -14.7) {2. Generation (Generator Agent)};
+				
+				% 3. Memory Group
+				\filldraw[fill=purple!5, draw=purple!40, dashed, rounded corners=15pt, very thick] (-1, -17.5) rectangle (16.5, -21);
+				\node[groupLabel, color=purple!70!black] at (8, -18.2) {3. Update Memory};
+			\end{scope}
 
-			% Retrieve Phase Start
-			\node (SysPromptRet) [retrieveBox, below=1.5cm of QueryRewrite] {System Prompt};
-			\node (ExtractPrompt) [retrieveBox, left=1cm of SysPromptRet] {Keywords Extraction Prompt};
-			
-			\node (KW_Extract) [llmBox, below=1cm of SysPromptRet] {keywords\_extraction};
-			
-			\node (LowKW) [retrieveBox, below left=1cm and 0.5cm of KW_Extract] {low\_level\_keywords\\(Thực thể)};
-			\node (HighKW) [retrieveBox, below right=1cm and 0.5cm of KW_Extract] {high\_level\_keywords\\(Chủ đề)};
-			
-			\node (Embed1) [retrieveBox, below=0.8cm of LowKW] {Embedding};
-			\node (Embed2) [retrieveBox, below=0.8cm of HighKW] {Embedding};
-			
-			\node (StoreVDB_Ent) [storageBox, below=0.8cm of Embed1] {Store in Vector DB Storage\\(Qdrant Vector DB Storage)};
-			\node (StoreVDB_Rel) [storageBox, below=0.8cm of Embed2] {Store in Vector DB Storage\\(Qdrant Vector DB Storage)};
-			
-			\node (TopK_Ent) [retrieveBox, below=0.8cm of StoreVDB_Ent] {TopK Entities Results};
-			\node (TopK_Rel) [retrieveBox, below=0.8cm of StoreVDB_Rel] {TopK Relations Results};
-			
-			\node (StoreKG) [storageBox] at ($(TopK_Ent)!0.5!(TopK_Rel) - (0, 1.5cm)$) {Store in Knowledge Graph\\(Neo4j)};
-			
-			\node (RelRel) [retrieveBox, below=2cm of TopK_Ent, xshift=1cm] {Related Relations};
-			\node (RelText_Local) [retrieveBox, left=0.5cm of RelRel] {Related text\_units};
-			\node (LocalCtx) [retrieveBox, below=1cm of RelRel, xshift=-1cm] {Local Query Context};
-			
-			\node (RelEnt) [retrieveBox, below=2cm of TopK_Rel, xshift=-1cm] {Related Entities};
-			\node (RelText_Global) [retrieveBox, right=0.5cm of RelEnt] {Related text\_units};
-			\node (GlobalCtx) [retrieveBox, below=1cm of RelEnt, xshift=1cm] {Global Query Context};
-			
-			\node (Retrieve_box) [draw, dashed, inner sep=15pt, fit=(ExtractPrompt) (SysPromptRet) (KW_Extract) (LowKW) (HighKW) (Embed1) (Embed2) (TopK_Ent) (TopK_Rel) (RelText_Local) (RelRel) (LocalCtx) (RelText_Global) (RelEnt) (GlobalCtx), label={[font=\bfseries]above:1. Retrieve (Pink Box)}] {};
+			% ==========================================
+			% 0. PRE-PROCESS \& ROUTING PHASE 
+			% ==========================================
+			\node[inputQuery] (Query) at (-12, 1.5) {Query\\(Câu hỏi)};
+			\node[memoryBox, text width=3.5cm] (ChatHistory) at (-6, 4.5) {Chat History\\(Lịch sử ngắn hạn)};
+			\node[llmBox, text width=6cm] (AnalyzerLLM) at (-6, 1.5) {Analyzer LLM\\1. Làm rõ câu hỏi\\2. Phân loại ý định\\3. Trích xuất Keywords};
+			\node[decisionBox] (RoutingDecision) at (0, 1.5) {Decision\\(Routing)};
+			\node[decisionBox, text width=4cm] (ModeSelection) at (7, 1.5) {RAG Mode Selection\\\scriptsize(local, global, hybrid, mix)\\\scriptsize*Fallback mặc định: mix};
 
-			% Generation Phase
-			\node (CombCtx) [generateBox] at ($(LocalCtx)!0.5!(GlobalCtx) - (0, 2cm)$) {combined context};
-			\node (SysTempGen) [generateBox, left=1cm of CombCtx] {System Template Prompt};
-			\node (SysPromptGen) [generateBox, below=1cm of CombCtx] {System Prompt};
+			% ==========================================
+			% 1. RETRIEVAL PHASE (Toạ độ cứng)
+			% ==========================================
+			% --- Left Pillar (Local) --- X = -12
+			\node[retrieveBox] (LowKW) at (-12, -3) {low\_level\_keywords\\(Thực thể)};
+			\node[retrieveBox] (Embed1) at (-12, -5.5) {Embedding};
+			\node[storageBox] (StoreVDB_Ent) at (-12, -8) {Store in Vector DB\\(Entities)};
+			\node[retrieveBox] (TopK_Ent) at (-12, -10.5) {TopK Entities Results};
 			
-			\node (Generation_box) [draw, dashed, inner sep=15pt, fit=(CombCtx) (SysTempGen) (SysPromptGen), label={[font=\bfseries]above:2. Generation (Yellow Box)}] {};
-			
-			\node (Response) [outputResp, below=1cm of SysPromptGen] {Response\\(Câu trả lời)};
+			% --- Right Pillar (Global) --- X = 12
+			\node[retrieveBox] (HighKW) at (12, -3) {high\_level\_keywords\\(Chủ đề)};
+			\node[retrieveBox] (Embed2) at (12, -5.5) {Embedding};
+			\node[storageBox] (StoreVDB_Rel) at (12, -8) {Store in Vector DB\\(Relations)};
+			\node[retrieveBox] (TopK_Rel) at (12, -10.5) {TopK Relations Results};
 
-			% Arrows
-			\draw [arrow] (Query) -- (QueryRewrite);
-			\draw [dashed_arrow] (MemoryStore) -- node[label_txt, right] {Cung cấp lịch sử} (QueryRewrite.east);
+			% --- Center Storages --- X = 0
+			\node[storageBox] (StoreKG) at (0, -4.5) {Store in Knowledge Graph\\(Neo4j)};
+			\node[storageBox] (StoreKV) at (0, -8.5) {Store in KV Storage\\(Text Chunks)};
+
+			% --- Context Output Boxes --- X = ±5.5
+			\node[retrieveBox] (RelRel) at (-5.5, -4.5) {Related\\Relations};
+			\node[retrieveBox] (RelText_Local) at (-5.5, -8.5) {Related\\text\_units};
+			\node[retrieveBox, minimum width=4cm] (LocalCtx) at (-5.5, -12) {Local Query Context};
+
+			\node[retrieveBox] (RelEnt) at (5.5, -4.5) {Related\\Entities};
+			\node[retrieveBox] (RelText_Global) at (5.5, -8.5) {Related\\text\_units};
+			\node[retrieveBox, minimum width=4cm] (GlobalCtx) at (5.5, -12) {Global Query Context};
+
+			% ==========================================
+			% 2. GENERATION PHASE
+			% ==========================================
+			\node[generateBox] (CombCtx) at (-5.5, -15.5) {Combined Context\\(Local + Global)};
+			\node[generateBox, text width=5.5cm] (GenPrompt) at (1.5, -15.5) {Build Generation Request\\(Inject Memory \& Context)};
+			\node[llmBox] (GeneratorLLM) at (8, -15.5) {Generator LLM};
+			\node[outputResp] (Response) at (13.5, -15.5) {Response\\(Câu trả lời)};
+
+			% ==========================================
+			% 3. MEMORY UPDATE 
+			% ==========================================
+			\node[llmBox, text width=3.5cm] (MemUpdateLLM) at (13.5, -19.5) {Update Profile LLM\\(Phân tích)};
+			\node[memoryBox, text width=3.5cm] (LongTermMem) at (1.5, -19.5) {Long-Term Memory\\(Hồ sơ user)};
+
+			% ==========================================
+			% WIRING \& ROUTING (KHÔNG CẮT NHAU)
+			% ==========================================
 			
-			\draw [arrow] (QueryRewrite) -- (SysPromptRet);
-			\draw [arrow] (ExtractPrompt) -- (SysPromptRet);
-			\draw [arrow] (SysPromptRet) -- node[label_txt, right] {use LLM} (KW_Extract);
+			% --- Phase 0 ---
+			\draw[->, thick] (Query) -- (AnalyzerLLM);
+			\draw[->, thick, dashed, draw=blue!70!black] (ChatHistory.south) -- node[labelTag, right] {Tóm tắt} (AnalyzerLLM.north);
+			\draw[->, thick] (AnalyzerLLM) -- (RoutingDecision);
+			\draw[->, thick] (RoutingDecision) -- node[labelTag, above] {decision == 'retrieve'} (ModeSelection);
+
+			% Routing Mode -> KW (Đi vuông góc, ngang rồi dọc)
+			\draw[->, thick, rounded corners] (ModeSelection.south) |- (-12, -0.2) -- node[labelTag, right, pos=0.8] {Mode: local/mix} (LowKW.north);
+			\draw[->, thick, rounded corners] (ModeSelection.south) |- (12, -0.2) -- node[labelTag, left, pos=0.8] {Mode: global/mix} (HighKW.north);
+
+			% --- Bypass Lines (Đi hoàn toàn ở vành đai rỗng) ---
+			% 1. Lịch sử chat -> Prompt (Vành đai Trái)
+			\draw[->, thick, dashed, draw=blue!70!black, rounded corners] 
+				(ChatHistory.west) -- (-14.3, 4.5) -- (-14.3, -14) -- (0.5, -14) -- ([xshift=-1cm]GenPrompt.north);
+			\node[labelTag, text=blue!70!black] at (-11.5, 4.5) {Recent Messages};
+
+			% 2. Direct Answer (Cam - Vành đai trên -> Vành đai Phải trong)
+			\draw[->, very thick, draw=orange!90!red, rounded corners] 
+				(RoutingDecision.north) -- (0, 3) -- (14.5, 3) -- (14.5, -14) -- (2.5, -14) -- ([xshift=1cm]GenPrompt.north);
+			\node[labelTag, text=orange!90!red] at (11, 3) {decision == 'direct\_answer'};
+
+			% 3. Reject (Đỏ - Vành đai Phải ngoài cùng)
+			\draw[->, very thick, draw=red, rounded corners] 
+				(RoutingDecision.north) -- (0, 3.8) -- (15.5, 3.8) -- (15.5, -15.5) -- (Response.east);
+			\node[labelTag, text=red] at (11, 3.8) {decision == 'reject'};
+
+			% --- Retrieval Vertical Pillars ---
+			\draw[->, thick] (LowKW) -- (Embed1);
+			\draw[->, thick] (Embed1) -- (StoreVDB_Ent);
+			\draw[->, thick] (StoreVDB_Ent) -- (TopK_Ent);
+
+			\draw[->, thick] (HighKW) -- (Embed2);
+			\draw[->, thick] (Embed2) -- (StoreVDB_Rel);
+			\draw[->, thick] (StoreVDB_Rel) -- (TopK_Rel);
+
+			% --- BUS DATA MẠNG (Tuyệt đối Planar) ---
+			% 1. Từ TopK Entity đổ vào trung tâm (Đường bus X = -9 và X = -8.5)
+			\draw[->, thick, rounded corners] (TopK_Ent.east) -- (-9, -10.5) -- (-9, -2.5) -- (-1.5, -2.5) -- ([xshift=-1cm]StoreKG.north);
+			\draw[->, thick, rounded corners] (TopK_Ent.east) -- (-8.5, -10.5) -- (-8.5, -6.5) -- (-1.5, -6.5) -- ([xshift=-1cm]StoreKV.north);
+
+			% 2. Từ TopK Relations đổ vào trung tâm (Đường bus X = 9 và X = 8.5)
+			\draw[->, thick, rounded corners] (TopK_Rel.west) -- (9, -10.5) -- (9, -2.5) -- (1.5, -2.5) -- ([xshift=1cm]StoreKG.north);
+			\draw[->, thick, rounded corners] (TopK_Rel.west) -- (8.5, -10.5) -- (8.5, -6.5) -- (1.5, -6.5) -- ([xshift=1cm]StoreKV.north);
+
+			% --- Trả KQ từ Storage ra Context box (Đi thẳng 1 đường ngang) ---
+			\draw[->, thick] (StoreKG.west) -- (RelRel.east);
+			\draw[->, thick] (StoreKG.east) -- (RelEnt.west);
+			\draw[->, thick] (StoreKV.west) -- (RelText_Local.east);
+			\draw[->, thick] (StoreKV.east) -- (RelText_Global.west);
+
+			% --- Gom Context cục bộ (Đi luồng lách không đè nét) ---
+			% Từ RelRel vòng qua bên trái của RelText_Local
+			\draw[->, thick, rounded corners] (RelRel.west) -- (-7.8, -4.5) -- (-7.8, -11.2) |- ([yshift=0.2cm]LocalCtx.170);
+			\draw[->, thick] (RelText_Local.south) -- (LocalCtx.north);
+			\draw[->, thick, rounded corners] (TopK_Ent.south) |- (-7.5, -12) -- (LocalCtx.west);
+
+			% Từ RelEnt vòng qua bên phải của RelText_Global
+			\draw[->, thick, rounded corners] (RelEnt.east) -- (7.8, -4.5) -- (7.8, -11.2) |- ([yshift=0.2cm]GlobalCtx.10);
+			\draw[->, thick] (RelText_Global.south) -- (GlobalCtx.north);
+			\draw[->, thick, rounded corners] (TopK_Rel.south) |- (7.5, -12) -- (GlobalCtx.east);
+
+			% --- Phase 2: Generation (Vuông góc chuẩn) ---
+			\draw[->, thick] (LocalCtx.south) -- (CombCtx.north);
+			\draw[->, thick, rounded corners] (GlobalCtx.south) -- (5.5, -13.5) -- (-4.5, -13.5) -- ([xshift=1cm]CombCtx.north);
 			
-			\draw [arrow] (KW_Extract) -- (LowKW);
-			\draw [arrow] (KW_Extract) -- (HighKW);
-			
-			\draw [arrow] (LowKW) -- node[label_txt, right] {use EB Model} (Embed1);
-			\draw [arrow] (HighKW) -- node[label_txt, right] {use EB Model} (Embed2);
-			
-			\draw [arrow] (Embed1) -- (StoreVDB_Ent);
-			\draw [arrow] (Embed2) -- (StoreVDB_Rel);
-			
-			\draw [arrow] (StoreVDB_Ent) -- (TopK_Ent);
-			\draw [arrow] (StoreVDB_Rel) -- (TopK_Rel);
-			
-			\draw [arrow] (TopK_Ent) -- (StoreKG);
-			\draw [arrow] (StoreKG) -- (RelRel);
-			
-			\draw [arrow] (TopK_Rel) -- (StoreKG);
-			\draw [arrow] (StoreKG) -- (RelEnt);
-			
-			\draw [arrow] (TopK_Ent) -- (RelText_Local);
-			\draw [arrow] (TopK_Rel) -- (RelText_Global);
-			
-			\draw [arrow] (TopK_Ent) -- (LocalCtx);
-			\draw [arrow] (RelRel) -- (LocalCtx);
-			\draw [arrow] (RelText_Local) -- (LocalCtx);
-			
-			\draw [arrow] (TopK_Rel) -- (GlobalCtx);
-			\draw [arrow] (RelEnt) -- (GlobalCtx);
-			\draw [arrow] (RelText_Global) -- (GlobalCtx);
-			
-			\draw [arrow] (LocalCtx) -- (CombCtx);
-			\draw [arrow] (GlobalCtx) -- (CombCtx);
-			
-			\draw [dashed_arrow] (MemoryStore.east) -- ++(1,0) |- node[label_txt, pos=0.75, right] {Bổ sung hội thoại cũ} (CombCtx.east);
-			
-			\draw [arrow] (CombCtx) -- (SysPromptGen);
-			\draw [arrow] (SysTempGen) -- (SysPromptGen);
-			
-			\draw [arrow] (QueryRewrite.west) -- ++(-3,0) |- (SysPromptGen.west);
-			
-			\draw [arrow] (SysPromptGen) -- node[label_txt, right] {use LLM} (Response);
-			
-			\draw [dashed_arrow] (Response.east) -- ++(3.5,0) |- node[label_txt, pos=0.25, right] {Cập nhật Memory} (MemoryStore.east);
+			\draw[->, thick] (CombCtx.east) -- (GenPrompt.west);
+			\draw[->, thick] (GenPrompt.east) -- (GeneratorLLM.west);
+			\draw[->, thick] (GeneratorLLM.east) -- (Response.west);
+
+			% --- Phase 3: Memory Updates (Vòng khép kín bên dưới) ---
+			\draw[->, thick, dashed, draw=purple!80!black] (Response.south) -- node[labelTag, right] {Trigger Update} (MemUpdateLLM.north);
+			\draw[->, thick, dashed, draw=purple!80!black] (MemUpdateLLM.west) -- node[labelTag, above] {Save Summary} (LongTermMem.east);
+			\draw[->, thick, dashed, draw=blue!70!black] (LongTermMem.north) -- node[labelTag, right] {Load Profile} (GenPrompt.south);
 
 		\end{tikzpicture}
 	}
