@@ -712,46 +712,177 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 \clearpage
 \subsection{Thiết kế giao diện}
 
+\subsubsection{Màn hình Đăng ký}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/Register.png}
+    \caption{Giao diện Màn hình Đăng ký}
+    \label{fig:ui_register}
+\end{figure}
+
+\textbf{Mục đích:} Cung cấp biểu mẫu cho phép người dùng mới tạo tài khoản cá nhân để đăng nhập và sử dụng hệ thống LearningPath.
+
+Bao gồm:
+\begin{enumerate}
+    \item Các trường nhập dữ liệu: Họ và tên, Mã sinh viên, Email, Mật khẩu, Xác nhận mật khẩu.
+    \item Nút chức năng "Tạo tài khoản".
+    \item Liên kết chuyển hướng "Đăng nhập" (dành cho người dùng đã sở hữu tài khoản).
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+    \item \textbf{Để đăng ký tài khoản mới:}
+    \begin{enumerate}
+        \item Người dùng điền đầy đủ và chính xác các thông tin cá nhân vào từng ô nhập liệu tương ứng.
+        \item Nhấn nút "Tạo tài khoản". 
+        \item Hệ thống tiến hành kiểm tra tính hợp lệ của dữ liệu đầu vào, nếu hợp lệ sẽ khởi tạo tài khoản mới thành công trên hệ thống và chuyển hướng đến trang đăng nhập.
+    \end{enumerate}
+    \item \textbf{Để quay lại trang Đăng nhập:}
+    \begin{enumerate}
+        \item Nhấn chọn liên kết "Đăng nhập" ở phần dưới cùng của biểu mẫu để chuyển đổi giao diện nhanh chóng.
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình Đăng nhập}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/Login.png}
+    \caption{Giao diện Màn hình Đăng nhập}
+    \label{fig:ui_login}
+\end{figure}
+
+\textbf{Mục đích:} Xác thực danh tính của người dùng nhằm cấp quyền truy cập vào các tính năng chuyên sâu bên trong hệ thống.
+
+Bao gồm:
+\begin{enumerate}
+    \item Các trường nhập liệu: Email và Password (Mật khẩu).
+    \item Hộp kiểm "Remember me" (Ghi nhớ phiên đăng nhập) và liên kết "Forgot password?" (Quên mật khẩu).
+    \item Nút chức năng "Login" (Đăng nhập).
+    \item Liên kết chuyển hướng "Register" (Đăng ký tài khoản mới).
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+    \item \textbf{Để truy cập vào hệ thống:}
+    \begin{enumerate}
+        \item Người dùng điền chính xác địa chỉ Email và Mật khẩu đã được đăng ký trước đó.
+        \item Tích chọn ô "Remember me" nếu muốn duy trì trạng thái đăng nhập cho những lần truy cập sau (tùy chọn).
+        \item Nhấn nút "Login" để hệ thống đối chiếu xác thực và chuyển hướng vào giao diện chính.
+    \end{enumerate}
+    \item \textbf{Để xử lý khi gặp sự cố mật khẩu hoặc chưa có tài khoản:}
+    \begin{enumerate}
+        \item Nếu không nhớ mật khẩu, nhấn vào liên kết "Forgot password?" để thực hiện quy trình khôi phục.
+        \item Nếu chưa có tài khoản, nhấn vào liên kết "Register" để được chuyển hướng đến biểu mẫu đăng ký.
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình Quên mật khẩu}
+
+\textbf{Mục đích:} Hỗ trợ người dùng cấp lại mật khẩu mới.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/ForgotPass_Step1.png}
+    \caption{Giao diện Màn hình Quên mật khẩu - Yêu cầu mã xác thực}
+    \label{fig:ui_forgot_step1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/ForgotPass_Step2.png}
+    \caption{Giao diện Màn hình Quên mật khẩu - Xác nhận từ Email}
+    \label{fig:ui_forgot_step2}
+\end{figure}
+
+Bao gồm:
+\begin{enumerate}
+    \item Trường nhập Email để nhận mã khôi phục (Hình \ref{fig:ui_forgot_step1}).
+    \item Nút "Gửi mã xác thực" gửi yêu cầu đến hệ thống (Hình \ref{fig:ui_forgot_step1}).
+    \item Khung hộp thoại thông báo hướng dẫn và kiểm tra thư điện tử (Hình \ref{fig:ui_forgot_step2}).
+    \item Nút "Mở Gmail" (Hình \ref{fig:ui_forgot_step2}).
+    \item Nhóm liên kết hỗ trợ điều hướng bao gồm: "Quay lại đăng nhập", "Nhập email khác" và "Gửi lại yêu cầu" (Hình \ref{fig:ui_forgot_step2}).
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+    \item \textbf{Bước 1: Gửi yêu cầu khôi phục mật khẩu từ hệ thống}
+    \begin{enumerate}
+        \item Người dùng nhập chính xác địa chỉ Email đã dùng để đăng ký tài khoản vào ô dữ liệu.
+        \item Nhấn nút "Gửi mã xác thực". Hệ thống ghi nhận, gửi mã xác thực đến email của người dùng và chuyển sang giao diện bước 2.
+    \end{enumerate}
+    \item \textbf{Bước 2: Thực hiện kiểm tra hộp thư và tiến hành thiết lập mật khẩu mới}
+    \begin{enumerate}
+        \item Người dùng nhấn nút "Mở Gmail" để truy cập nhanh kiểm tra hòm thư cá nhân.
+        \item \textit{Lưu ý bắt buộc:} Kiểm tra kỹ toàn bộ hộp thư chính cũng như thư mục Spam (Thư rác) trong trường hợp bộ lọc của hòm thư giữ lại mã xác thực.
+        \item Nhấn trực tiếp vào đường dẫn liên kết và thực hiện thay đổi mật khẩu mới.
+    \end{enumerate}
+\end{itemize}
+\subsubsection{Màn hình Thông tin cá nhân}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/Thong_tin_ca_nhan.png} 
+    \caption{Giao diện Màn hình Thông tin cá nhân}
+    \label{fig:ui_profile_info}
+\end{figure}
+
+\textbf{Mục đích:} Hiển thị hồ sơ chi tiết của người dùng, và cập nhật thông tin cá nhân.
+
+Bao gồm:
+\begin{enumerate}
+    \item \textbf{Thông tin tóm tắt:} Hiển thị ảnh đại diện, họ và tên, số điện thoại, email liên hệ, ngày vào học và vai trò người dùng.
+    \item \textbf{ Thông tin cá nhân:} Hiển thị chi tiết các dữ liệu học vụ và thông tin cá nhân.
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+    \item \textbf{Để xem thông tin người dùng:}
+    \begin{enumerate}
+        \item Truy cập vào trang cá nhân ở góc màn hình bên phải.
+        \item Hệ thống sẽ tự động truy xuất và hiển thị toàn bộ hồ sơ hiện tại của người dùng lên giao diện.
+    \end{enumerate}
+    \item \textbf{Để cập nhật thông tin:}
+    \begin{enumerate}
+        \item Tại khu vực "Thông tin cá nhân", người dùng nhấn vào biểu tượng chỉnh sửa ở góc trên bên phải.
+        \item Hệ thống sẽ mở ra các trường dữ liệu cho phép người dùng thay đổi hoặc bổ sung thông tin.
+        \item Sau khi nhập liệu xong, người dùng lưu lại để hệ thống cập nhật vào cơ sở dữ liệu.
+    \end{enumerate}
+\end{itemize}
+
 \subsubsection{Màn hình AI Chat}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/aichat.jpg}
+	\includegraphics[width=1\textwidth]{AI_Chat.png}
 	\caption{Giao diện Màn hình AI Chat}
 	\label{fig:ui_ai_chat}
 \end{figure}
 
-Mục đích: Cung cấp không gian trò chuyện trực tiếp giữa sinh viên và AI Agent để được tư vấn thông tin học vụ, lộ trình môn học và quy chế đào tạo.
+\textbf{Mục đích:} Cung cấp không gian trò chuyện trực tiếp giữa sinh viên và AI Agent để được tư vấn thông tin học vụ, lộ trình môn học và quy chế đào tạo.
 
 Bao gồm:
+\begin{enumerate}
+	\item Thanh lịch sử hội thoại (bên trái)
+	\item Khu vực hiển thị hội thoại (trung tâm)
+	\item Ô nhập câu hỏi và nút gửi (phía dưới)
+\end{enumerate}
 
-	
-- Thanh lịch sử hội thoại (bên trái)
-	
-- Khu vực hiển thị hội thoại (trung tâm)
-	
-- Ô nhập câu hỏi và nút gửi (phía dưới)
-
-
-Cách sử dụng:
-
-	
-- Để đặt câu hỏi cho AI Agent:
-	
-		
-- Nhập câu hỏi vào ô nhập liệu ở phía dưới màn hình.
-		
-- Nhấn nút gửi.
-		
-- Hệ thống phân tích câu hỏi, truy xuất đồ thị tri thức và trả về câu trả lời chi tiết trong khu vực hội thoại.
-	
-	
-- Để xem lại lịch sử hội thoại:
-	
-		
-- Chọn phiên hội thoại tại thanh danh sách bên trái.
-		
-- Hệ thống hiển thị toàn bộ nội dung của phiên đó.
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để đặt câu hỏi cho AI Agent:}
+	\begin{enumerate}
+		\item Nhập câu hỏi vào ô nhập liệu ở phía dưới màn hình.
+		\item Nhấn nút gửi.
+		\item Hệ thống phân tích câu hỏi, truy xuất đồ thị tri thức và trả về câu trả lời chi tiết trong khu vực hội thoại.
+	\end{enumerate}
+	\item \textbf{Để xem lại lịch sử hội thoại:}
+	\begin{enumerate}
+		\item Chọn phiên hội thoại tại thanh danh sách bên trái.
+		\item Hệ thống hiển thị toàn bộ nội dung của phiên đó.
+	\end{enumerate}
+\end{itemize}
 	
 
 
