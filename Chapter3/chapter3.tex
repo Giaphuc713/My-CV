@@ -4,13 +4,9 @@
 \indent Trên cơ sở phân tích lý thuyết và yêu cầu thực tiễn, đề xuất kiến trúc hệ thống hỗ trợ học tập thông minh dựa trên sự LightRAG \cite{lightrag} một mã nguồn mở được phát triển từ GraphRAG \cite{graphrag} và LangGraph.
 \section{Quy trình xử lý dữ liệu}
 
-\begin{figure}[H]
+\begin{figure}[p]
 	\centering
-	\resizebox{\textwidth}{!}{
-	% ============================================================
-%  COLOR DEFINITIONS (named, so they never collide with TikZ's
-%  own use of '#' as a macro-parameter token)
-% ============================================================
+	\resizebox{\textwidth}{!}{%
 \definecolor{cInputFill}{HTML}{B71C1C}
 \definecolor{cInputDraw}{HTML}{7F0000}
 \definecolor{cProcessFill}{HTML}{B9F6CA}
@@ -24,164 +20,136 @@
 \definecolor{cSkipFill}{HTML}{EEEEEE}
 \definecolor{cSkipDraw}{HTML}{9E9E9E}
 \definecolor{cSkipText}{HTML}{757575}
-
-% ============================================================
-%  GLOBAL STYLE DEFINITIONS
-%  (Defining everything here keeps every box visually consistent
-%   and means we only ever change ONE place if colors need to change)
-% ============================================================
 \tikzset{
-    >=Stealth,
-    every node/.style = {font=\sffamily\small},
-    % --- distances: generous, fixed, so nothing ever auto-collides ---
-    node distance = 12mm and 14mm,
-    % --- box styles, matched to the legend colors in the original diagram ---
-    inputDoc/.style = {rectangle, rounded corners=3pt, draw=cInputDraw, very thick,
-        fill=cInputFill!85, text=white, minimum width=42mm, minimum height=10mm,
-        align=center, text width=40mm},
-    processBox/.style = {rectangle, rounded corners=3pt, draw=cProcessDraw!70!black, thick,
-        fill=cProcessFill, text=black, minimum width=42mm, minimum height=12mm,
-        align=center, text width=40mm},
-    llmBox/.style = {rectangle, rounded corners=3pt, draw=cLLMDraw, thick,
-        fill=cLLMFill, text=black, minimum width=42mm, minimum height=12mm,
-        align=center, text width=40mm},
-    shaclBox/.style = {rectangle, rounded corners=3pt, draw=cSHACLDraw, thick,
-        fill=cSHACLFill, text=black, minimum width=46mm, minimum height=12mm,
-        align=center, text width=44mm},
-    storageBox/.style = {cylinder, shape border rotate=90, aspect=0.25, draw=cStorageDraw, thick,
-        fill=cStorageFill, text=white, minimum width=30mm, minimum height=12mm,
-        align=center, text width=26mm, font=\sffamily\scriptsize},
-    skipBox/.style = {rectangle, rounded corners=3pt, draw=cSkipDraw, thick, dashed,
-        fill=cSkipFill, text=cSkipText, minimum width=34mm, minimum height=10mm,
-        align=center, text width=32mm},
-    % --- phase container style (frame only, no auto-label) ---
-    phaseBox/.style = {rectangle, rounded corners=6pt, draw=black!55, thick, dashed,
-        inner xsep=10mm, inner ysep=10mm},
-    % --- standalone phase title node, placed manually above each frame ---
-    phaseTitle/.style = {font=\sffamily\bfseries\normalsize, anchor=south west},
-    % --- edges ---
-    solidEdge/.style = {-{Stealth[length=2.5mm]}, thick},
-    dottedEdge/.style = {-{Stealth[length=2.5mm]}, thick, dash pattern=on 2pt off 2pt},
-    edgeLabel/.style = {font=\sffamily\scriptsize\itshape, fill=white, inner sep=1pt}
+  >=Stealth,
+  every node/.style={font=\sffamily\small},
+  inputDoc/.style={rectangle,rounded corners=3pt,draw=cInputDraw,very thick,
+    fill=cInputFill!90,text=white,minimum width=52mm,minimum height=12mm,
+    align=center,text width=50mm},
+  processBox/.style={rectangle,rounded corners=3pt,draw=cProcessDraw!80!black,thick,
+    fill=cProcessFill,text=black,minimum width=52mm,minimum height=14mm,
+    align=center,text width=50mm},
+  llmBox/.style={rectangle,rounded corners=3pt,draw=cLLMDraw,thick,
+    fill=cLLMFill,text=black,minimum width=52mm,minimum height=14mm,
+    align=center,text width=50mm},
+  shaclBox/.style={rectangle,rounded corners=3pt,draw=cSHACLDraw,thick,
+    fill=cSHACLFill,text=black,minimum width=58mm,minimum height=14mm,
+    align=center,text width=56mm},
+  skipBox/.style={rectangle,rounded corners=3pt,draw=cSkipDraw,thick,dashed,
+    fill=cSkipFill,text=cSkipText,minimum width=42mm,minimum height=12mm,
+    align=center,text width=40mm},
+  storageBox/.style={cylinder,shape border rotate=90,aspect=0.3,draw=cStorageDraw,thick,
+    fill=cStorageFill,text=white,minimum width=32mm,minimum height=14mm,
+    align=center,text width=28mm,font=\sffamily\tiny},
+  phaseBox/.style={rectangle,rounded corners=6pt,draw=black!55,thick,dashed,
+    inner xsep=8mm,inner ysep=8mm},
+  phaseTitle/.style={font=\sffamily\bfseries\small,anchor=south west},
+  solidEdge/.style={-{Stealth[length=2.5mm]},thick},
+  dottedEdge/.style={-{Stealth[length=2.5mm]},thick,dash pattern=on 2pt off 2pt},
+  lbl/.style={font=\sffamily\tiny\itshape,fill=white,inner sep=1pt},
 }
-
-
 \begin{tikzpicture}
-
-% ============================================================
-%  INPUT & DEDUPLICATION  (top strip — own row, nothing else
-%  is allowed to share this vertical band)
-% ============================================================
-\node[inputDoc] (input) {Input Documents / Files / URL Links};
-\node[processBox, below=of input] (dedup) {Document Deduplication\\(Kiểm tra tài liệu trùng lặp\\bằng MD5 Hash)};
-\node[skipBox, right=30mm of dedup] (skipdoc) {Bỏ qua\\(Tài liệu đã tồn tại\\trong KV Storage)};
-\node[processBox, below=of dedup] (parse) {MinerU Parse\\(Bóc tách Layout phức tạp,\\Bảng, PDF, Toán học)};
+% ── Pre-phase: Input → Dedup → Parse ──────────────────────────────────────────
+\node[inputDoc]   (input)   at ( 0,    0  ) {Input Documents / Files / URL Links};
+\node[processBox] (dedup)   at ( 0,   -2.2) {Document Deduplication\\(Kiểm tra tài liệu trùng lặp bằng MD5 Hash)};
+\node[skipBox]    (skipdoc) at ( 9.0, -2.2) {Bỏ qua\\(Tài liệu đã tồn tại trong KV Storage)};
+\node[processBox] (parse)   at ( 0,   -4.5) {MinerU Parse\\(Bóc tách Layout phức tạp, Bảng, PDF, Toán học)};
 
 \draw[solidEdge] (input) -- (dedup);
-\draw[solidEdge] (dedup) -- (skipdoc) node[edgeLabel, midway, above]{Đã tồn tại};
-\draw[solidEdge] (dedup) -- (parse) node[edgeLabel, midway, right]{Tài liệu mới};
+\draw[solidEdge] (dedup) -- (skipdoc) node[lbl,midway,above]{Đã tồn tại};
+\draw[solidEdge] (dedup) -- (parse)   node[lbl,midway,right]{Tài liệu mới};
 
-% ============================================================
-%  PHASE 1 — DUAL CHUNKING + STORAGE
-%  Its own dashed container, placed entirely below Parse,
-%  wide enough to host two parallel branches without touching
-%  the input strip above.
-% ============================================================
-\node[processBox, below left=24mm and 22mm of parse] (sectionchunk) {Section Chunking\\(Chia theo Heading/Depth)};
-\node[processBox, below right=24mm and 22mm of parse] (stdchunk) {Standard Chunking\\(Chia theo Token Size)};
+% ── Phase 1: Dual Chunking ────────────────────────────────────────────────────
+\node[processBox] (secchunk) at (-5.5, -7.0) {Section Chunking\\(Chia theo Heading/Depth)};
+\node[processBox] (stchunk)  at ( 5.5, -7.0) {Standard Chunking\\(Chia theo Token Size)};
 
-\draw[solidEdge] (parse) -- (sectionchunk);
-\draw[solidEdge] (parse) -- (stdchunk);
+\node[storageBox] (seckv)   at (-7.2, -10.5) {Section KV Storage};
+\node[storageBox] (secvdb)  at (-3.8, -10.5) {Section Vector DB};
+\node[storageBox] (txkv)    at ( 3.8, -10.5) {Text Chunks\\KV Storage};
+\node[storageBox] (txvdb)   at ( 7.2, -10.5) {Text Vector DB};
 
-% storage sub-row, far enough below chunking that long box text
-% (which can wrap to 3 lines) never collides with chunking boxes
-\node[storageBox, below=20mm of sectionchunk, xshift=-12mm] (seckv) {Section KV Storage};
-\node[storageBox, right=8mm of seckv] (secvdb) {Section Vector DB};
+% split from parse with offset to avoid overlap at root
+\draw[solidEdge] ([xshift=-3mm]parse.south) -- ++(0,-0.7) -| (secchunk.north);
+\draw[solidEdge] ([xshift= 3mm]parse.south) -- ++(0,-0.7) -| (stchunk.north);
+% chunking → storage (offset starting points)
+\draw[dottedEdge] ([xshift=-3mm]secchunk.south) -- ++(0,-0.9) -| (seckv.north);
+\draw[solidEdge]  ([xshift= 3mm]secchunk.south) -- ++(0,-0.9) -| (secvdb.north)
+    node[lbl,pos=0.75,right]{use EB Model};
+\draw[dottedEdge] ([xshift= 3mm]stchunk.south)  -- ++(0,-0.9) -| (txvdb.north);
+\draw[solidEdge]  ([xshift=-3mm]stchunk.south)  -- ++(0,-0.9) -| (txkv.north)
+    node[lbl,pos=0.75,left]{use EB Model};
 
-\node[storageBox, below=20mm of stdchunk, xshift=-12mm] (textkv) {Text Chunks\\KV Storage};
-\node[storageBox, right=8mm of textkv] (textvdb) {Text Vector DB};
-
-\draw[dottedEdge] (sectionchunk) -- (seckv);
-\draw[solidEdge]  (sectionchunk) -- (secvdb) node[edgeLabel, pos=0.65, above]{use EB Model};
-\draw[dottedEdge] (stdchunk) -- (textkv);
-\draw[solidEdge]  (stdchunk) -- (textvdb) node[edgeLabel, pos=0.65, above]{use EB Model};
-
-% phase 1 dashed frame: fit around everything from sectionchunk/stdchunk
-% down to the storage row, with generous padding so the dashed border
-% never touches a box edge
 \begin{scope}[on background layer]
-\node[phaseBox, fit=(sectionchunk)(stdchunk)(seckv)(secvdb)(textkv)(textvdb)] (phase1) {};
-\node[phaseTitle, yshift=5mm] at (phase1.north west) {1. Phân mảnh Kép (Dual Chunking)};
+\node[phaseBox,fit=(secchunk)(stchunk)(seckv)(secvdb)(txkv)(txvdb),
+      inner xsep=7mm,inner ysep=7mm] (phase1) {};
+\node[phaseTitle,yshift=5mm] at (phase1.north west) {1. Phân mảnh Kép (Dual Chunking)};
 \end{scope}
 
-% ============================================================
-%  PHASE 2 — EXTRACTION, SHACL VALIDATION & RESOLUTION
-%  Placed below phase 1 with a large vertical gap so phase1's
-%  dashed frame and phase2's title (drawn above its own frame)
-%  never collide.
-% ============================================================
-\node[llmBox, below=32mm of textkv] (extract) {LLM Extraction\\(Bóc tách Entities \& Relations)};
-\node[processBox, right=16mm of extract] (orphan) {Orphan Filter\\(Loại bỏ Entity cô lập)};
-\node[llmBox, right=16mm of orphan] (audit) {LLM Audit / Critic\\(Đánh giá confidence\_score)};
+% ── Phase 2: Extraction, Validation & Resolution ──────────────────────────────
+\node[llmBox]     (extract)    at (-7.0, -14.5) {LLM Extraction\\(Bóc tách Entities \& Relations)};
+\node[processBox] (orphan)     at ( 0,   -14.5) {Orphan Filter\\(Loại bỏ Entity cô lập)};
+\node[llmBox]     (audit)      at ( 7.0, -14.5) {LLM Audit / Critic\\(Đánh giá confidence\_score)};
 
-\node[shaclBox, below=14mm of orphan] (shacl) {SHACL Validation\\(Kiểm tra cấu trúc, rules)};
-\node[shaclBox, below=14mm of shacl] (decision) {Decision Gate\\(Chấp nhận nếu shacl\_pass\\== True AND score $\geq$ 0.8)};
+\node[shaclBox]   (shacl)      at ( 0,   -18.2) {SHACL Validation\\(Kiểm tra cấu trúc, rules)};
+\node[shaclBox]   (decision)   at ( 0,   -22.0) {Decision Gate\\(Chấp nhận nếu shacl\_pass == True AND score $\geq$ 0.8)};
+\node[skipBox]    (drop)       at ( 9.0, -22.0) {Bỏ qua\\(Rejected)};
 
-\node[llmBox, below=20mm of decision] (resolution) {Entity Resolution (Coreference)\\(Nhận diện từ viết tắt, từ đồng nghĩa\\$\rightarrow$ Đồng nhất Entity \&\\Nối lại Relation)};
-\node[skipBox, right=26mm of decision] (drop) {Bỏ qua\\(Rejected)};
+\node[llmBox]     (resolution) at ( 0,   -26.5) {Entity Resolution (Coreference)\\(Nhận diện từ viết tắt, từ đồng nghĩa\\$\rightarrow$ Đồng nhất Entity \& Nối lại Relation)};
 
-\draw[solidEdge] (textkv.west) -- ++(-15mm,0) |- (extract.west);
-\node[edgeLabel] at ($(textkv.west) + (-15mm,-14mm)$) {use LLM};
+% Phase 2 entry from txkv (route through gap between phase1 and phase2)
+\draw[solidEdge] (txkv.south) -- ++(0,-1.2) -| (extract.north);
+\node[lbl] at (1.2,-12.4) {use LLM};
+
 \draw[solidEdge] (extract) -- (orphan);
-\draw[solidEdge] (orphan) -- (audit);
-\draw[solidEdge] (audit) |- (shacl);
-\draw[solidEdge] (shacl) -- (decision);
-\draw[solidEdge] (decision) -- (resolution) node[edgeLabel, midway, left]{Pass Filter};
-\draw[dottedEdge] (decision) -- (drop) node[edgeLabel, midway, above]{Reject};
+\draw[solidEdge] (orphan)  -- (audit);
+\draw[solidEdge] (audit.south) |- (shacl.east);
+\draw[solidEdge] (shacl)   -- (decision);
+\draw[solidEdge] (decision)   -- (resolution) node[lbl,midway,left]{Pass Filter};
+\draw[dottedEdge](decision)   -- (drop)        node[lbl,midway,above]{Reject};
 
 \begin{scope}[on background layer]
-\node[phaseBox, fit=(extract)(audit)(shacl)(decision)(resolution)(drop)] (phase2) {};
-\node[phaseTitle, xshift=22mm, yshift=5mm] at (phase2.north west) {2. Trích xuất, Xác thực \& Phân giải (Extraction \& Resolution)};
+\node[phaseBox,fit=(extract)(audit)(shacl)(decision)(resolution)(drop),
+      inner xsep=7mm,inner ysep=7mm] (phase2) {};
+\node[phaseTitle,xshift=12mm,yshift=5mm] at (phase2.north west)
+      {2. Trích xuất, Xác thực \& Phân giải (Extraction \& Resolution)};
 \end{scope}
 
-% ============================================================
-%  PHASE 3 — DEDUPLICATION, EMBEDDING & GRAPH UPDATE
-%  Again separated by a large vertical gap from phase 2 so
-%  Phase 3's title (above its frame) clears Phase 2's frame.
-% ============================================================
-\node[processBox, below=38mm of resolution, xshift=-30mm] (dedupent) {Deduped Entities\\(use 'Set' dedupe sau khi\\Resolution)};
-\node[processBox, right=24mm of dedupent] (deduprel) {Deduped Relations\\(use 'Set' dedupe sau khi\\nối Relation)};
+% ── Phase 3: Dedup, Embedding & Graph Update ──────────────────────────────────
+\node[processBox] (dedupent) at (-5.5, -31.0) {Deduped Entities\\(use 'Set' dedupe sau khi Resolution)};
+\node[processBox] (deduprel) at ( 5.5, -31.0) {Deduped Relations\\(use 'Set' dedupe sau khi nối Relation)};
 
-\node[processBox, below=16mm of dedupent] (embedent) {Entity Embedding};
-\node[processBox, below=16mm of deduprel] (embedrel) {Relation Embedding};
+\node[llmBox]     (updent)   at (-10.5,-35.0) {Update Entity Description\\(use LLM để tổng hợp mô tả)};
+\node[processBox] (embedent) at (-5.5, -35.0) {Entity Embedding};
+\node[processBox] (embedrel) at ( 5.5, -35.0) {Relation Embedding};
+\node[llmBox]     (updrel)   at ( 10.5,-35.0) {Update Relation Description\\(use LLM để tổng hợp mô tả)};
 
-\node[llmBox, left=18mm of embedent] (updent) {Update Entity Description\\(use LLM để tổng hợp mô tả)};
-\node[llmBox, right=18mm of embedrel] (updrel) {Update Relation Description\\(use LLM để tổng hợp mô tả)};
+\node[storageBox] (kg)       at (-10.5,-39.5) {Knowledge Graph\\(Redis)};
+\node[storageBox] (entvdb)   at (-5.5, -39.5) {Entity Vector DB};
+\node[storageBox] (relvdb)   at ( 5.5, -39.5) {Relation Vector DB};
 
-\node[storageBox, below=18mm of embedent] (entvdb) {Entity Vector DB};
-\node[storageBox, below=18mm of embedrel] (relvdb) {Relation Vector DB};
-\node[storageBox, below=18mm of updent] (kg) {Knowledge Graph\\(Redis)};
+% Phase 3 split from resolution (offset ±3mm to show two distinct arrows)
+\draw[solidEdge] ([xshift=-3mm]resolution.south) |- ([yshift=10mm]dedupent.north) -- (dedupent.north);
+\draw[solidEdge] ([xshift= 3mm]resolution.south) |- ([yshift=10mm]deduprel.north) -- (deduprel.north);
 
-\draw[solidEdge] (resolution.south) -| (dedupent.north);
-\draw[solidEdge] (resolution.south) -| (deduprel.north);
-
-\draw[solidEdge] (dedupent) -- (embedent) node[edgeLabel, midway, right]{use EB Model};
-\draw[solidEdge] (dedupent.west) to[out=180,in=90] node[edgeLabel, pos=0.3, above]{use LLM} (updent.north);
-\draw[solidEdge] (deduprel) -- (embedrel) node[edgeLabel, midway, left]{use EB Model};
-\draw[solidEdge] (deduprel.east) to[out=0,in=90] node[edgeLabel, pos=0.3, above]{use LLM} (updrel.north);
+\draw[solidEdge] (dedupent) -- (embedent) node[lbl,midway,right]{use EB Model};
+\draw[solidEdge] (dedupent.west) -| node[lbl,pos=0.25,above]{use LLM} (updent.north);
+\draw[solidEdge] (deduprel) -- (embedrel) node[lbl,midway,left]{use EB Model};
+\draw[solidEdge] (deduprel.east) -| node[lbl,pos=0.25,above]{use LLM} (updrel.north);
 
 \draw[dottedEdge] (embedent) -- (entvdb);
 \draw[dottedEdge] (embedrel) -- (relvdb);
-\draw[solidEdge] (updent) -- (kg);
-\draw[solidEdge] (updrel.south) to[out=270,in=0] (kg.east);
+\draw[solidEdge]  (updent)   -- (kg);
+% updrel → kg: route completely below all storage boxes to avoid crossing them
+\draw[solidEdge]  (updrel.south) -- ++(0,-5.8) -| (kg.south);
 
 \begin{scope}[on background layer]
-\node[phaseBox, fit=(dedupent)(deduprel)(updent)(updrel)(entvdb)(relvdb)(kg)] (phase3) {};
-\node[phaseTitle, yshift=5mm] at (phase3.north west) {3. Chuẩn hóa Set \& Cập nhật Đồ thị};
+\node[phaseBox,fit=(dedupent)(deduprel)(updent)(updrel)(entvdb)(relvdb)(kg),
+      inner xsep=7mm,inner ysep=7mm] (phase3) {};
+\node[phaseTitle,yshift=5mm] at (phase3.north west) {3. Chuẩn hóa Set \& Cập nhật Đồ thị};
 \end{scope}
 
-\end{tikzpicture}
-	}
+\end{tikzpicture}%
+	}%
 	\caption{Quy trình tổng quát từ văn bản thô đến đồ thị tri thức}
 	\label{fig:flow_data_kg_main}
 \end{figure}
@@ -204,122 +172,112 @@
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[
-		>=latex,
-		every node/.style={font=\tiny},
-		box/.style={rectangle, draw=black,
-		            minimum width=3.4cm, minimum height=0.65cm,
-		            text width=3.2cm, align=center, inner sep=2pt},
-		rnd/.style={box, rounded corners=4pt},
-		ln/.style={->, thin},
-		lbl/.style={font=\tiny, inner sep=1pt, fill=white}
-	]
+    scale=0.5, transform shape,
+    >=Stealth,
+    startstop/.style={rectangle, rounded corners, minimum width=2.6cm, minimum height=0.9cm, text centered, draw=black, fill=red!20, font=\bfseries},
+    process/.style={rectangle, rounded corners, minimum width=3.2cm, minimum height=1cm, text centered, text width=3.2cm, draw=black, fill=orange!10},
+    decision/.style={diamond, aspect=2.3, minimum width=3cm, minimum height=1cm, text centered, text width=2.4cm, draw=black, fill=green!20},
+    arrow/.style={thick,->,>=Stealth,rounded corners=4pt},
+    line/.style={thick,rounded corners=4pt}
+]
 
-	\def\cZ{0}
-	\def\cO{3.8}
-	\def\cT{7.6}
-	\def\cH{11.4}
+% ====================================================
+% CỘT 1 (Trục chính bên trái, x=0)
+% ====================================================
+\node (start) [startstop] at (0, 0) {Bắt đầu};
+\node (init) [process, text width=4.5cm] at (0, -2.4) {Khởi tạo cấu hình \& Tham số};
 
-	\def\yZ{0}
-	\def\yO{-1.8}
-	\def\yT{-3.6}
-	\def\yH{-5.4}
-	\def\yF{-7.2}
-	\def\yI{-9.0}
-	\def\yS{-10.8}
-	\def\yE{-12.6}
+\node (doctype) [decision, aspect=2.3, text width=2.6cm] at (0, -5.6) {Loại tài liệu?};
+\node (img) [process, fill=blue!10, text width=2.6cm] at (-5.8, -5.6) {Hình ảnh};
+\node (office) [process, fill=blue!10, text width=3.4cm] at (6.8, -5.6) {Xử lý tài liệu Office \\ (Word, Excel, PPT)};
 
-	%%- ROW 0
-	\node[rnd] (start)      at (\cZ, \yZ) {Bắt đầu xử lý PDF};
-	\node[box] (checkocr)   at (\cO, \yZ) {Phân loại PDF OCR};
-	\node[box] (classify)   at (\cT, \yZ) {PDF có phải dạng scan/ảnh?};
-	\node[box] (ocrdisable) at (\cH, \yZ) {Tắt OCR};
+\node (pdf) [decision, aspect=2.1, text width=2.6cm] at (0, -9.2) {Tình trạng PDF?};
+\node (ocr_true) [process, text width=3.2cm] at (-4.5, -12.4) {Bật chế độ OCR \\ (Ảnh quét)};
+\node (ocr_false) [process, text width=3.2cm] at (4.5, -12.4) {Tắt chế độ OCR \\ (Văn bản số)};
 
-	%%- ROW 1
-	\node[box] (ocrenable)  at (\cT, \yO) {Bật OCR};
-	\node[box] (vlmcheck)   at (\cH, \yO) {Kiểm tra điều kiện VLM\_OCR};
+\node (init_json) [process, text width=4.2cm] at (0, -15.8) {Khởi tạo dữ liệu trung gian \\ (Middle JSON)};
+\node (loop) [decision, aspect=2.3, text width=2.6cm] at (0, -19.2) {Xử lý theo đợt \\ (Batch Window)};
 
-	%%- ROW 2
-	\node[box] (splitwin)   at (\cZ, \yT) {Chia PDF thành các Window};
-	\node[box] (calbatch)   at (\cO, \yT) {Tính toán Batch Ratio};
-	\node[box] (vlmdisable) at (\cT, \yT) {Tắt VLM\_OCR};
-	\node[box] (vlmenable)  at (\cH, \yT) {Bật VLM\_OCR};
+% Nhánh kết thúc đợt (Trục chính)
+\node (post) [process, text width=4.2cm] at (0, -23.2) {Hậu xử lý dữ liệu \& Hoàn thiện JSON};
+\node (export_md) [process, fill=blue!10, text width=4cm] at (0, -25.8) {Xuất ra file Markdown};
+\node (clean_html) [process, fill=yellow!20, text width=4.6cm] at (0, -28.6) {Chuyển ký tự HTML trong Markdown thành Markdown thuần};
+\node (end) [startstop] at (0, -31.4) {Kết thúc};
 
-	%%- ROW 3
-	\node[box] (loadimg)    at (\cZ, \yH) {Load PDF thành danh sách ảnh PIL};
-	\node[box] (vlmext)     at (\cO, \yH) {VLM Layout Extraction};
-	\node[box] (hasvlm)     at (\cT, \yH) {Bật VLM\_OCR?};
-	\node[box] (maskimg)    at (\cH, \yH) {Masking: Che vùng Ảnh, Bảng...};
+% ====================================================
+% SNAKE FLOW (Vòng lặp vắt ngang chữ S, tận dụng chiều rộng)
+% ====================================================
+% Hàng 1 (Vắt sang Phải)
+\node (img_conv) [process, text width=4.2cm] at (9.5, -19.2) {Chuyển đổi thành hình ảnh};
+\node (layout) [process, text width=4cm] at (15.0, -19.2) {Dự đoán bố cục (Layout)};
+\node (filter) [process, text width=4.2cm] at (21.0, -19.2) {Lọc công thức trong Bảng / Ảnh / Biểu đồ};
 
-	%%- ROW 4
-	\node[box] (ocrdet)     at (\cZ, \yF) {OCR Detector: Nhận diện vùng chữ};
-	\node[box] (mfr)        at (\cO, \yF) {MFR Model: Dịch sang LaTeX};
-	\node[box] (detectform) at (\cT, \yF) {Nhận diện vùng Công thức};
-	\node[box] (chkform)    at (\cH, \yF) {Bật nhận dạng công thức?};
+% Hàng 2 (Cuộn xuống và vắt sang Trái)
+\node (effort) [decision, aspect=2.3, text width=2.6cm] at (21.0, -23.0) {Mức độ phân tích?};
+\node (effort_high) [process, text width=3.8cm] at (15.0, -23.0) {VLM Trích xuất toàn diện (2 bước)};
+\node (effort_med) [process, text width=3.8cm] at (15.0, -25.8) {Xác định hướng bảng \& VLM Trích xuất};
+\node (check_ocr) [decision, aspect=2.3, text width=2.6cm] at (9.5, -25.8) {Đang bật OCR?};
 
-	%%- ROW 5
-	\node[box] (needocr)    at (\cZ, \yI) {Cần nhận diện chữ?};
-	\node[box] (ocrrec)     at (\cO, \yI) {OCR Recognizer: Đọc chữ};
-	\node[box] (filtscore)  at (\cT, \yI) {Lọc OCR score thấp};
-	\node[box] (normbox)    at (\cH, \yI) {Chuẩn hoá toạ độ Bbox};
+% Hàng 3 (Cuộn xuống và vắt ngược sang Phải)
+\node (run_ocr) [process, text width=4cm] at (15.0, -29.0) {Trích xuất vùng văn bản bổ sung (Sidecars)};
+\node (run_mfr) [process, text width=4cm] at (15.0, -31.8) {Nhận diện công thức \& Trích xuất văn bản};
+\node (split) [process, text width=4.2cm] at (21.0, -30.4) {Tách và phân loại tiêu đề};
+\node (save) [process, text width=4cm] at (21.0, -33.4) {Lưu kết quả đợt};
 
-	%%- ROW 6
-	\node[box] (finalize)   at (\cZ, \yS) {Finalize Middle JSON};
-	\node[box] (loopnode)   at (\cO, \yS) {Còn Window nào không?};
-	\node[box] (mergejson)  at (\cT, \yS) {Nạp kết quả vào middle\_json};
-	\node[box] (mergepage)  at (\cH, \yS) {Gộp Layout, Text OCR, LaTeX};
+% ====================================================
+% MŨI TÊN KẾT NỐI
+% ====================================================
+% --- TRỤC CHÍNH (CỘT 1) ---
+\draw [arrow] (start) -- (init);
+\draw [arrow] (init) -- (doctype);
 
-	%%- ROW 7
-	\node[box] (cleanmem)   at (\cZ, \yE) {Dọn dẹp VRAM / Đóng PDF};
-	\node[rnd] (endnode)    at (\cO, \yE) {Hoàn tất};
+\draw [arrow] (doctype.west) -- node[above] {Hình ảnh} (img.east);
+\draw [arrow] (doctype.east) -- node[above] {Office} (office.west);
+\draw [arrow] (doctype.south) -- node[right] {PDF} (pdf.north);
 
-	%% ════════ MŨI TÊN ════════
+\draw [arrow] (office.south) |- (post.east);
+\draw [arrow] (img.south) -- ++(0, -0.6) -| (ocr_true.north);
+\draw [arrow] (pdf.west) -| node[above, near start] {Ảnh quét} (ocr_true.north);
+\draw [arrow] (pdf.east) -| node[above, near start] {Văn bản số} (ocr_false.north);
 
-	\draw[ln] (start) -- (checkocr);
-	\draw[ln] (checkocr) -- node[lbl] {auto} (classify);
-	\draw[ln] (classify) -- node[lbl] {Không} (ocrdisable);
-	\draw[ln] (classify) -- node[lbl] {Có} (ocrenable);
-	\draw[ln] (checkocr.south) -- ++(0, -0.5) node[lbl] {ocr} |- (ocrenable.west);
+\draw [line] (ocr_true.south) |- (0, -14.2);
+\draw [line] (ocr_false.south) |- (0, -14.2);
+\draw [arrow] (0, -14.2) -- (init_json.north);
 
-	\draw[ln] (ocrdisable) -- (vlmcheck);
-	\draw[ln] (ocrenable) -- (vlmcheck);
+\draw [arrow] (init_json.south) -- (loop.north);
+\draw [arrow] (loop.south) -- node[left] {Hết đợt} (post.north);
+\draw [arrow] (post.south) -- (export_md.north);
+\draw [arrow] (export_md.south) -- (clean_html.north);
+\draw [arrow] (clean_html.south) -- (end.north);
 
-	\draw[ln] (vlmcheck) -- node[lbl] {Thoả mãn} (vlmenable);
-	\draw[ln] (vlmcheck.south) -- ++(0,-0.4) node[lbl] {Không} -| (vlmdisable.north);
+% --- KẾT NỐI SNAKE FLOW ---
+% 1. Rẽ sang phải
+\draw [arrow] (loop.east) -- node[above] {Còn trang} (img_conv.west);
+\draw [arrow] (img_conv.east) -- (layout.west);
+\draw [arrow] (layout.east) -- (filter.west);
 
-	\draw[ln] (vlmdisable) -- (calbatch);
-	\draw[ln] (vlmenable.south) -- ++(0,-0.6) -| (calbatch.south);
-	
-	\draw[ln] (calbatch) -- (splitwin);
-	\draw[ln] (splitwin) -- (loadimg);
-	\draw[ln] (loadimg) -- (vlmext);
-	\draw[ln] (vlmext) -- (hasvlm);
-	
-	\draw[ln] (hasvlm) -- node[lbl] {Không} (maskimg);
-	\draw[ln] (hasvlm.north) -- ++(0,0.5) node[lbl] {Có} -| (13.6, -11.6) -- (7.6, -11.6) -- (mergejson.south);
+% 2. Cuộn xuống và Rẽ sang trái
+\draw [arrow] (filter.south) -- (effort.north);
+\draw [arrow] (effort.west) -- node[above] {High} (effort_high.east);
+\draw [arrow] (effort.south) |- node[below, near start] {Medium} (effort_med.east);
 
-	\draw[ln] (maskimg) -- (chkform);
-	\draw[ln] (chkform) -- node[lbl] {Có} (detectform);
-	\draw[ln] (detectform) -- (mfr);
-	\draw[ln] (mfr) -- (ocrdet);
-	\draw[ln] (chkform.south) -- ++(0,-0.6) node[lbl] {Không} -- (-2.2, -7.8) -- (-2.2, -7.2) -- (ocrdet.west);
+\draw [arrow] (effort_high.west) -| (check_ocr.north);
+\draw [arrow] (effort_med.west) -- (check_ocr.east);
 
-	\draw[ln] (ocrdet) -- (needocr);
-	\draw[ln] (needocr) -- node[lbl] {Có} (ocrrec);
-	\draw[ln] (ocrrec) -- (filtscore);
-	\draw[ln] (filtscore) -- (normbox);
-	\draw[ln] (needocr.south) -- ++(0,-0.6) node[lbl] {Không} -| (normbox.south);
+% 3. Cuộn xuống và Rẽ sang phải (Tránh đè chéo, gộp 2 đường vào Split)
+\draw [arrow] (check_ocr.south) |- node[above, near end] {Có} (run_ocr.west);
+\draw [arrow] (check_ocr.south) |- node[below, near end] {Không} (run_mfr.west);
 
-	\draw[ln] (normbox.east) -- ++(0.4,0) |- (mergepage.east);
-	\draw[ln] (mergepage) -- (mergejson);
-	\draw[ln] (mergejson) -- (loopnode);
-	\draw[ln] (loopnode) -- node[lbl] {Hết} (finalize);
-	\draw[ln] (loopnode.south) -- ++(0,-0.7) node[lbl] {Còn} -- (-2.8, -11.5) -- (-2.8, -5.4) -- (loadimg.west);
+\draw [line] (run_ocr.east) -| (18.2, -30.4);
+\draw [line] (run_mfr.east) -| (18.2, -30.4);
+\draw [arrow] (18.2, -30.4) -- (split.west);
 
-	\draw[ln] (finalize) -- (cleanmem);
-	\draw[ln] (cleanmem) -- (endnode);
+% 4. Lưu và Lặp về
+\draw [arrow] (split.south) -- (save.north);
+\draw [arrow, rounded corners=8pt] (save.south) -- ++(0,-1.0) -| (-8.2, -19.2) -- (loop.west);
 
-	\end{tikzpicture}
-	\caption{Quy trình xử lý Hybrid-Auto-Engine trong MinerU \cite{mineru_2024}}
+\end{tikzpicture}
+	\caption{Quy trình Hybrid-Auto-Engine của MinerU\cite{mineru_2024}}
 	\label{fig:hybrid_auto_engine}
 \end{figure}
 
@@ -386,7 +344,7 @@
 		\draw [arrow] (gen) -- (save);
 		\draw [arrow] (save) |- ($(out.north west)!0.3!(out.north)$);
 		\draw [arrow] (exe) -- (clean);
-		\draw [arrow] (clean) -- (out);
+		\draw [arrow] (clean) |- ($(out.north east)!0.3!(out.north)$);
 	\end{tikzpicture}
 	\caption{Quy trình thu thập tri thức từ trang web với Smart Scraper}
 	\label{fig:flow_scrap_web}
@@ -400,7 +358,7 @@
 
 \indent Đối với các tên miền mặc định như fit.hcmus.edu.vn và hcmus.edu.vn, hệ thống đã được cấu hình sẵn các bộ phân giải chuyên biệt cho nền tảng DotNetNuke. Do đặc thù của nền tảng này thường chứa nhiều nội dung lồng ghép trong các khung phức tạp, hệ thống sử dụng các bộ chọn mục tiêu như .dnn\_contentPane và \#dnn\_ContentPane để định vị chính xác vùng chứa thông tin học thuật. Quy trình trích xuất văn bản tại đây không chỉ lấy chữ thuần túy mà còn thực hiện chuyển đổi các liên kết quan trọng sang định dạng Markdown để bảo toàn thông tin tham chiếu.
 
-\indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi chúng nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
+\indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi các thông tin này nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
 
 \subsection{Chiến lược phân đoạn và chuẩn hóa văn bản}
 
@@ -410,9 +368,9 @@
 
 \indent Chiến lược thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), được thiết kế chuyên biệt để phục vụ quy trình trích xuất thực thể và quan hệ nhằm xây dựng đồ thị tri thức trong LightRAG \cite{lightrag}. Phương pháp này chia toàn bộ văn bản đã chuẩn hóa thành các đoạn có độ dài xác định trước, thường trong khoảng từ 512 đến 1200 token, kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10--20\% kích thước đoạn giữa hai đoạn liên tiếp.
 
-\indent Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'' (context bridge): khi mô hình ngôn ngữ xử lý đoạn thứ $i$, nó đã có sẵn phần đuôi của đoạn thứ $i-1$ làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng. Cụ thể, với kích thước đoạn mặc định là 1200 token và vùng chồng lấp 100 token, hệ thống đảm bảo rằng các thực thể và mối quan hệ nằm gần ranh giới giữa hai đoạn liên tiếp vẫn được mô hình ngôn ngữ lớn nhận diện đầy đủ trong ít nhất một đoạn.
+\indent Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'' (context bridge): khi mô hình ngôn ngữ xử lý đoạn thứ $i$, mô hình đã có sẵn phần đuôi của đoạn thứ $i-1$ làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng. Cụ thể, với kích thước đoạn mặc định là 1200 token và vùng chồng lấp 100 token, hệ thống đảm bảo rằng các thực thể và mối quan hệ nằm gần ranh giới giữa hai đoạn liên tiếp vẫn được mô hình ngôn ngữ lớn nhận diện đầy đủ trong ít nhất một đoạn.
 
-\indent Chiến lược phân đoạn kích thước cố định được lựa chọn cho tác vụ trích xuất đồ thị do quy trình trích xuất thực thể và quan hệ trong LightRAG yêu cầu mỗi đoạn văn phải đủ dài để chứa ngữ cảnh phong phú, giúp mô hình ngôn ngữ lớn nhận diện chính xác các thực thể và suy luận được mối liên hệ giữa chúng. Các đoạn quá ngắn sẽ thiếu ngữ cảnh, dẫn đến việc bỏ sót các quan hệ ngầm định giữa các câu không liền kề.
+\indent Chiến lược phân đoạn kích thước cố định được lựa chọn cho tác vụ trích xuất đồ thị do quy trình trích xuất thực thể và quan hệ trong LightRAG yêu cầu mỗi đoạn văn phải đủ dài để chứa ngữ cảnh phong phú, giúp mô hình ngôn ngữ lớn nhận diện chính xác các thực thể và suy luận được mối liên hệ giữa các thực thể này. Các đoạn quá ngắn sẽ thiếu ngữ cảnh, dẫn đến việc bỏ sót các quan hệ ngầm định giữa các câu không liền kề.
 
 \indent Chiến lược thứ hai, phân đoạn phân cấp (hierarchical chunking), được thiết kế nhằm bảo toàn tối đa cấu trúc và ngữ nghĩa của tài liệu gốc, phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống nhận truy vấn từ người dùng. Chiến lược này tham khảo từ MultiDocFusion \cite{shin-etal-2025-multidocfusion}, một hệ thống phân đoạn phân cấp được đề xuất cho các tài liệu dài và phức tạp, đã chứng minh hiệu quả vượt trội trong việc cải thiện độ chính xác truy xuất từ 8--15\% so với các phương pháp phân đoạn truyền thống.
 
@@ -422,7 +380,7 @@
 
 \indent Giai đoạn 1: Phân tích cấu trúc tài liệu bằng thị giác máy tính (Vision-based Document Parsing). Hệ thống VMiner (đã trình bày ở mục trước) sử dụng các mô hình học sâu chuyên biệt để phân tích cấu trúc hình học của từng trang tài liệu. Quá trình này tự động phát hiện và phân loại các vùng nội dung thành các loại thành phần riêng biệt: vùng tiêu đề (heading), khối văn bản (text block), bảng biểu (table), hình ảnh và biểu đồ (figure/chart), danh sách (list), chú thích (footnote) và công thức toán học. Mỗi vùng được xác định bởi một hộp bao đóng (bounding box) chứa tọa độ chính xác trên trang, làm cơ sở cho việc sắp xếp thứ tự đọc hợp lý và phân loại nội dung ở các bước tiếp theo.
 
-\indent Giai đoạn 2: Trích xuất nội dung và phân loại thành phần đa phương thức. Sau khi nhận diện các vùng nội dung, hệ thống tiến hành trích xuất nội dung tương ứng từ từng vùng. Đối với các vùng văn bản thuần túy, nội dung được trích xuất bằng các công cụ nhận dạng ký tự quang học (OCR) đã tối ưu hóa cho tiếng Việt. Đối với bảng biểu, hệ thống tái tạo cấu trúc dữ liệu dưới dạng Markdown hoặc HTML, bảo toàn nguyên vẹn thông tin hàng, cột và tiêu đề. Đối với hình ảnh và biểu đồ, hệ thống sinh mô tả văn bản tự động thông qua mô hình ngôn ngữ thị giác (Vision Language Model, VLM), kết hợp với chú thích (caption) gốc và văn bản ngữ cảnh xung quanh hình ảnh trong tài liệu. Bước phân loại này đảm bảo mỗi thành phần được xử lý bởi chiến lược phù hợp nhất với đặc trưng dữ liệu của nó.
+\indent Giai đoạn 2: Trích xuất nội dung và phân loại thành phần đa phương thức. Sau khi nhận diện các vùng nội dung, hệ thống tiến hành trích xuất nội dung tương ứng từ từng vùng. Đối với các vùng văn bản thuần túy, nội dung được trích xuất bằng các công cụ nhận dạng ký tự quang học (OCR) đã tối ưu hóa cho tiếng Việt. Đối với bảng biểu, hệ thống tái tạo cấu trúc dữ liệu dưới dạng Markdown hoặc HTML, bảo toàn nguyên vẹn thông tin hàng, cột và tiêu đề. Đối với hình ảnh và biểu đồ, hệ thống sinh mô tả văn bản tự động thông qua mô hình ngôn ngữ thị giác (Vision Language Model, VLM), kết hợp với chú thích (caption) gốc và văn bản ngữ cảnh xung quanh hình ảnh trong tài liệu. Bước phân loại này đảm bảo mỗi thành phần được xử lý bởi chiến lược phù hợp nhất với đặc trưng dữ liệu của thành phần đó.
 
 \indent Giai đoạn 3: Xây dựng cây cấu trúc phân cấp (Hierarchical Structure Parsing). Đây là giai đoạn cốt lõi phân biệt chiến lược phân cấp với các phương pháp phân đoạn truyền thống. Hệ thống tái cấu trúc toàn bộ tài liệu thành một cây phân cấp (hierarchical tree) phản ánh tổ chức logic của nội dung, trong đó gốc cây là tài liệu, các nút trung gian là các mục (section) và tiểu mục (sub-section), còn các nút lá là các đơn vị nội dung cụ thể như đoạn văn, bảng, hình ảnh. Cấu trúc phân cấp này được suy luận từ hệ thống tiêu đề (heading hierarchy) trong tài liệu, cụ thể các cấp tiêu đề H1, H2, H3 tương ứng với các mức độ lồng nhau khác nhau trong cây. Trong trường hợp tài liệu không có tiêu đề rõ ràng hoặc cấu trúc tiêu đề bị nhiễu, hệ thống bổ sung cơ chế phân tích dựa trên mô hình ngôn ngữ lớn (tương tự kỹ thuật DSHP-LLM trong MultiDocFusion \cite{shin-etal-2025-multidocfusion}) để suy luận ranh giới ngữ nghĩa giữa các phần. Mỗi nút trong cây được gán một đường dẫn phân cấp (breadcrumb path) dạng: \texttt{[Tài liệu] > [Chương X] > [Mục X.Y] > [Tiểu mục X.Y.Z]}, cung cấp ngữ cảnh vị trí chính xác cho từng đơn vị nội dung.
 
@@ -470,7 +428,7 @@
 \end{table}
 
 \indent Sự phối hợp giữa hai chiến lược phân đoạn tạo nên một kiến trúc lưu trữ kép (dual-indexing architecture) phục vụ cho hai luồng truy xuất khác nhau trong hệ thống. Chiến lược phân đoạn kích thước cố định cung cấp nguyên liệu đầu vào cho quy trình xây dựng đồ thị tri thức, nơi các thực thể và quan hệ được trích xuất và lưu trữ trong cơ sở dữ liệu đồ thị, phục vụ cho các chế độ truy vấn cục bộ (local) và toàn cục (global) của LightRAG. Trong khi đó, chiến lược phân đoạn phân cấp đa phương thức cung cấp các phân đoạn có cấu trúc ngữ nghĩa chặt chẽ, được lưu trữ trong cơ sở dữ liệu vector kèm theo siêu dữ liệu phong phú (metadata), phục vụ cho việc truy xuất ngữ cảnh chính xác khi hệ thống cần bổ sung thông tin chi tiết từ tài liệu gốc. Kiến trúc kép này đảm bảo rằng hệ thống vừa có khả năng lập luận đa bước trên đồ thị tri thức, vừa có khả năng truy xuất ngữ cảnh tài liệu gốc một cách trung thực và đầy đủ.
-\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+\indent Phương pháp thứ nhất — phân đoạn theo kích thước cố định (fixed-size chunking) — chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, mô hình đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
 
 \indent Phương pháp thứ hai — phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) — khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
 
@@ -494,55 +452,13 @@
 	
 - Môi trường vận hành thực tế (Production Hosting API): Để đưa hệ thống ra thị trường phục vụ hàng ngàn sinh viên truy cập đồng thời, hệ thống chuyển sang mô hình Self-hosted API độc lập. Mô hình nhúng được đóng gói và triển khai thành một vi dịch vụ (Microservice) riêng biệt trên máy chủ đám mây (Cloud) có hỗ trợ GPU tăng tốc thông qua các framework inference chuyên dụng như TEI (Text Embeddings Inference) của Hugging Face hoặc Triton Inference Server của NVIDIA. Kiến trúc này kích hoạt tính năng xử lý hàng đợi động (Dynamic Batching) và lượng hóa ma trận về định dạng Float16, giúp nén tối đa độ trễ sinh vector nhúng thời gian thực xuống dưới 10 mili giây (ms), đáp ứng trọn vẹn áp lực tải diện rộng trong Production.
 
-
-\subsection{Hệ thống thu thập tri thức từ trang web}
-
-\begin{figure}[H]
-	\centering
-	\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, transform shape]
-		\node (input) [startstop] {URL Mục tiêu};
-		\node (dom) [process, below=of input] {Nhận diện cấu trúc DOM};
-		\node (check) [decision, below=of dom, text width=3cm] {Đã tồn tại trong \\ Registry hệ thống?};
-		
-		\node (llm) [process, left=2.8cm of check, yshift=-1.5cm, text width=3.5cm] {Phân tích LLM \\ (Logic tô pô DOM)};
-		\node (gen) [process, below=1cm of llm] {Tạo bộ chọn \\ CSS/JS tối ưu};
-		\node (save) [process, below=1cm of gen] {Cập nhật Registry \\ (Lưu trữ bộ chọn)};
-		
-		\node (exe) [process, right=2.8cm of check, yshift=-1.5cm, text width=4cm] {Thực thi Scraper Engine \\ (Playwright \& Stealth)};
-		\node (clean) [process, below=1.5cm of exe] {Làm sạch Markdown};
-		\node (out) [startstop, below=4cm of check, yshift=-2cm] {Đầu ra Markdown cuối cùng};
-		
-		\draw [arrow] (input) -- (dom);
-		\draw [arrow] (dom) -- (check);
-		\draw [arrow] (check) -| node [anchor=south, xshift=-1.4cm, font=\footnotesize] {KHÔNG (Mới)} (llm);
-		\draw [arrow] (check) -| node [anchor=south, xshift=1.4cm, font=\footnotesize] {CÓ (Đã biết)} (exe);
-		\draw [arrow] (llm) -- (gen);
-		\draw [arrow] (gen) -- (save);
-		\draw [arrow] (save) |- ($(out.north west)!0.3!(out.north)$);
-		\draw [arrow] (exe) -- (clean);
-		\draw [arrow] (clean) -- (out);
-	\end{tikzpicture}
-	\caption{Quy trình thu thập tri thức từ trang web với Smart Scraper}
-	\label{fig:flow_scrap_web}
-\end{figure}
-
-\indent Hệ thống cào web thông minh hoạt động theo quy trình tự động hóa từ việc nhận diện cấu trúc trang đến trích xuất dữ liệu. Logic cốt lõi dựa trên công cụ Smart Scraper Engine với cơ chế vận hành qua bốn bước chính: lấy dấu vân tay, đối chiếu kho lưu trữ, phân tích cấu trúc bằng mô hình ngôn ngữ và thực thi bộ phân giải.
-
-\indent Quy trình bắt đầu bằng việc tạo ra một bản tóm tắt cấu trúc cây DOM của trang web, tập trung vào các thuộc tính định danh như thẻ HTML, tên lớp và ID. Hệ thống trích xuất một bộ khung xương kỹ thuật của trang web để làm cơ sở cho việc nhận diện. Sau đó, bản tóm tắt này được đối chiếu với kho lưu trữ các bộ phân giải đã biết. Mỗi mục trong kho lưu trữ chứa các thông tin về dấu hiệu nhận biết, bộ chọn nội dung chính, các thành phần cần loại bỏ và chiến lược chờ đợi phù hợp cho từng loại công nghệ web như React, Vue, hay các hệ quản trị nội dung truyền thống.
-
-\indent Trong trường hợp gặp một trang web mới không có trong kho lưu trữ, hệ thống sẽ gửi một phần cấu trúc DOM tiêu biểu cho mô hình ngôn ngữ lớn. Mô hình này có nhiệm vụ phân tích logic phân bổ nội dung và tự động sinh ra mã lệnh điều hướng. Mã lệnh này bao gồm các bộ chọn CSS tối ưu để trích xuất văn bản có ý nghĩa và các quy tắc loại bỏ những thành phần gây nhiễu như trình đơn điều hướng, biểu ngữ quảng cáo hoặc các đoạn mã kịch bản. Bộ phân giải mới sinh ra sẽ được kiểm tra và lưu lại vào kho lưu trữ để sử dụng cho các lần truy cập sau, giúp tối ưu hóa hiệu suất và giảm thiểu chi phí gọi API.
-
-\indent Đối với các tên miền mặc định như fit.hcmus.edu.vn và hcmus.edu.vn, hệ thống đã được cấu hình sẵn các bộ phân giải chuyên biệt cho nền tảng DotNetNuke. Do đặc thù của nền tảng này thường chứa nhiều nội dung lồng ghép trong các khung phức tạp, hệ thống sử dụng các bộ chọn mục tiêu như .dnn\_contentPane và \#dnn\_ContentPane để định vị chính xác vùng chứa thông tin học thuật. Quy trình trích xuất văn bản tại đây không chỉ lấy chữ thuần túy mà còn thực hiện chuyển đổi các liên kết quan trọng sang định dạng Markdown để bảo toàn thông tin tham chiếu.
-
-\indent Đặc biệt, đối với các trang có tính tương tác cao như danh mục môn học hoặc đề cương chi tiết, hệ thống áp dụng chế độ tương tác vét cạn. Chế độ này sử dụng thư viện Playwright để tự động thực hiện các hành động như nhấn vào các nút mở rộng, cuộn trang để tải thêm dữ liệu và chờ đợi các tiến trình AJAX hoàn tất. Điều này đảm bảo rằng toàn bộ tri thức về chương trình đào tạo, mô tả môn học và thông tin giảng viên được thu thập đầy đủ nhất, ngay cả khi chúng nằm sau các thành phần giao diện động. Dữ liệu sau khi trích xuất sẽ được làm sạch và chuẩn hóa trước khi đưa vào các bước phân đoạn và xây dựng đồ thị tri thức tiếp theo.
-
 \subsection{Quy trình điều phối và phân đoạn dữ liệu}
 
 \indent Sau khi dữ liệu vượt qua bước kiểm tra trùng lặp, hệ thống bước vào giai đoạn điều phối và phân đoạn. Đây là quy trình then chốt nhằm chuyển đổi các văn bản Markdown dài thành những đơn vị tri thức có kích thước tối ưu, sẵn sàng cho việc trích xuất thực thể và quan hệ. Quy trình điều phối này không chỉ đơn thuần là cắt nhỏ văn bản mà còn đảm bảo tính logic và ngữ cảnh giữa các phần.
 
 \indent LightRAG \cite{lightrag} thực hiện quy trình này thông qua hai chiến lược phân đoạn chính để bảo toàn tính toàn vẹn tri thức:
 
-\indent Phương pháp thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, nó đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
+\indent Phương pháp thứ nhất, phân đoạn theo kích thước cố định (fixed-size chunking), chia văn bản thành các đoạn có độ dài xác định trước (thường từ 512 đến 1200 token), kèm theo một vùng chồng lấp (overlap window) chiếm khoảng 10–20\% kích thước đoạn giữa hai đoạn liên tiếp. Cơ chế chồng lấp này đóng vai trò như một ``cầu nối ngữ cảnh'': khi mô hình xử lý đoạn thứ i, mô hình đã có sẵn phần đuôi của đoạn thứ i-1 làm nền tảng, từ đó tránh được hiện tượng cắt đứt giữa chừng một câu hoặc một luận điểm quan trọng.
 
 \indent Phương pháp thứ hai, phân đoạn theo cấu trúc tự nhiên (structure-aware chunking), khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa — ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
 
@@ -588,7 +504,7 @@
 
 \indent Một trong những thách thức lớn nhất của việc trích xuất tri thức bằng LLM là hiện tượng bỏ sót thông tin do giới hạn về khả năng chú ý (attention) khi xử lý các đoạn văn phức tạp. LightRAG giải quyết vấn đề này thông qua kỹ thuật \textit{Gleaning} (thu nhặt bổ sung).
 
-\indent Sau vòng trích xuất đầu tiên, hệ thống không kết thúc ngay mà thực hiện gửi lại danh sách tri thức vừa tìm được cho LLM kèm theo một yêu cầu phản biện: ``Dựa trên đoạn văn này và danh sách thực thể/quan hệ đã có, liệu còn bất kỳ chi tiết nào bị bỏ sót không?''. Nếu mô hình phát hiện thêm tri thức mới, nó sẽ trả về kết quả bổ sung để hệ thống hợp nhất vào kết quả ban đầu. Quy trình này lặp lại cho đến khi mô hình xác nhận không còn thông tin sót hoặc đạt giới hạn số vòng lặp cấu hình.
+\indent Sau vòng trích xuất đầu tiên, hệ thống không kết thúc ngay mà thực hiện gửi lại danh sách tri thức vừa tìm được cho LLM kèm theo một yêu cầu phản biện: ``Dựa trên đoạn văn này và danh sách thực thể/quan hệ đã có, liệu còn bất kỳ chi tiết nào bị bỏ sót không?''. Nếu mô hình phát hiện thêm tri thức mới, mô hình sẽ trả về kết quả bổ sung để hệ thống hợp nhất vào kết quả ban đầu. Quy trình này lặp lại cho đến khi mô hình xác nhận không còn thông tin sót hoặc đạt giới hạn số vòng lặp cấu hình.
 
 \begin{figure}[H]
 	\centering
@@ -886,7 +802,7 @@ Khoa học Tự nhiên''} là cùng một tổ chức.
 
 Khi mô hình ngôn ngữ lớn xác nhận hai thực thể là đồng nhất, hệ thống có 2 lựa chọn: \textit{hợp nhất vật lý}
 hai nút thành một (xóa một nút, gộp toàn bộ dữ liệu vào nút còn lại),
-hay \textit{tạo quan hệ liên kết} giữa chúng và giữ nguyên cả hai? Đề
+hay \textit{tạo quan hệ liên kết} giữa hai thực thể này và giữ nguyên cả hai? Đề
 tài lựa chọn giải pháp thứ hai thông qua quan hệ SAME\_AS.
 
 Quyết định này không phải là sự thỏa hiệp mà xuất phát từ ba lý do cơ
@@ -1309,7 +1225,7 @@ Thứ hai, Generator Agent (\texttt{generator}) chịu trách nhiệm dựng ng�
 
 Thứ ba, Summarizer Agent (\texttt{summarizer}) nén lịch sử hội thoại khi vượt quá bốn lượt thành một đến hai câu súc tích, nhằm giảm số token mà Analyze Agent phải xử lý và duy trì ngữ cảnh cốt lõi qua các phiên dài.
 
-Thứ tư, Long-term Memory Agent (\texttt{longterm}) quản lý hồ sơ người dùng bền vững trên MongoDB. Thay vì tóm tắt lại toàn bộ hồ sơ, agent chỉ trích xuất các sự kiện ổn định (chuyên ngành, sở thích trả lời, định hướng học tập dài hạn) dưới dạng JSON rồi hợp nhất chúng vào hồ sơ hiện có bằng mã Python có khử trùng lặp, tránh hiện tượng trôi dạt nội dung tóm tắt.
+Thứ tư, Long-term Memory Agent (\texttt{longterm}) quản lý hồ sơ người dùng bền vững trên MongoDB. Thay vì tóm tắt lại toàn bộ hồ sơ, agent chỉ trích xuất các sự kiện ổn định (chuyên ngành, sở thích trả lời, định hướng học tập dài hạn) dưới dạng JSON rồi hợp nhất các thông tin này vào hồ sơ hiện có bằng mã Python có khử trùng lặp, tránh hiện tượng trôi dạt nội dung tóm tắt.
 
 Cuối cùng, LLM Factory (\texttt{llm}) là lớp trừu tượng hóa nhà cung cấp mô hình, cho phép chuyển đổi linh hoạt giữa OpenAI và Ollama (mô hình cục bộ) qua biến môi trường và tự chuẩn hóa các tham số khác biệt giữa hai nền tảng.
 
@@ -1321,7 +1237,7 @@ Bước 1: Phân tích và Định tuyến.
 Khi nhận câu hỏi $Q$, nút \texttt{analyzer} gọi \textit{Analyze Agent} (sau khi đã tóm tắt lịch sử qua \textit{Summarizer}) để xác định ý định, quyết định điều phối, chế độ truy vấn và các từ khóa. Kết quả phân tích được chuẩn hóa: nếu nội dung không phù hợp thì quyết định bị ép sang \texttt{reject}; nếu giá trị không hợp lệ thì lùi an toàn về \texttt{retrieve}.
 
 Bước 2: Chuẩn bị ngữ cảnh.
-Nút \texttt{prepare\_context} không gọi mô hình ngôn ngữ. Nó chỉ nạp bộ nhớ dài hạn $M$ từ MongoDB khi khâu phân tích xác định là cần thiết, rồi dựng gói yêu cầu sinh $G$ (\texttt{generation\_request}) chứa câu hỏi, chế độ truy vấn, persona và các từ khóa. Việc tách riêng bước này giúp luồng phát trực tuyến (streaming) có thể dừng tại đây trước khi sinh.
+Nút \texttt{prepare\_context} không gọi mô hình ngôn ngữ. Nút này chỉ nạp bộ nhớ dài hạn $M$ từ MongoDB khi khâu phân tích xác định là cần thiết, rồi dựng gói yêu cầu sinh $G$ (\texttt{generation\_request}) chứa câu hỏi, chế độ truy vấn, persona và các từ khóa. Việc tách riêng bước này giúp luồng phát trực tuyến (streaming) có thể dừng tại đây trước khi sinh.
 
 Bước 3: Sinh câu trả lời.
 Nút \texttt{generate} phân nhánh theo quyết định điều phối: với \texttt{retrieve}, hệ thống gọi LightRAG kèm các từ khóa đã trích sẵn để truy xuất tri thức từ đồ thị; với \texttt{direct\_answer}, hệ thống gọi trực tiếp mô hình ngôn ngữ mà không truy xuất (phù hợp cho chào hỏi, trò chuyện hoặc lời khuyên học tập chung); với \texttt{reject}, hệ thống trả về thông điệp từ chối đã soạn sẵn.
@@ -1396,9 +1312,9 @@ Bên cạnh đó, nhằm đánh giá khả năng sinh câu trả lời của h�
 Đánh giá chất lượng đồ thị tri thức.
 Khi triển khai kiến trúc LightRAG vào bài toán dữ liệu có tính hệ thống cao, rủi ro lớn nhất là việc mô hình ngôn ngữ sẽ gặp "ảo giác" (Hallucination) hoặc thiết lập các chuỗi quan hệ rác. Hệ thống ứng dụng phương pháp phân tích tĩnh và động (Hybrid Assessment) thông qua ba trụ cột:
 
-- Nhóm 1 - Đánh giá cấu trúc đồ thị (SHACL): Chuẩn SHACL của W3C được lựa chọn vì có thể kiểm tra ràng buộc cấu trúc đồ thị mà không yêu cầu tập dữ liệu nhãn thủ công. Nó giúp tìm kiếm các Nút mồ côi (Dangling Nodes) thông qua duyệt đồ thị có hướng để phát hiện các đỉnh không có mối quan hệ kết nối, ngăn chặn tình trạng tri thức bị phân mảnh. Đồng thời, Độ phủ văn bản (Chunk Coverage) được đo lường để đảm bảo không bỏ sót thông tin trọng yếu.
+- Nhóm 1 - Đánh giá cấu trúc đồ thị (SHACL): Chuẩn SHACL của W3C được lựa chọn vì có thể kiểm tra ràng buộc cấu trúc đồ thị mà không yêu cầu tập dữ liệu nhãn thủ công. Chuẩn này giúp tìm kiếm các Nút mồ côi (Dangling Nodes) thông qua duyệt đồ thị có hướng để phát hiện các đỉnh không có mối quan hệ kết nối, ngăn chặn tình trạng tri thức bị phân mảnh. Đồng thời, Độ phủ văn bản (Chunk Coverage) được đo lường để đảm bảo không bỏ sót thông tin trọng yếu.
 
-- Nhóm 2 - Đánh giá độ hữu cơ của quan hệ (LLM-as-a-Judge): Phương pháp này đánh giá độ lắng đọng trích xuất, với tiêu chí cốt lõi là Độ có cơ sở (Groundedness). Nó bắt buộc mọi mối quan hệ phải tồn tại chứng cứ tường minh từ các đoạn văn bản gốc, ngăn chặn hiện tượng âm tính giả và ảo giác của LLM.
+- Nhóm 2 - Đánh giá độ hữu cơ của quan hệ (LLM-as-a-Judge): Phương pháp này đánh giá độ lắng đọng trích xuất, với tiêu chí cốt lõi là Độ có cơ sở (Groundedness). Đánh giá này bắt buộc mọi mối quan hệ phải tồn tại chứng cứ tường minh từ các đoạn văn bản gốc, ngăn chặn hiện tượng âm tính giả và ảo giác của LLM.
 
 - Nhóm 3 - Đánh giá hợp nhất thực thể (V-Measure): Đo lường hiệu quả việc hợp nhất các thực thể trùng lặp, giải quyết bài toán deduplication. Hệ thống theo dõi tỷ lệ Bỏ sót gộp (C1 Rate - Under-merge) nhằm giảm thiểu tình trạng một thực thể bị phân tách thành nhiều nút. Trái lại, Độ thuần khiết (C2 Rate - Purity - Over-merge) được duy trì để ngăn chặn việc đồng nhất hóa sai lầm các thực thể mang bản chất riêng biệt. Từ sự kết hợp của những yếu tố trên, Overall V-Measure được tính toán như một chỉ số tổng quát đại diện cho sự cân bằng hoàn hảo. 
 
