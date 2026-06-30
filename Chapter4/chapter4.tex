@@ -357,8 +357,13 @@ Sơ lược về kiến trúc được nhóm sử dụng như sau: hệ thống 
 \end{figure}
 
 \subsubsection{Tầng Giao diện (Client Layer)}
+Tầng Giao diện được thiết kế tối ưu hóa trải nghiệm người dùng đa nền tảng, bao gồm hai thành phần Client hoạt động đồng bộ:
 
-Tầng Giao diện được xây dựng trên Next.js, là điểm tiếp xúc duy nhất giữa sinh viên và toàn bộ hệ thống. Khi sinh viên sử dụng ứng dụng, tầng này vận hành hai luồng giao tiếp song song tùy theo tính năng được yêu cầu.
+- Web Client (Nền tảng Next.js): Cung cấp giao diện tương tác hiện đại trên máy tính để bàn, tập trung vào việc quản lý lộ trình học tập trực quan và hiển thị dữ liệu phân tích học vụ quy mô rộng.
+
+- Mobile Client (Nền tảng Flutter và ngôn ngữ Dart): Được phát triển độc lập cho thiết bị di động, tổ chức mã nguồn theo mô hình quản lý trạng thái tập trung thông qua bộ thư viện Provider (gồm MultiProvider và ChangeNotifierProvider) giúp tách biệt hoàn toàn tầng giao diện (UI) và tầng xử lý logic nghiệp vụ, duy trì luồng dữ liệu đồng nhất trên toàn bộ ứng dụng.
+
+Khi sinh viên sử dụng ứng dụng, tầng này vận hành hai luồng giao tiếp song song tùy theo tính năng được yêu cầu.
 
 Đối với các tác vụ liên quan đến tài khoản và thông tin cá nhân, ứng dụng giao tiếp với Tầng Nghiệp vụ thông qua giao thức HTTPS và REST API. Đây là luồng truyền thống, đảm bảo tính nhất quán và bảo mật cho các thao tác đọc ghi dữ liệu có cấu trúc.
 
@@ -744,8 +749,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 % ============================================================
 \clearpage
 \subsection{Thiết kế giao diện}
-
-\subsubsection{Màn hình Đăng ký}
+\subsubsection{Màn hình Đăng ký (Website)}
 
 \begin{figure}[H]
     \centering
@@ -777,7 +781,7 @@ Bao gồm:
     \end{enumerate}
 \end{itemize}
 
-\subsubsection{Màn hình Đăng nhập}
+\subsubsection{Màn hình Đăng nhập (Website)}
 
 \begin{figure}[H]
     \centering
@@ -811,7 +815,7 @@ Bao gồm:
     \end{enumerate}
 \end{itemize}
 
-\subsubsection{Màn hình Quên mật khẩu}
+\subsubsection{Màn hình Quên mật khẩu (Website)}
 
 \textbf{Mục đích:} Hỗ trợ người dùng cấp lại mật khẩu mới.
 
@@ -852,7 +856,7 @@ Bao gồm:
         \item Nhấn trực tiếp vào đường dẫn liên kết và thực hiện thay đổi mật khẩu mới.
     \end{enumerate}
 \end{itemize}
-\subsubsection{Màn hình Thông tin cá nhân}
+\subsubsection{Màn hình Thông tin cá nhân (Website)}
 
 \begin{figure}[H]
     \centering
@@ -884,7 +888,7 @@ Bao gồm:
     \end{enumerate}
 \end{itemize}
 
-\subsubsection{Màn hình AI Chat}
+\subsubsection{Màn hình AI Chat (Website)}
 
 \begin{figure}[H]
 	\centering
@@ -916,82 +920,107 @@ Bao gồm:
 		\item Hệ thống hiển thị toàn bộ nội dung của phiên đó.
 	\end{enumerate}
 \end{itemize}
-	
 
+\subsubsection{Màn hình AI Chatbot (Mobile)}
 
-\subsection{Hiện thực phân hệ Ứng dụng di động (Mobile Application)}
-
-\indent Phân hệ di động được phát triển độc lập dựa trên framework Flutter, sử dụng ngôn ngữ lập trình Dart với cơ chế biên dịch trực tiếp sang mã máy native. Kiến trúc mã nguồn được tổ chức theo mô hình quản lý trạng thái tập trung thông qua bộ thư viện \textit{Provider} (gồm \texttt{MultiProvider} và \texttt{ChangeNotifierProvider}), giúp tách biệt hoàn toàn tầng giao diện (UI) và tầng xử lý logic nghiệp vụ, đồng thời duy trì một luồng dữ liệu đồng nhất trên toàn ứng dụng. Phân hệ di động loại bỏ hoàn toàn các tính năng mạng xã hội/diễn đàn, tập trung chuyên biệt vào việc hỗ trợ thông tin học vụ và cá nhân hóa lộ trình học tập của sinh viên thông qua các phân hệ chức năng thực tế sau:
-
-\subsubsection{Phân hệ Trợ lý ảo AI thông minh và Quản lý ngữ cảnh hội thoại}
-\indent Đây là tính năng trung tâm của ứng dụng di động, được cấu hình tự động điều phối hiển thị ngay tại màn hình khởi động thông qua lớp \texttt{SplashScreen}. Giao diện tương tác trò chuyện trực tiếp được thiết kế linh hoạt, tự động phân tách theo trạng thái xác thực của người dùng:
-
-	
-- Chế độ truy cập ẩn danh (Guest Mode): Dành cho người dùng chưa thực hiện đăng nhập vào hệ thống. Khi sinh viên khởi động ứng dụng, luồng điều hướng sẽ đưa thẳng vào màn hình \texttt{ChatbotScreen} ở trạng thái khách. Tại đây, sinh viên có thể tương tác trực tiếp với AI để tra cứu thông tin học vụ đại chúng mà không có thanh trình đơn trượt bên trái (Sidebar) và hệ thống tuân thủ nghiêm ngặt cơ chế bảo mật đóng, hoàn toàn không lưu lại lịch sử trò chuyện cục bộ.
-	
-- Chế độ thành viên đã xác thực (Authenticated Mode): Trạng thái này tự động được kích hoạt ngay sau khi sinh viên đăng nhập thành công vào hệ thống. Lúc này, màn hình AI Chat sẽ trở thành Tab đầu tiên nằm dưới thanh điều hướng chính (\texttt{BottomNavigationBar} của \texttt{MainNavScreen}). Hệ thống kích hoạt một thanh Sidebar dạng \texttt{Drawer} trượt từ cạnh trái màn hình, hiển thị trực quan toàn bộ danh sách lịch sử các phiên trò chuyện cũ (\texttt{ChatSession}). Toàn bộ các phiên trò chuyện này được lưu trữ bền vững tại bộ nhớ đệm thiết bị thông qua gói \texttt{SharedPreferences}, tự động sắp xếp theo mốc thời gian tương tác gần nhất và phân tách ranh giới lịch sử theo từng mã định danh tài khoản riêng biệt (\texttt{student\_id}).
-
+\indent Giao diện của phân hệ di động được thiết kế tối ưu cho màn hình dọc của thiết bị smartphone, tập trung vào việc sắp xếp các phần tử UI gọn gàng, hỗ trợ thao tác cuộn vuốt dễ dàng bằng một tay và đảm bảo trải nghiệm tương tác học vụ liền mạch cho sinh viên.
 
 \begin{figure}[H]
 	\centering
 	\begin{minipage}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
-		\\ \footnotesize \textit{a) Trợ lý AI ở Chế độ Khách (Không lưu lịch sử)}
+		
+		\footnotesize a) Chế độ Khách (Không lưu lịch sử)
 	\end{minipage}
 	\hfill
 	\begin{minipage}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
-		\\ \footnotesize \textit{b) Trợ lý AI ở Chế độ Thành viên (Có lịch sử chat)}
+		
+		\footnotesize b) Chế độ Thành viên (Có lịch sử chat)
 	\end{minipage}
-	\caption{Giao diện tương tác phân hệ Trợ lý ảo AI trên ứng dụng di động}
+	\caption{Giao diện màn hình AI Chatbot trên phân hệ di động}
 	\label{fig:ui_mobile_chatbot}
 \end{figure}
 
-\indent Phân hệ tư vấn thông minh di động tích hợp hai giải pháp tối ưu hóa trải nghiệm hội thoại nâng cao:
+\textbf{Mục đích:} Cung cấp không gian tương tác hội thoại trực tiếp giữa sinh viên và AI Agent để tra cứu môn học, tư vấn lộ trình đào tạo cá nhân hóa và giải đáp các thắc mắc về học chế tín chỉ.
 
-	
-- Cơ chế làm giàu truy vấn theo chuỗi hội thoại (Context Concatenation): Để khắc phục hiện tượng mất ngữ cảnh khi sinh viên đặt câu hỏi quá ngắn hoặc mơ hồ ở các lượt chat sau, ứng dụng tự động kiểm tra mảng dữ liệu tin nhắn. Nếu chuỗi hội thoại đạt từ 3 lượt tương tác trở lên, hệ thống sẽ tự động trích xuất nội dung câu hỏi liền trước (\texttt{lastUser}) và câu trả lời liền trước của bot (\texttt{lastAI}) để ghép nối có cấu trúc trực tiếp vào câu hỏi hiện tại trước khi thực hiện đóng gói JSON gửi lên API máy chủ LightRAG.
-	
-- Bộ phân tích và biên dịch cú pháp Markdown dạng RichText: Để hiển thị câu trả lời từ mô hình ngôn ngữ lớn một cách chuyên nghiệp, ứng dụng hiện thực hóa hàm quét chuỗi ký tự tự động dựa trên biểu thức chính quy. Hệ thống thực hiện băm nhỏ văn bản theo ký tự xuống dòng kép, nhận diện ký tự thẻ \texttt{\#} để phóng to cỡ chữ tiêu đề và tự động chuyển đổi màu sắc sang mã màu xanh chủ đạo của trường (\texttt{0xFF0054A6}), đồng thời nhận diện các cặp ký tự \texttt{**} để gán nhãn kiểu chữ in đậm \texttt{FontWeight.bold} cho các thuật ngữ chuyên ngành hoặc mã học phần quan trọng.
+Bao gồm:
+\begin{enumerate}
+	\item Khung hiển thị dòng thời gian tin nhắn được sắp xếp tăng dần theo chiều dọc màn hình.
+	\item Thanh nhập liệu cố định chắc chắn ở đáy giao diện tích hợp cơ chế tự động thu nhỏ vùng hiển thị khi bàn phím ảo xuất hiện.
+	\item Trình đơn kéo Sidebar dạng Drawer được tích hợp ẩn ở cạnh trái (dành riêng cho chế độ Thành viên).
+\end{enumerate}
 
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để nhận tư vấn trực tiếp từ AI Agent:}
+	\begin{enumerate}
+		\item Người dùng tiến hành nhập câu hỏi hoặc yêu cầu tư vấn học tập vào khung văn bản ở đáy màn hình.
+		\item Chọn nút "Gửi". Hệ thống AI Agent phân tích dữ liệu thực tế, truy xuất đồ thị tri thức LightRAG và thực hiện hiển thị câu trả lời tức thời dạng dòng (streaming).
+	\end{enumerate}
+	\item \textbf{Để xem lại lịch sử các phiên tương tác cũ:}
+	\begin{enumerate}
+		\item Ở trạng thái đã đăng nhập (Thành viên), người dùng vuốt từ cạnh trái hoặc chạm vào nút menu để mở rộng thanh Drawer.
+		\item Nội dung các cuộc chuyện cũ sẽ được lưu trữ tự động và hiển thị đầy đủ trên menu để sinh viên có thể xem lại.
+	\end{itemize}
+\end{itemize}
 
-\subsubsection{Phân hệ Xác thực tài khoản và Bắt lỗi hệ thống bảo vệ (Fail-safe Auth)}
-\indent Phân hệ quản lý toàn bộ vòng đời xác thực của sinh viên bao gồm Đăng nhập (\texttt{LoginScreen}), Đăng ký (\texttt{RegisterScreen}) và Đăng xuất thông qua kết nối API RESTful mã hóa bảo mật Bearer JWT Token gửi về từ máy chủ Spring Boot. Hệ thống di động tích hợp bộ lọc tự động kích hoạt vi tiến trình \texttt{refreshAccessToken} để làm mới mã truy cập ngầm định khi hết hạn mà không gây gián đoạn trải nghiệm của sinh viên.
-
-\indent Đặc biệt, tại chức năng Quên mật khẩu và Đặt lại mật khẩu, ứng dụng tích hợp một cơ chế xử lý ngoại lệ thông minh (\textit{Fail-safe SMTP Exception Handling}):
-
-	
-- Khi sinh viên nhấn nút yêu cầu link khôi phục, ứng dụng di động sẽ gọi API \texttt{POST /auth/forgot-password}. Trong trường hợp máy chủ đám mây trả về lỗi nghẽn cổng kết nối máy chủ gửi thư (\texttt{Mail server connection failed / SocketTimeoutException}), ứng dụng di động sẽ chủ động bắt lấy ngoại lệ này ngay tại tầng kết nối mạng.
-	
-- Thay vì văng lỗi màn hình đỏ, ứng dụng hiển thị một hộp thoại thông báo thông minh thông tin hệ thống đang bảo trì đường truyền gửi thư và tự động kích hoạt mã Token khôi phục giả lập là \texttt{"DEMO123"} để hỗ trợ cho việc Demo báo cáo đồ án. Sinh viên sử dụng mã này điền vào ô xác nhận cùng mật khẩu mới có cấu trúc kiểm tra định dạng Regex nghiêm ngặt (tối thiểu 6 ký tự gồm cả chữ và số) để thực hiện cập nhật cơ sở dữ liệu thành công.
-
-
-\subsubsection{Phân hệ Tiến trình học tập, Thông báo và Hồ sơ sinh viên}
-\indent Phân hệ này chịu trách nhiệm hiển thị thông tin trực quan hóa và đồng bộ hóa trạng thái học vụ của người học, bao gồm các thành phần:
-
-	
-- Thành phần trực quan tiến trình học tập (Academic Progress): Tại màn hình Trang chủ (\texttt{HomeScreen}), ứng dụng thực hiện phân tích số tín chỉ tích lũy hiện hành được thu thập từ trường dữ liệu \texttt{totalCreditsEarned} trong API nghiệp vụ. Hệ thống sử dụng widget \texttt{LinearProgressIndicator} để dựng đồ thị thanh ngang, tính toán động tỷ lệ phần trăm số môn đã hoàn thành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên. Màn hình cũng tự động phân giải danh sách các thẻ gợi ý bước đi tiếp theo cá nhân hóa (\texttt{AiRecommendation}) gửi về từ tầng phối hợp AI Agent.
-
+\subsubsection{Màn hình Quản lý tiến trình học tập (Mobile)}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
-	\caption{Giao diện quản lý Tiến trình tích lũy và Gợi ý học tập cá nhân hóa}
-	\label{fig:ui_mobile_home_progress}
+	\caption{Giao diện màn hình Quản lý tiến trình học tập trên phân hệ di động}
+	\label{fig:ui_mobile_khoa_hoc}
 \end{figure}
 
+\textbf{Mục đích:} Giúp người học theo dõi trực quan tổng số tín chỉ học phần tích lũy hiện hành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên và quan sát danh sách lộ trình gợi ý học tập tiếp theo được cá nhân hóa do AI Agent đề xuất.
 
-	
-- Thành phần Thông báo động (Dynamic Notification Badge): Ứng dụng kết nối lấy danh sách thông báo từ máy chủ, đếm số lượng các phần tử có trường trạng thái \texttt{isRead == false}. Số lượng thông báo chưa đọc này được hiển thị động thông qua widget \texttt{Stack} dưới dạng một hình tròn đỏ (Badge) nằm đè lên icon thông báo trên thanh \texttt{CustomAppBar}, hỗ trợ nút bấm gọi nhanh hàm \texttt{markAllNotificationsAsRead} bất đồng bộ để xóa toàn bộ badge thông báo.
-	
-- Thành phần Hồ sơ đa cấu trúc và đồng bộ dữ liệu đa phần (Multipart Profile): Hiển thị toàn bộ thông tin cá nhân và kết quả điểm số GPA của sinh viên dưới dạng bố cục lưới các thuộc tính rõ ràng. Khi sinh viên kích hoạt chế độ chỉnh sửa (\texttt{\_isEditing = true}), ứng dụng hiển thị các ô nhập liệu chuyên biệt, tích hợp hộp thoại chọn ngày dạng lịch (\texttt{showDatePicker}) cho các trường dữ liệu thời gian. Sinh viên thay đổi ảnh đại diện thông qua gói thư viện \texttt{ImagePicker}, hệ thống tự động đóng gói tệp tin ảnh từ bộ nhớ máy thành luồng dữ liệu nhị phân đa phần (\texttt{MultipartFile}) và thực hiện lệnh \texttt{http.MultipartRequest} dạng \texttt{PUT} để truyền tải trực tiếp và cập nhật lên máy chủ lưu trữ.
+Bao gồm:
+\begin{enumerate}
+	\item Khu vực hiển thị biểu đồ thanh ngang Linear Progress Bar phản ánh trực quan phần trăm hoàn thành chặng đường tích lũy.
+	\item Danh sách cuộn chứa cấu trúc các khối chức năng thẻ môn học (cards) được xếp chồng theo một cột dọc duy nhất.
+\end{enumerate}
 
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để kiểm tra thanh tiến độ và danh sách khuyến nghị học tập:}
+	\begin{enumerate}
+		\item Sinh viên truy cập vào màn hình Trang chủ (Home) để kiểm tra nhanh thanh tiến độ tích lũy tín chỉ học tập tổng quan của mình.
+		\item Hệ thống tự động phân tích dữ liệu điểm số từ cơ sở dữ liệu PostgreSQL để kết xuất đồ thị thanh ngang phản ánh phần trăm hoàn thành lộ trình đào tạo.
+		\item Sinh viên cuộn xuống dưới giao diện để xem chi tiết các thẻ khuyến nghị môn học và lộ trình học tập tối ưu tiếp theo do hệ thống cá nhân hóa.
+	\end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình Hồ sơ cá nhân sinh viên (Mobile)}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
-	\caption{Giao diện Hồ sơ sinh viên và Quản lý thông tin học vụ cá nhân}
-	\label{fig:ui_mobile_profile_info}
+	\caption{Giao diện màn hình Hồ sơ cá nhân sinh viên trên phân hệ di động}
+	\label{fig:ui_mobile_infomation}
 \end{figure}
+
+\textbf{Mục đích:} Hiển thị chi tiết toàn bộ thông tin định danh cá nhân học vụ của sinh viên bao gồm mã số sinh viên, ngành học, lớp học, ngày sinh, giới tính và kết quả điểm số GPA tổng kết hiện tại.
+
+Bao gồm:
+\begin{enumerate}
+	\item Khối hiển thị hình ảnh đại diện (Avatar) hình tròn lớn được đặt trang trọng ở vị trí trung tâm phía trên cùng.
+	\item Hệ thống mạng lưới các ô thuộc tính văn bản hiển thị chi tiết lý lịch trích ngang được phân bổ khoa học bên dưới.
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để tra cứu hồ sơ học tập cá nhân:}
+	\begin{enumerate}
+		\item Sinh viên truy cập vào phân hệ mục Hồ sơ để hệ thống tự động truy xuất dữ liệu từ cơ sở dữ liệu.
+		\item Người học thực hiện rà soát thông tin học vụ, lớp học và các cột điểm số hiện tại của bản thân được hiển thị trên giao diện.
+	\end{enumerate}
+	\item \textbf{Để cập nhật và đồng bộ thông tin mới:}
+	\begin{enumerate}
+		\item Khi muốn thay đổi các thông tin liên lạc cơ bản hoặc tải lên ảnh đại diện mới từ thiết bị, người dùng nhấn vào biểu tượng chỉnh sửa, nhập dữ liệu mới và thực hiện lưu thay đổi.
+		\item Ứng dụng ghi nhận dữ liệu mới, thực hiện đóng gói tệp tin và gọi API đồng bộ hóa dữ liệu trực tiếp về hệ quản trị cơ sở dữ liệu trung tâm.
+	\end{enumerate}
+\end{itemize}
