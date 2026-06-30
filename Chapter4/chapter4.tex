@@ -921,26 +921,123 @@ Bao gồm:
 	\end{enumerate}
 \end{itemize}
 
-\subsubsection{Màn hình AI Chatbot (Mobile)}
+\subsubsection{Màn hình Đăng ký (Mobile)}
 
-\indent Giao diện của phân hệ di động được thiết kế tối ưu cho màn hình dọc của thiết bị smartphone, tập trung vào việc sắp xếp các phần tử UI gọn gàng, hỗ trợ thao tác cuộn vuốt dễ dàng bằng một tay và đảm bảo trải nghiệm tương tác học vụ liền mạch cho sinh viên.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Sign_Up.jpg}
+	\caption{Giao diện Màn hình Đăng ký trên di động}
+	\label{fig:ui_mobile_register}
+\end{figure}
+
+\textbf{Mục đích:} Cung cấp biểu mẫu cho phép người dùng mới khởi tạo tài khoản cá nhân trên thiết bị di động để đăng nhập và sử dụng hệ thống LearningPath.
+
+Bao gồm:
+\begin{enumerate}
+	\item Các trường nhập dữ liệu: Họ và tên, Email, Mật khẩu.
+	\item Nút chức năng "Sign up".
+	\item Liên kết chuyển hướng nhanh "Login" (dành cho người dùng đã sở hữu tài khoản).
+	\item Nút điều hướng hình mũi tên quay lại đặt ở góc trên bên trái.
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để đăng ký tài khoản mới:}
+	\begin{enumerate}
+		\item Người dùng điền đầy đủ và chính xác các thông tin cá nhân vào từng ô nhập liệu tương ứng bao gồm Họ và tên, Email và Mật khẩu.
+		\item Nhấn nút "Sign up".
+		\item Hệ thống tiến hành kiểm tra tính hợp lệ của dữ liệu đầu vào, nếu hợp lệ sẽ khởi tạo tài khoản mới thành công trên hệ thống và chuyển hướng đến màn hình đăng nhập.
+	\end{enumerate}
+	\item \textbf{Để quay lại màn hình Đăng nhập:}
+	\begin{enumerate}
+		\item Nhấn chọn liên kết "Login" ở dưới cùng hoặc nút biểu tượng mũi tên quay lại ở góc trên bên trái để chuyển đổi giao diện nhanh chóng.
+	\end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình Đăng nhập (Mobile)}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Sign_In.jpg}
+	\caption{Giao diện Màn hình Đăng nhập trên di động}
+	\label{fig:ui_mobile_login}
+\end{figure}
+
+\textbf{Mục đích:} Xác thực danh tính của người dùng nhằm cấp quyền truy cập vào các tính năng chuyên sâu bên trong hệ thống trên phân hệ di động.
+
+Bao gồm:
+\begin{enumerate}
+	\item Biểu tượng logo hệ thống hình mũ cử nhân đặt tại trung tâm phía trên.
+	\item Các trường nhập liệu: Email và Password (Mật khẩu).
+	\item Hộp kiểm "Remember me" (Ghi nhớ phiên đăng nhập) và liên kết "Forgot password?" (Quên mật khẩu).
+	\item Nút chức năng "Login" (Đăng nhập).
+	\item Liên kết chuyển hướng "Register" (Đăng ký tài khoản mới).
+	\item Nút hủy bỏ thao tác hình chữ "X" ở góc trên bên trái.
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để truy cập vào hệ thống:}
+	\begin{enumerate}
+		\item Người dùng điền chính xác địa chỉ Email và Mật khẩu đã được đăng ký trước đó vào các ô tương ứng.
+		\item Tích chọn ô "Remember me" nếu muốn duy trì trạng thái đăng nhập cho những lần truy cập sau (tùy chọn).
+		\item Nhấn nút "Login" để hệ thống đối chiếu xác thực và điều hướng vào màn hình chính của ứng dụng.
+	\end{enumerate}
+	\item \textbf{Để xử lý khi gặp sự cố mật khẩu hoặc chưa có tài khoản:}
+	\begin{enumerate}
+		\item Nếu không nhớ mật khẩu, nhấn vào liên kết "Forgot password?" để hệ thống chuyển đến giao diện khôi phục.
+		\item Nếu chưa có tài khoản, nhấn vào liên kết "Register" để được chuyển hướng đến biểu mẫu đăng ký.
+	\end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình Quên mật khẩu (Mobile)}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{images/Forgot_Password.jpg}
+	\caption{Giao diện Màn hình Quên mật khẩu trên di động}
+	\label{fig:ui_mobile_forgot_password}
+\end{figure}
+
+\textbf{Mục đích:} Hỗ trợ người dùng gửi yêu cầu cấp lại mật khẩu mới thông qua liên kết khôi phục gửi tới thư điện tử cá nhân.
+
+Bao gồm:
+\begin{enumerate}
+	\item Trường nhập liệu: Email Address (Địa chỉ Email).
+	\item Nút chức năng "Send Reset Link" (Gửi liên kết đặt lại mật khẩu).
+	\item Nút điều hướng hình mũi tên quay lại góc trên bên trái.
+\end{enumerate}
+
+\textbf{Cách sử dụng:}
+\begin{itemize}
+	\item \textbf{Để gửi yêu cầu khôi phục mật khẩu từ hệ thống:}
+	\begin{enumerate}
+		\item Người dùng nhập chính xác địa chỉ Email đã dùng để đăng ký tài khoản vào ô dữ liệu.
+		\item Nhấn nút "Send Reset Link".
+		\item Hệ thống ghi nhận, tự động gửi đường dẫn liên kết đặt lại mật khẩu đến hòm thư điện tử của người dùng và hiển thị thông báo kiểm tra thư.
+	\end{enumerate}
+	\item \textbf{Để hủy bỏ thao tác và quay về màn hình trước:}
+	\begin{enumerate}
+		\item Nhấn chọn nút biểu tượng mũi tên quay lại ở góc trên bên trái màn hình để quay trở về giao diện Đăng nhập nhanh chóng.
+	\end{enumerate}
+\end{itemize}
+
+\subsubsection{Màn hình AI Chatbot (Mobile)}
 
 \begin{figure}[H]
 	\centering
 	\begin{minipage}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_Out.jpg}
-		
 		\footnotesize a) Chế độ Khách (Không lưu lịch sử)
 	\end{minipage}
 	\hfill
 	\begin{minipage}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{images/AI_Chat_Sign_In.jpg}
-		
 		\footnotesize b) Chế độ Thành viên (Có lịch sử chat)
 	\end{minipage}
-	\caption{Giao diện màn hình AI Chatbot trên phân hệ di động}
+	\caption{Giao diện Màn hình AI Chatbot trên phân hệ di động}
 	\label{fig:ui_mobile_chatbot}
 \end{figure}
 
@@ -948,49 +1045,53 @@ Bao gồm:
 
 Bao gồm:
 \begin{enumerate}
-	\item Khung hiển thị dòng thời gian tin nhắn được sắp xếp tăng dần theo chiều dọc màn hình.
-	\item Thanh nhập liệu cố định chắc chắn ở đáy giao diện tích hợp cơ chế tự động thu nhỏ vùng hiển thị khi bàn phím ảo xuất hiện.
-	\item Trình đơn kéo Sidebar dạng Drawer được tích hợp ẩn ở cạnh trái (dành riêng cho chế độ Thành viên).
+	\item Ô nhập câu hỏi "Nhắn tin cho AI..." và nút gửi hình mũi tên hướng lên (phía dưới).
+	\item Khung hộp thoại màu cam cảnh báo và nút chức năng "Đăng nhập" ở góc trên bên phải (dành riêng cho chế độ Khách ở Hình a).
+	\item Trình đơn kéo Sidebar dạng Drawer với biểu tượng ba dấu gạch ngang đặt tại góc trên bên trái (dành riêng cho chế độ Thành viên ở Hình b).
+	\item Thanh điều hướng phía đáy màn hình (Bottom Navigation Bar) gồm các mục: AI Chat, Home và Forum.
 \end{enumerate}
 
 \textbf{Cách sử dụng:}
 \begin{itemize}
-	\item \textbf{Để nhận tư vấn trực tiếp từ AI Agent:}
+	\item \textbf{Để đặt câu hỏi cho AI Agent:}
 	\begin{enumerate}
-		\item Người dùng tiến hành nhập câu hỏi hoặc yêu cầu tư vấn học tập vào khung văn bản ở đáy màn hình.
-		\item Chọn nút "Gửi". Hệ thống AI Agent phân tích dữ liệu thực tế, truy xuất đồ thị tri thức LightRAG và thực hiện hiển thị câu trả lời tức thời dạng dòng (streaming).
+		\item Nhập nội dung câu hỏi hoặc yêu cầu tư vấn học tập vào ô nhập liệu ở phía dưới màn hình.
+		\item Nhấn nút gửi hình mũi tên.
+		\item Hệ thống phân tích câu hỏi, truy xuất đồ thị tri thức LightRAG và phản hồi câu trả lời tức thời dạng dòng (streaming) ngay trong khu vực hội thoại.
 	\end{enumerate}
-	\item \textbf{Để xem lại lịch sử các phiên tương tác cũ:}
+	\item \textbf{Để điều phối trạng thái tài khoản và xem lại lịch sử:}
 	\begin{enumerate}
-		\item Ở trạng thái đã đăng nhập (Thành viên), người dùng vuốt từ cạnh trái hoặc chạm vào nút menu để mở rộng thanh Drawer.
-		\item Nội dung các cuộc chuyện cũ sẽ được lưu trữ tự động và hiển thị đầy đủ trên menu để sinh viên có thể xem lại.
-	\end{itemize}
-\end{itemize}
+		\item Nếu đang ở chế độ Khách, chọn nút "Đăng nhập" ở góc trên bên phải để chuyển hướng nhanh tới biểu mẫu xác thực danh tính.
+		\item Ở trạng thái đã đăng nhập (Thành viên), chọn nút biểu tượng menu ở góc trên bên trái để mở rộng thanh Drawer và chọn xem lại toàn bộ nội dung của phiên trò chuyện cũ.
+	\end{enumerate}
+\\end{itemize}
 
 \subsubsection{Màn hình Quản lý tiến trình học tập (Mobile)}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{images/Khoa_Hoc.jpg}
-	\caption{Giao diện màn hình Quản lý tiến trình học tập trên phân hệ di động}
+	\caption{Giao diện Màn hình Quản lý tiến trình học tập trên phân hệ di động}
 	\label{fig:ui_mobile_khoa_hoc}
 \end{figure}
 
-\textbf{Mục đích:} Giúp người học theo dõi trực quan tổng số tín chỉ học phần tích lũy hiện hành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc của Trường Đại học Khoa học Tự nhiên và quan sát danh sách lộ trình gợi ý học tập tiếp theo được cá nhân hóa do AI Agent đề xuất.
+\textbf{Mục đích:} Giúp người học theo dõi trực quan tổng số tín chỉ học phần tích lũy hiện hành dựa trên cột mốc giới hạn 138 tín chỉ tốt nghiệp bắt buộc và quan sát danh sách lộ trình gợi ý học tập tiếp theo do AI Agent đề xuất.
 
 Bao gồm:
 \begin{enumerate}
-	\item Khu vực hiển thị biểu đồ thanh ngang Linear Progress Bar phản ánh trực quan phần trăm hoàn thành chặng đường tích lũy.
-	\item Danh sách cuộn chứa cấu trúc các khối chức năng thẻ môn học (cards) được xếp chồng theo một cột dọc duy nhất.
+	\item Khung tiến độ học tập "Academic Process" tích hợp tổng số tín chỉ tích lũy (Total Credits), số tín chỉ tốt nghiệp bắt buộc (138 Required Credits) và thanh tiến trình đồ họa "Process to Graduation".
+	\item Khung khuyến nghị học phần "Recommended Next Steps" hiển thị danh sách các thẻ môn học do AI Agent gợi ý dựa trên tiến độ cá nhân.
+	\item Thanh thanh tiêu đề phía trên gồm biểu tượng Hồ sơ cá nhân (trái), tên hệ thống LearningPath (giữa), nút Thông báo và Đăng xuất (phải).
+	\item Thanh điều hướng phía dưới (Bottom Navigation Bar) với mục "Home" đang được kích hoạt.
 \end{enumerate}
 
 \textbf{Cách sử dụng:}
 \begin{itemize}
-	\item \textbf{Để kiểm tra thanh tiến độ và danh sách khuyến nghị học tập:}
+	\item \textbf{Để kiểm tra thanh tiến độ và danh sách khuyến nghị học phần:}
 	\begin{enumerate}
-		\item Sinh viên truy cập vào màn hình Trang chủ (Home) để kiểm tra nhanh thanh tiến độ tích lũy tín chỉ học tập tổng quan của mình.
-		\item Hệ thống tự động phân tích dữ liệu điểm số từ cơ sở dữ liệu PostgreSQL để kết xuất đồ thị thanh ngang phản ánh phần trăm hoàn thành lộ trình đào tạo.
-		\item Sinh viên cuộn xuống dưới giao diện để xem chi tiết các thẻ khuyến nghị môn học và lộ trình học tập tối ưu tiếp theo do hệ thống cá nhân hóa.
+		\item Nhấn chọn mục "Home" trên thanh điều hướng phía dưới để truy cập vào màn hình chính.
+		\item Hệ thống tự động phân tích dữ liệu điểm số từ cơ sở dữ liệu PostgreSQL để kết xuất phần trăm hoàn thành lên đồ thị thanh tiến trình trực quan.
+		\item Cuộn xuống phía dưới giao diện tại vùng "Recommended Next Steps" để xem chi tiết các thẻ gợi ý học tập và lộ trình tối ưu tiếp theo.
 	\end{enumerate}
 \end{itemize}
 
@@ -999,28 +1100,31 @@ Bao gồm:
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{images/Infomation.jpg}
-	\caption{Giao diện màn hình Hồ sơ cá nhân sinh viên trên phân hệ di động}
+	\caption{Giao diện Màn hình Hồ sơ cá nhân sinh viên trên phân hệ di động}
 	\label{fig:ui_mobile_infomation}
 \end{figure}
 
-\textbf{Mục đích:} Hiển thị chi tiết toàn bộ thông tin định danh cá nhân học vụ của sinh viên bao gồm mã số sinh viên, ngành học, lớp học, ngày sinh, giới tính và kết quả điểm số GPA tổng kết hiện tại.
+\textbf{Mục đích:} Hiển thị chi tiết toàn bộ thông tin định danh cá nhân học vụ của sinh viên và hỗ trợ cập nhật, chỉnh sửa thông tin liên lạc.
 
 Bao gồm:
 \begin{enumerate}
-	\item Khối hiển thị hình ảnh đại diện (Avatar) hình tròn lớn được đặt trang trọng ở vị trí trung tâm phía trên cùng.
-	\item Hệ thống mạng lưới các ô thuộc tính văn bản hiển thị chi tiết lý lịch trích ngang được phân bổ khoa học bên dưới.
+	\item Vùng hiển thị ảnh đại diện (Avatar) mặc định hình tròn đặt tập trung tại trung tâm phía trên đi kèm họ tên đầy đủ của sinh viên.
+	\item Danh mục thông tin cơ bản "Basic Info" hiển thị chi tiết các trường: Số điện thoại (Phone), Thư điện tử (Email), Ngày sinh (Birthday), Nơi sinh (Place of Birth), Mã số sinh viên (Student Code) và Chức vụ hiện tại (Current Position).
+	\item Danh mục thông tin học vụ "Academic Info" hiển thị chi tiết các trường: Khóa học (Course) và Hệ đào tạo (Training Level).
+	\item Nút chức năng hình chiếc bút chỉnh sửa đặt tại góc trên bên phải giao diện.
 \end{enumerate}
 
 \textbf{Cách sử dụng:}
 \begin{itemize}
 	\item \textbf{Để tra cứu hồ sơ học tập cá nhân:}
 	\begin{enumerate}
-		\item Sinh viên truy cập vào phân hệ mục Hồ sơ để hệ thống tự động truy xuất dữ liệu từ cơ sở dữ liệu.
-		\item Người học thực hiện rà soát thông tin học vụ, lớp học và các cột điểm số hiện tại của bản thân được hiển thị trên giao diện.
+		\item Người dùng truy cập vào màn hình hồ sơ cá nhân thông qua biểu tượng tài khoản.
+		\item Hệ thống tự động truy xuất từ cơ sở dữ liệu và hiển thị đầy đủ toàn bộ lý lịch học tập, mã số sinh viên, khóa học hiện hành lên giao diện.
 	\end{enumerate}
-	\item \textbf{Để cập nhật và đồng bộ thông tin mới:}
+	\item \textbf{Để cập nhật thông tin mới:}
 	\begin{enumerate}
-		\item Khi muốn thay đổi các thông tin liên lạc cơ bản hoặc tải lên ảnh đại diện mới từ thiết bị, người dùng nhấn vào biểu tượng chỉnh sửa, nhập dữ liệu mới và thực hiện lưu thay đổi.
-		\item Ứng dụng ghi nhận dữ liệu mới, thực hiện đóng gói tệp tin và gọi API đồng bộ hóa dữ liệu trực tiếp về hệ quản trị cơ sở dữ liệu trung tâm.
+		\item Nhấn vào biểu tượng chiếc bút chỉnh sửa ở góc trên bên phải màn hình.
+		\item Thay đổi các trường thông tin liên lạc cơ bản hoặc thực hiện tải tệp ảnh đại diện mới từ bộ nhớ của thiết bị.
+		\item Xác nhận lưu dữ liệu để hệ thống đóng gói tệp tin nhị phân và gọi API đồng bộ hóa thông tin trực tiếp về cơ sở dữ liệu trung tâm.
 	\end{enumerate}
 \end{itemize}
