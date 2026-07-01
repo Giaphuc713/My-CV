@@ -427,22 +427,20 @@
 
 \indent Phương pháp thứ hai - phân đoạn theo cấu trúc tự nhiên (structure-aware chunking) - khai thác các dấu hiệu cấu trúc sẵn có trong tài liệu như tiêu đề, tiêu đề phụ, danh sách có đánh số, hay các đoạn văn được phân tách bởi ký tự xuống dòng kép. Hệ thống sử dụng các biểu thức chính quy (regex) kết hợp với phân tích cú pháp nhẹ (lightweight parsing) để nhận diện ranh giới tự nhiên này. Ưu điểm của phương pháp này là mỗi đoạn văn giữ nguyên tính nguyên vẹn ngữ nghĩa - ví dụ, toàn bộ một mục trong tài liệu kỹ thuật sẽ không bị tách ra giữa chừng.
 
-\subsubsection{Nghiên cứu lựa chọn mô hình nhúng (Embedding Model) và giải pháp triển khai Production}
+\subsubsection{Lựa chọn mô hình nhúng (Embedding Model)}
 
 \indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở intfloat/multilingual-e5-large-instruct được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn VN-MTEB (Vietnamese Massive Text Embedding Benchmark) công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm:
+
+
 	
 - Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning): Điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
 	
 - Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment): Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
 	
-- Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu: Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+- Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu: Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+
 
 \indent Về mặt kiến trúc vận hành thực tế hệ thống, mô hình nhúng mở multilingual-e5-large-instruct sở hữu dung lượng tham số ở mức trung bình (560 triệu tham số) \cite{multilingual_e5}, mở ra hai kịch bản triển khai linh hoạt đáp ứng hoàn hảo từng môi trường hạ tầng:
-
-- Môi trường phát triển và thử nghiệm (Local Deployment): Mô hình cho phép tải trực tiếp về phần cứng cá nhân thông qua thư viện sentence-transformers và thực hiện xử lý vector hóa offline \cite{multilingual_e5}. Cơ chế này mang lại tính độc lập và tính toàn vẹn cao (Self-contained) cho đồ án. Khi hội đồng hoặc giảng viên sao chép mã nguồn, hệ thống có thể biên dịch và chạy ngay lập tức mà không cần kết nối mạng bên ngoài, không tốn chi phí duy trì token và loại bỏ sự phụ thuộc vào API Key của bên thứ ba \cite{multilingual_e5}.
-
-- Môi trường vận hành thực tế (Production Hosting API): Trong môi trường vận hành thực tế, mô hình nhúng đa ngôn ngữ E5 được tích hợp trực tiếp và chạy chung với phân hệ máy chủ LightRAG thành một dịch vụ trung tâm thống nhất. Cấu hình này cho phép cả hai phân hệ ứng dụng Web và Mobile gọi chung vào một nơi duy nhất để xử lý dữ liệu, đảm bảo năng lực vector hóa và truy xuất ngữ cảnh diễn ra hoàn toàn đồng bộ, tiết kiệm tài nguyên hệ thống và đáp ứng tốt yêu cầu xử lý thời gian thực.
-
 \clearpage
 \subsection{Cơ chế trích xuất thực thể và xây dựng quan hệ}
 
@@ -454,7 +452,7 @@
 
 \indent Nhiệm vụ 1: Nhận diện thực thể (Entity Extraction). Mô hình được yêu cầu xác định tất cả các thực thể quan trọng xuất hiện trong chunk. Đối với mỗi thực thể, LLM phải trích xuất các thuộc tính cốt lõi bao gồm tên định danh (Entity Name), loại thực thể (Entity Type) như PERSON, ORGANIZATION, CONCEPT, EVENT,... và một đoạn văn bản ngắn mô tả (Entity Description) giải thích vai trò, đặc điểm và ngữ cảnh của thực thể đó. Khác với NER truyền thống \cite{ner_survey}, phương pháp này khai thác tối đa khả năng hiểu ngữ nghĩa sâu của LLM để tạo ra các mô tả tri thức phong phú.
 
-\indent Nhiệm vụ 2: Trích xuất quan hệ (Relation Extraction). Sau khi xác định các thực thể, mô hình thực hiện quét các cặp thực thể để tìm kiếm các mối liên kết có ý nghĩa. Các thuộc tính trích xuất bao gồm hai thực thể tham gia (Source \& Target), các từ khóa định nghĩa bản chất liên kết (Relationship Keywords) và mô tả chi tiết (Relationship Description) lý do tại sao hai thực thể này có liên quan đến nhau dựa trên bằng chứng trong văn bản.
+\indent Nhiệm vụ 2: Trích xuất quan hệ (Relation Extraction). Khác với các hệ thống đồ thị tri thức truyền thống chỉ sử dụng cấu trúc bộ ba (triple), hệ thống mở rộng biểu diễn thành cấu trúc bộ tứ (quadruple) với các thuộc tính. Sau khi xác định các thực thể, mô hình thực hiện quét các cặp thực thể để tìm kiếm các mối liên kết có ý nghĩa. Một quadruple trích xuất bao gồm hai thực thể tham gia (Source \& Target), các từ khóa định nghĩa bản chất liên kết (Relationship Keywords) và mô tả chi tiết (Relationship Description) lý do tại sao hai thực thể này có liên quan đến nhau dựa trên bằng chứng trong văn bản.
 
 \subsubsection{Cơ chế Gleaning: Tự chỉnh sửa và Thu nhặt bổ sung}
 
@@ -541,41 +539,39 @@
 	\label{fig:flow_prompt_dispatch}
 \end{figure}
 
-\subsection{Kiểm chứng tri thức bằng chuẩn SHACL và cơ chế Staging}
+\subsection{Kiểm chứng tri thức bằng chuẩn SHACL và đối chiếu bằng chứng xác định}
 
-\indent Để đảm bảo tính toàn vẹn và chất lượng của dữ liệu tri thức trước khi đưa vào đồ thị chính thức, hệ thống tích hợp một bộ kiểm chứng lấy cảm hứng từ chuẩn SHACL (Shapes Constraint Language) \cite{shacl_w3c}. SHACL cung cấp một ngôn ngữ để mô tả các ràng buộc về cấu trúc và ngữ nghĩa của dữ liệu đồ thị, cho phép tự động hóa việc phát hiện các lỗi phổ biến trong kết quả trích xuất bằng mô hình ngôn ngữ lớn \cite{shacl_wikidata}. Toàn bộ logic kiểm chứng được hiện thực trong mô-đun \texttt{lightrag/shacl}, tổ chức thành một quy trình ba lớp bảo vệ (3-Guard) thực thi tuần tự trên kết quả trích xuất của từng phân đoạn.
+\indent Để đảm bảo tính toàn vẹn và chất lượng của dữ liệu tri thức trước khi đưa vào đồ thị chính thức, hệ thống tích hợp một bộ kiểm chứng lấy cảm hứng từ chuẩn SHACL (Shapes Constraint Language) \cite{shacl_w3c}. SHACL cung cấp một ngôn ngữ để mô tả các ràng buộc về cấu trúc và ngữ nghĩa của dữ liệu đồ thị, cho phép tự động hóa việc phát hiện các lỗi phổ biến trong kết quả trích xuất bằng mô hình ngôn ngữ lớn \cite{shacl_wikidata}. Toàn bộ logic kiểm chứng được hiện thực trong mô-đun \texttt{lightrag/shacl}, tổ chức thành một quy trình đánh giá nghiêm ngặt và đối chiếu bằng chứng (deterministic text-grounding) thực thi trên kết quả trích xuất của từng phân đoạn.
 
 \indent Lớp bảo vệ thứ nhất (Guard 1) -- Khử trùng lặp. Hệ thống đối chiếu mã định danh phân đoạn (\texttt{chunk\_id}) với kho lưu trữ hiện có. Nếu phân đoạn đã tồn tại, hệ thống chuyển sang trạng thái nạp lại (\texttt{RE\_INGEST}) và điều chỉnh cách tính bậc kết nối của thực thể để tránh cộng dồn trùng lặp; ngược lại, phân đoạn mới được cho phép tiếp tục (\texttt{PROCEED}). Lớp này ngăn việc xử lý lại dữ liệu dư thừa và bảo vệ tính toàn vẹn của đồ thị.
 
-\indent Lớp bảo vệ thứ hai (Guard 2) -- Kiểm tra cấu trúc và đối chiếu bằng chứng. Đây là trọng tâm của quy trình. Mỗi thực thể và quan hệ được kiểm tra qua một tập các định nghĩa hình dạng (Shapes). Đối với thực thể, các quy tắc bao gồm: bắt buộc có tên hợp lệ (\texttt{missing\_name}, mức lỗi), bắt buộc có kiểu xác định khác ``UNKNOWN'' (\texttt{missing\_type}, mức lỗi), bắt buộc có siêu dữ liệu nguồn gốc \texttt{source\_id} (\texttt{no\_provenance}, mức lỗi), và cảnh báo thực thể bị cô lập khi số kết nối nhỏ hơn ngưỡng tối thiểu (\texttt{isolated\_entity}). Đáng chú ý, số kết nối của một thực thể được tính bằng cách kết hợp bậc cục bộ (trong phạm vi phân đoạn) với bậc toàn cục truy vấn đồng thời từ cơ sở dữ liệu đồ thị Neo4j, nhằm tránh báo cô lập sai đối với những thực thể đã có liên kết ở các phân đoạn trước. Đối với quan hệ, hệ thống kiểm tra sự tồn tại của thực thể nguồn và đích, phát hiện quan hệ tự trỏ (\texttt{self\_loop}), độ dài tối thiểu của mô tả (mặc định 15 ký tự) và dải giá trị hợp lệ của trọng số trong khoảng $[0, 1]$. Ngoài ra, một bộ chặn ngôn ngữ (language guard) sẽ từ chối mọi giá trị chứa ký tự nằm ngoài bảng chữ Latinh và tiếng Việt (\texttt{contains\_foreign\_script}), loại bỏ các trường hợp mô hình ngôn ngữ vô tình sinh ra ký tự ngoại lai. Mỗi vi phạm được gán một trong ba mức nghiêm trọng: lỗi (error), cảnh báo (warning) hoặc thông tin (info).
+\indent Lớp bảo vệ thứ hai (Guard 2) -- Kiểm tra cấu trúc và đối chiếu bằng chứng. Đây là trọng tâm của quy trình. Mỗi thực thể và quan hệ được kiểm tra qua một tập các định nghĩa hình dạng (Shapes). Đối với thực thể, các quy tắc bao gồm: bắt buộc có tên hợp lệ (\texttt{missing\_name}, mức lỗi), bắt buộc có kiểu xác định khác ``UNKNOWN'' (\texttt{missing\_type}, mức lỗi), bắt buộc có siêu dữ liệu nguồn gốc \texttt{source\_id} (\texttt{no\_provenance}, mức lỗi), và cảnh báo thực thể bị cô lập khi số kết nối nhỏ hơn ngưỡng tối thiểu (\texttt{isolated\_entity}). Đáng chú ý, số kết nối của một thực thể được tính bằng cách kết hợp bậc cục bộ (trong phạm vi phân đoạn) với bậc toàn cục truy vấn đồng thời từ cơ sở dữ liệu đồ thị, nhằm tránh báo cô lập sai đối với những thực thể đã có liên kết ở các phân đoạn trước. Đối với quan hệ, hệ thống kiểm tra sự tồn tại của thực thể nguồn và đích, phát hiện quan hệ tự trỏ (\texttt{self\_loop}), độ dài tối thiểu của mô tả (mặc định 15 ký tự) và dải giá trị hợp lệ của trọng số trong khoảng $[0, 1]$. Ngoài ra, một bộ chặn ngôn ngữ (language guard) sẽ từ chối mọi giá trị chứa ký tự nằm ngoài bảng chữ Latinh và tiếng Việt (\texttt{contains\_foreign\_script}), loại bỏ các trường hợp mô hình ngôn ngữ vô tình sinh ra ký tự ngoại lai. Mỗi vi phạm được gán một trong ba mức nghiêm trọng: lỗi (error), cảnh báo (warning) hoặc thông tin (info).
 
 \indent Điểm khác biệt cốt lõi của bộ kiểm chứng là cơ chế đối chiếu bằng chứng văn bản một cách xác định (deterministic text-grounding). Thay vì hỏi mô hình ngôn ngữ ``thực thể này có trong văn bản không?'' rồi tin vào câu trả lời, hệ thống tự tính toán bằng chứng: trước tiên tìm khớp chính xác chuỗi con (điểm số 1.0), nếu không có thì dùng so khớp mờ (fuzzy matching qua \texttt{rapidfuzz} hoặc \texttt{difflib}) với ngưỡng chấp nhận 0.9. Kết quả trả về không phải một ý kiến mà là chính đoạn văn bản khớp được kèm theo vị trí ký tự trong phân đoạn -- đóng vai trò bằng chứng có thể kiểm tra lại. Đối với quan hệ, hệ thống yêu cầu cả hai đầu mút đều có bằng chứng và đồng xuất hiện trong cùng một cửa sổ 200 ký tự, qua đó củng cố độ tin cậy rằng quan hệ là có thật chứ không phải hai lần nhắc rời rạc.
 
-\indent Quyết định cuối cùng cho mỗi thực thể và quan hệ được tổng hợp tại một tầng quyết định thuần túy theo nguyên tắc phân cấp niềm tin: các kiểm tra xác định (cấu trúc và bằng chứng văn bản) giữ quyền quyết định, còn mô hình ngôn ngữ phản biện (critic LLM) chỉ được phép nâng mức xem xét chứ không được tự ý chấp nhận. Cụ thể, nếu vi phạm cấu trúc ở mức lỗi thì dữ liệu bị đề xuất từ chối (\texttt{REJECTED}); nếu hợp lệ về cấu trúc và có bằng chứng văn bản thì được phê duyệt (\texttt{APPROVED}); nếu hợp lệ về cấu trúc nhưng thiếu bằng chứng xác định, dữ liệu chỉ được đưa vào danh sách chờ xem xét (\texttt{PENDING\_REVIEW}) khi độ tin cậy của mô hình phản biện đạt ngưỡng 0.8, ngược lại vẫn bị từ chối. Các thực thể bị cô lập hoặc quan hệ tự trỏ cũng được tự động chuyển sang trạng thái chờ xem xét.
+\indent Quyết định cuối cùng cho mỗi thực thể và quan hệ được tổng hợp tại tầng ra quyết định thuần túy theo nguyên tắc phân cấp niềm tin: các kiểm tra xác định (cấu trúc và bằng chứng văn bản) giữ quyền quyết định tuyệt đối, thay vì hoàn toàn phụ thuộc vào điểm số tự tin của LLM phản biện. Cụ thể, nếu vi phạm cấu trúc ở mức lỗi, dữ liệu bị từ chối (\texttt{REJECTED}); nếu hợp lệ về cấu trúc và có bằng chứng văn bản xác định, dữ liệu được phê duyệt (\texttt{APPROVED}); nếu hợp lệ về cấu trúc nhưng thiếu bằng chứng (ví dụ suy luận ngầm ẩn), dữ liệu chỉ được đưa vào trạng thái chờ xem xét (\texttt{PENDING\_REVIEW}) khi độ tin cậy của LLM phản biện đạt ngưỡng 0.8. Nghĩa là, LLM chỉ được phép đẩy các trường hợp ranh giới vào diện xem xét, chứ không bao giờ được quyền tự ý chấp nhận một tri thức vô căn cứ.
 
-\indent Kết quả kiểm chứng trực tiếp điều hướng dữ liệu vào vùng đệm Staging thay vì hợp nhất ngay vào đồ thị chính thức. Mỗi mục dữ liệu được lưu kèm danh sách vi phạm (\texttt{shacl\_violations}), cờ hợp lệ (\texttt{shacl\_pass}), trạng thái đề xuất (\texttt{status\_suggestion}) và bằng chứng đối chiếu (\texttt{grounding}). Lớp bảo vệ thứ ba (Guard 3) tổng hợp báo cáo trên toàn bộ phân đoạn và chỉ đánh dấu sẵn sàng nạp vào đồ thị (\texttt{guard3\_staging\_ready}) khi không còn bất kỳ mục nào bị từ chối. Hình~\ref{fig:flow_shacl_3guard} minh họa toàn bộ quy trình ba lớp bảo vệ. Sự kết hợp giữa kiểm chứng theo Shapes, đối chiếu bằng chứng xác định và cơ chế Staging tạo nên một quy trình kiểm soát chất lượng chặt chẽ, vừa tự động phát hiện sai sót của mô hình ngôn ngữ, vừa cung cấp nhật ký minh bạch để người quản trị can thiệp, chỉnh sửa và phê duyệt, qua đó bảo đảm đồ thị tri thức cuối cùng luôn nhất quán và đáng tin cậy.
+\indent Kết quả kiểm chứng điều hướng trực tiếp quá trình hợp nhất dữ liệu vào đồ thị. Các mục bị từ chối (\texttt{REJECTED}) sẽ bị loại bỏ ngay lập tức, ngăn chặn việc làm ô nhiễm đồ thị. Các mục hợp lệ (\texttt{APPROVED}) được hợp nhất bình thường. Những mục chờ xem xét (\texttt{PENDING\_REVIEW}) tạm thời được chấp nhận nhưng bị gắn cờ cảnh báo (\texttt{shacl\_review}) trong dữ liệu, sẵn sàng cho các đợt rà soát. Việc lưu vết minh bạch từng quyết định (kèm theo đoạn văn bản làm bằng chứng) đảm bảo rằng đồ thị luôn có cơ sở vững chắc và đáng tin cậy. Hình~\ref{fig:flow_shacl_3guard} minh họa quy trình kiểm chứng dựa trên SHACL.
 
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.8, transform shape]
 		% Nodes
 		\node (in) [startstop, text width=5.5cm] {Thực thể \& Quan hệ trích xuất \\ \footnotesize(theo từng phân đoạn)};
-		\node (g1) [decision, below=1cm of in, text width=3cm] {Guard 1: \texttt{chunk\_id} đã tồn tại?};
+		\node (g1) [decision, below=1cm of in, text width=3cm] {Kiểm tra \texttt{chunk\_id} đã tồn tại?};
 		\node (proceed) [smallbox, below left=1.1cm and 1.3cm of g1, text width=3.6cm] {PROCEED \\ \footnotesize(phân đoạn mới, tính bậc cộng dồn)};
 		\node (reingest) [smallbox, below right=1.1cm and 1.3cm of g1, text width=3.6cm] {RE\_INGEST \\ \footnotesize(đã tồn tại: nạp lại, tính bậc theo max)};
 
 		\node (g2box) [groupbox, below=3.7cm of g1, minimum width=11cm, minimum height=2.6cm] (g2) {};
-		\node [above right=1mm of g2.north west, anchor=south west, font=\small\bfseries] {Guard 2: Kiểm tra cấu trúc + Đối chiếu bằng chứng};
+		\node [above right=1mm of g2.north west, anchor=south west, font=\small\bfseries] {Kiểm tra cấu trúc \& Đối chiếu bằng chứng};
 		\node (shapes) [smallbox, text width=4.6cm] at ($(g2.center)+(-2.7cm,0)$) {SHACL Shapes \\ \footnotesize(name, type, isolated, provenance, weight, foreign-script)};
 		\node (ground) [smallbox, text width=4.6cm] at ($(g2.center)+(2.7cm,0)$) {Grounding xác định \\ \footnotesize(exact + fuzzy $\ge$ 0.9, span bằng chứng)};
 
 		\node (dec) [decision, below=1.5cm of g2, text width=3.2cm] {\texttt{shacl\_pass} \& grounded?};
 
-		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=green!8] {APPROVED};
-		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=yellow!12] {PENDING\_REVIEW};
-		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=red!8] {REJECTED};
-
-		\node (staging) [process, below=1.3cm of pending, text width=5.5cm] {Vùng Staging + Nhật ký kiểm chứng \\ \footnotesize(Guard 3: staging\_ready)};
+		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=green!8] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
+		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=yellow!12] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
+		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=red!8] {REJECTED \\ \footnotesize(Loại bỏ)};
 
 		% Arrows
 		\draw [arrow] (in) -- (g1);
@@ -587,11 +583,8 @@
 		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Đủ bằng chứng} (approved);
 		\draw [arrow] (dec) -- node[anchor=west, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending);
 		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Lỗi cấu trúc} (rejected);
-		\draw [arrow] (approved) |- (staging);
-		\draw [arrow] (pending) -- (staging);
-		\draw [arrow] (rejected) |- (staging);
 	\end{tikzpicture}
-	\caption{Quy trình kiểm chứng tri thức ba lớp bảo vệ (3-Guard) dựa trên SHACL và đối chiếu bằng chứng}
+	\caption{Quy trình kiểm chứng tri thức SHACL và đối chiếu bằng chứng xác định}
 	\label{fig:flow_shacl_3guard}
 \end{figure}
 
@@ -1287,5 +1280,13 @@ Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) được s�
 
 Đánh giá hiệu năng điều phối (Agentic Metrics).
 Đo lường độ chính xác trong việc điều phối luồng xử lý (Routing Accuracy) của Tác nhân Orchestrator và Tốc độ phản hồi trung bình (Average Latency) từ lúc nhận câu hỏi đến khi xuất ra câu trả lời.
+
+
+
+
+
+
+
+
 
 \clearpage
