@@ -32,33 +32,6 @@ UEH AI Chatbot (Đại học Kinh tế TP.HCM) là một trong những chatbot �
 
 Ngoài ra, phần lớn các trường đại học tại Việt Nam hiện nay, bao gồm cả Trường Đại học Khoa học Tự nhiên (HCMUS), chủ yếu cung cấp thông tin chương trình đào tạo, đề cương môn học và quy chế học vụ thông qua các cổng thông tin trực tuyến dạng tĩnh. Sinh viên phải tự tra cứu thủ công từ nhiều nguồn rời rạc như file PDF, trang web của khoa và hệ thống quản lý đào tạo. Mô hình này hoàn toàn thiếu cơ chế tương tác, không có khả năng suy luận hay tổng hợp thông tin tự động, khiến sinh viên gặp nhiều khó khăn trong việc hình dung bức tranh tổng thể về lộ trình học tập.
 
-\subsection{Phân tích so sánh và định vị đề tài}
-
-Bảng~\ref{tab:so_sanh_he_thong} tổng hợp so sánh các hệ thống trên dựa theo năm tiêu chí kỹ thuật cốt lõi. Qua đó có thể nhận thấy, chưa có hệ thống nào đồng thời tích hợp cả đồ thị tri thức, kiến trúc đa tác nhân, khả năng suy luận đa bước và cơ chế kiểm chứng tri thức. Đây chính là khoảng trống mà đề tài hướng đến giải quyết.
-
-\begin{table}[H]
-\centering
-\caption{So sánh các hệ thống hỗ trợ tư vấn học vụ hiện có}
-\label{tab:so_sanh_he_thong}
-\small
-\begin{tabular}{|l|l|c|c|c|c|}
-\hline
-\textbf{Hệ thống} & \textbf{Công nghệ lõi} & \textbf{KG} & \textbf{Multi-Agent} & \textbf{Suy luận} & \textbf{Kiểm chứng} \\
- & & & & \textbf{đa bước} & \textbf{KG} \\
-\hline
-Pounce (GSU) & Rule-based + AI & & & & \\
-\hline
-UAEU KG Advising & KG (Neo4j) + LLM & \checkmark & & Hạn chế & \\
-\hline
-UEH AI Chatbot & RAG + LLM & & & & \\
-\hline
-Cổng thông tin ĐH & Tĩnh (Portal) & & & & \\
-\hline
-\textbf{Đề tài (Ours)} & \textbf{LightRAG +} & \checkmark & \checkmark & \checkmark & \checkmark \\
- & \textbf{Multi-Agent} & & & & \textbf{(SHACL)} \\
-\hline
-\end{tabular}
-\end{table}
 
 \section{Mô hình ngôn ngữ lớn (LLMs) trong giáo dục}
 
