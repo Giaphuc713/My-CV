@@ -17,6 +17,49 @@ Tiêu biểu là các hệ thống gợi ý và cá nhân hóa (Recommender Syst
 Song song đó là sự chuyển đổi mạnh mẽ từ Chatbot sang AI Agents (Tác nhân AI). Trái ngược với chatbot thông thường chỉ phản hồi truy vấn đơn lẻ, AI Agents (đặc biệt là kiến trúc Multi-Agent) được trang bị khả năng tự động hóa chuỗi suy luận, giúp giải quyết các yêu cầu phức tạp hơn.
 Hơn nữa, việc ứng dụng Đồ thị hóa tri thức giáo dục (Educational Knowledge Graphs) cũng đang trở thành xu hướng. Nhằm khắc phục tình trạng AI tạo ra thông tin sai lệch (``ảo giác'' - hallucination) và thiếu ngữ cảnh, các nghiên cứu hiện đại đang tích cực kết hợp AI với Đồ thị tri thức \cite{hogan2021knowledge}. Vì việc số hóa và biểu diễn cấu trúc chương trình đào tạo dưới dạng các thực thể và mối quan hệ sẽ giúp hệ thống có khả năng truy xuất thông tin đa chiều, AI từ đó có thể giải thích rõ ràng lý do tại sao một môn học lại cần thiết.
 
+\section{Các hệ thống tương tự}
+Để xác định rõ khoảng trống nghiên cứu và vị trí đóng góp của đề tài, phần này phân tích một số hệ thống hỗ trợ tư vấn học vụ tiêu biểu đã được triển khai trên thế giới và tại Việt Nam.
+
+\subsection{Các hệ thống tư vấn học vụ quốc tế}
+
+Pounce là chatbot AI tiên phong trong lĩnh vực tư vấn học vụ đại học, được Georgia State University (Mỹ) phát triển từ năm 2016 cùng nền tảng Mainstay (trước đây là AdmitHub) \cite{page2017pounce}. Hệ thống tự động nhắc nhở sinh viên về các mốc quan trọng như nộp hồ sơ tài chính (FAFSA), đăng ký ký túc xá và đăng ký môn học. Nghiên cứu đã chứng minh Pounce giúp giảm đáng kể tỷ lệ ``summer melt'' (sinh viên được nhận nhưng không nhập học) và cải thiện tỷ lệ duy trì học tập. Tuy nhiên, Pounce hoạt động chủ yếu dựa trên kịch bản hội thoại có sẵn và dữ liệu hành chính, không xây dựng đồ thị tri thức về mối quan hệ giữa các môn học nên không có khả năng suy luận về lộ trình học tập hay giải thích tại sao một môn học lại cần thiết cho môn khác.
+
+Hệ thống tư vấn học thuật tại UAEU (United Arab Emirates University, 2024) đại diện cho hướng tiếp cận hiện đại hơn, sử dụng cơ sở dữ liệu đồ thị Neo4j để mô hình hóa mối quan hệ giữa các môn học, điều kiện tiên quyết và tiến trình học tập của sinh viên \cite{uaeu_kg_advising2024}. Mô hình ngôn ngữ lớn (LLM) chuyển đổi câu hỏi bằng ngôn ngữ tự nhiên thành truy vấn Cypher để trích xuất thông tin chính xác từ đồ thị. Kết quả thử nghiệm cho thấy lộ trình do hệ thống gợi ý đạt độ tương đồng lên tới 80\% so với lộ trình thực tế của các sinh viên đã tốt nghiệp thành công. Mặc dù vậy, hệ thống này chưa tích hợp kiến trúc đa tác nhân (Multi-Agent) để xử lý các truy vấn phức tạp đòi hỏi phối hợp nhiều bước suy luận, đồng thời chưa có cơ chế kiểm chứng tự động cấu trúc đồ thị nhằm đảm bảo tính nhất quán của tri thức.
+
+\subsection{Các hệ thống tư vấn tại Việt Nam}
+
+UEH AI Chatbot (Đại học Kinh tế TP.HCM) là một trong những chatbot đại học đầu tiên tại Việt Nam, được triển khai nhằm hỗ trợ giải đáp thắc mắc về ngành nghề, quy trình học tập và thông tin tuyển sinh phục vụ 24/7 cho sinh viên \cite{ueh_chatbot2024}. Hệ thống hoạt động chủ yếu theo mô hình hỏi đáp dựa trên kỹ thuật RAG đơn giản, truy xuất thông tin từ kho tài liệu nội bộ của trường. Tuy nhiên, UEH AI Chatbot chưa có khả năng suy luận đa bước về mối liên kết giữa các môn học trong chương trình đào tạo, chưa xây dựng đồ thị tri thức để biểu diễn mạng lưới kiến thức và chưa hỗ trợ cá nhân hóa theo tiến trình học tập cụ thể của từng sinh viên.
+
+Ngoài ra, phần lớn các trường đại học tại Việt Nam hiện nay, bao gồm cả Trường Đại học Khoa học Tự nhiên (HCMUS), chủ yếu cung cấp thông tin chương trình đào tạo, đề cương môn học và quy chế học vụ thông qua các cổng thông tin trực tuyến dạng tĩnh. Sinh viên phải tự tra cứu thủ công từ nhiều nguồn rời rạc như file PDF, trang web của khoa và hệ thống quản lý đào tạo. Mô hình này hoàn toàn thiếu cơ chế tương tác, không có khả năng suy luận hay tổng hợp thông tin tự động, khiến sinh viên gặp nhiều khó khăn trong việc hình dung bức tranh tổng thể về lộ trình học tập.
+
+\subsection{Phân tích so sánh và định vị đề tài}
+
+Bảng~\ref{tab:so_sanh_he_thong} tổng hợp so sánh các hệ thống trên dựa theo năm tiêu chí kỹ thuật cốt lõi. Qua đó có thể nhận thấy, chưa có hệ thống nào đồng thời tích hợp cả đồ thị tri thức, kiến trúc đa tác nhân, khả năng suy luận đa bước và cơ chế kiểm chứng tri thức. Đây chính là khoảng trống mà đề tài hướng đến giải quyết.
+
+\begin{table}[H]
+\centering
+\caption{So sánh các hệ thống hỗ trợ tư vấn học vụ hiện có}
+\label{tab:so_sanh_he_thong}
+\small
+\begin{tabular}{|l|l|c|c|c|c|}
+\hline
+\textbf{Hệ thống} & \textbf{Công nghệ lõi} & \textbf{KG} & \textbf{Multi-Agent} & \textbf{Suy luận} & \textbf{Kiểm chứng} \\
+ & & & & \textbf{đa bước} & \textbf{KG} \\
+\hline
+Pounce (GSU) & Rule-based + AI & & & & \\
+\hline
+UAEU KG Advising & KG (Neo4j) + LLM & \checkmark & & Hạn chế & \\
+\hline
+UEH AI Chatbot & RAG + LLM & & & & \\
+\hline
+Cổng thông tin ĐH & Tĩnh (Portal) & & & & \\
+\hline
+\textbf{Đề tài (Ours)} & \textbf{LightRAG +} & \checkmark & \checkmark & \checkmark & \checkmark \\
+ & \textbf{Multi-Agent} & & & & \textbf{(SHACL)} \\
+\hline
+\end{tabular}
+\end{table}
+
 \section{Mô hình ngôn ngữ lớn (LLMs) trong giáo dục}
 
 \subsection{Ứng dụng LLM trong hệ thống hỏi đáp học tập}

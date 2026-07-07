@@ -10,10 +10,54 @@
 %Tóm tắt luận án phải phản ảnh trung thực kết cấu, bố cục và nội dung của luận án, phải ghi đầy đủ toàn văn kết luận của luận án.
 %Mẫu trình bày trang bìa của tóm tắt luận văn (phụ lục 1).
 
-Trong bối cảnh hiện nay sinh viên ngành Công nghệ thông tin tại Trường Đại học Khoa học Tự nhiên đang phải đối mặt với một lượng kiến thức cực kỳ lớn và rời rạc. Tuy tài liệu có sẵn rất nhiều trên mạng nhưng các tài liệu này thường tồn tại ở dạng các mẩu tin riêng biệt khiến người học khó có thể tự mình kết nối các nguồn tài liệu này lại thành một thông tin tổng hợp học tập hoàn chỉnh. Các công cụ tìm kiếm thông thường hiện nay chỉ giúp tìm ra thông tin của một môn học cụ thể chứ không thể chỉ ra mối quan hệ giữa các môn hay giải thích tại sao kiến thức này lại cần thiết cho kiến thức kia. Thêm vào đó các mô hình trí tuệ nhân tạo phổ biến đôi khi vẫn cung cấp thông tin không chính xác hoặc không hiểu rõ các quy định và chương trình học đặc thù của nhà trường.
+\section{Đặt vấn đề}
 
-Vì những lý do đó đề tài này được ra đời nhằm xây dựng một trợ lý học tập thông minh có khả năng hiểu sâu về lộ trình và tài liệu của sinh viên. Mục đích cuối cùng là tạo ra một trợ lý ảo có thể trả lời chính xác các thắc mắc về học vụ đồng thời hiểu được sự liên kết logic giữa các khái niệm khác nhau. Điểm thú vị của bài toán này nằm ở việc biến những tài liệu thô cứng thành một mạng lưới tri thức giúp sinh viên không còn cảm thấy lạc lõng giữa biển thông tin. Việc giải quyết vấn đề này là cần thiết vì việc định hướng đúng đắn ngay từ đầu sẽ giúp sinh viên tiết kiệm rất nhiều thời gian và công sức trong suốt quá trình theo học tại trường.
+Trong bối cảnh hiện nay, sinh viên ngành Công nghệ thông tin tại Trường Đại học Khoa học Tự nhiên đang phải đối mặt với một lượng kiến thức cực kỳ lớn và rời rạc. Tuy tài liệu có sẵn rất nhiều trên mạng nhưng các tài liệu này thường tồn tại ở dạng các mẩu tin riêng biệt, khiến người học khó có thể tự mình kết nối các nguồn tài liệu này lại thành một thông tin tổng hợp học tập hoàn chỉnh. Các công cụ tìm kiếm thông thường hiện nay chỉ giúp tìm ra thông tin của một môn học cụ thể chứ không thể chỉ ra mối quan hệ giữa các môn hay giải thích tại sao kiến thức này lại cần thiết cho kiến thức kia. Thêm vào đó, các mô hình trí tuệ nhân tạo phổ biến đôi khi vẫn cung cấp thông tin không chính xác hoặc không hiểu rõ các quy định và chương trình học đặc thù của nhà trường \cite{ji2023survey}.
 
-Tuy nhiên việc xây dựng một hệ thống như vậy không hề đơn giản vì hệ thống đòi hỏi trí tuệ nhân tạo phải có khả năng tư duy và kết nối thông tin như con người. Đề tài lựa chọn hướng giải quyết thông qua việc kết hợp giữa một nhóm AI Agents phối hợp với nhau cùng một phương pháp tổ chức dữ liệu theo dạng đồ thị tri thức. Những hướng đi trước đây thường chỉ tập trung vào việc tìm kiếm từ khóa nên thường bỏ sót các mối quan hệ ngầm giữa các môn học. Bằng cách xây dựng một bản đồ kiến thức chặt chẽ hệ thống mới sẽ khắc phục được tình trạng trả lời thiếu chiều sâu hoặc thông tin không liên quan.
+Bên cạnh đó, các hệ thống hỗ trợ học vụ hiện có tại các trường đại học Việt Nam chủ yếu hoạt động dựa trên cổng thông tin tĩnh hoặc chatbot dựa trên quy tắc với bộ từ khóa được lập trình sẵn \cite{zawacki2019systematic}. Sinh viên phải tự tra cứu thủ công từ nhiều nguồn rời rạc như file PDF đề cương, trang web khoa và hệ thống đào tạo. Điều này dẫn đến tình trạng phân mảnh thông tin, khiến sinh viên khó hình dung bức tranh toàn cảnh của mạng lưới môn học và dễ bị mất phương hướng khi tự lập kế hoạch học tập.
 
-Nghiên cứu này tập trung chủ yếu vào sinh viên Công nghệ thông tin tại HCMUS với dữ liệu là các môn học cơ sở, môn chuyên ngành và chương trình đào tạo. Thông qua việc trả lời các câu hỏi về cách học và lộ trình phát triển đề tài mang lại một công cụ hỗ trợ thiết thực giúp cá nhân hóa trải nghiệm học tập cho từng người. Đóng góp lớn nhất của nghiên cứu là tạo ra một nền tảng tri thức tin cậy nơi mọi thông tin học tập được tổng hợp và kết nối một cách logic nhất phục vụ hiệu quả cho việc nghiên cứu và rèn luyện của sinh viên trong kỷ nguyên số.
+Vì những lý do đó, đề tài này được ra đời nhằm xây dựng một trợ lý học tập thông minh có khả năng hiểu sâu về lộ trình và tài liệu của sinh viên. Việc giải quyết vấn đề này là cần thiết vì định hướng đúng đắn ngay từ đầu sẽ giúp sinh viên tiết kiệm rất nhiều thời gian và công sức trong suốt quá trình theo học tại trường.
+
+\section{Mục tiêu}
+
+Mục đích cuối cùng của đề tài là tạo ra một trợ lý ảo có thể trả lời chính xác các thắc mắc về học vụ, đồng thời hiểu được sự liên kết logic giữa các khái niệm khác nhau trong chương trình đào tạo. Để đạt được mục đích đó, nghiên cứu đặt ra ba mục tiêu cụ thể.
+
+\textbf{Mục tiêu 1:} Xây dựng đồ thị tri thức (Knowledge Graph) từ kho dữ liệu học vụ của Khoa Công nghệ Thông tin bằng hệ thống LightRAG \cite{guo2025lightrag}, kết hợp cơ chế kiểm chứng cấu trúc đồ thị dựa trên chuẩn SHACL \cite{shacl_w3c} nhằm đảm bảo tính đúng đắn và liên kết chặt chẽ của tri thức được biểu diễn.
+
+\textbf{Mục tiêu 2:} Phát triển kiến trúc đa tác nhân (Multi-Agent) thông qua nền tảng LangGraph \cite{langgraph2024} để xử lý các truy vấn học tập phức tạp. Hệ thống đa tác nhân cho phép AI tự động phân tích yêu cầu, lựa chọn công cụ truy xuất phù hợp và phối hợp nhiều bước suy luận nhằm đưa ra câu trả lời toàn diện.
+
+\textbf{Mục tiêu 3:} Xây dựng pipeline đánh giá tự động kết hợp bộ chỉ số RAGAS \cite{es2023ragas} và phương pháp LLM-as-a-Judge \cite{zheng2023judging} để đo lường chất lượng truy xuất, độ trung thực của câu trả lời và hiệu năng điều phối đa tác nhân một cách khách quan và có hệ thống.
+
+\section{Phạm vi}
+
+Nghiên cứu này tập trung chủ yếu vào sinh viên Công nghệ thông tin tại Trường Đại học Khoa học Tự nhiên, Đại học Quốc gia Thành phố Hồ Chí Minh (HCMUS). Dữ liệu được sử dụng bao gồm chương trình đào tạo của các ngành thuộc Khoa Công nghệ Thông tin, đề cương chi tiết các môn học cơ sở và chuyên ngành, cùng các quy chế học vụ hiện hành. Phạm vi hệ thống giới hạn ở việc hỗ trợ trả lời các câu hỏi về cách học, mối quan hệ giữa các môn học và lộ trình phát triển chuyên môn trong khuôn khổ chương trình đào tạo của Khoa, chưa mở rộng ra toàn trường hay các khoa khác.
+
+\section{Giải pháp và cách tiếp cận}
+
+Đề tài lựa chọn hướng giải quyết thông qua việc kết hợp giữa kiến trúc đa tác nhân (Multi-Agent) và phương pháp tổ chức dữ liệu theo dạng đồ thị tri thức (Knowledge Graph). Cụ thể, quy trình xử lý bao gồm bốn giai đoạn chính. Giai đoạn đầu tiên là tiền xử lý tài liệu, trong đó các tài liệu PDF đề cương và quy chế học vụ được số hóa và trích xuất nội dung thông qua hệ thống MinerU \cite{mineru_2024}. Giai đoạn thứ hai là xây dựng đồ thị tri thức bằng LightRAG \cite{guo2025lightrag}, nơi các thực thể (môn học, kỹ năng, khối kiến thức) và mối quan hệ giữa chúng được trích xuất và biểu diễn dưới dạng đồ thị, kết hợp cơ chế kiểm chứng cấu trúc bằng chuẩn SHACL \cite{shacl_w3c}. Giai đoạn thứ ba là truy vấn đa cấp, trong đó hệ thống thực hiện song song việc khớp từ khóa, tìm kiếm vector và truy vấn đồ thị để bao quát ngữ cảnh từ chi tiết đến tổng thể. Giai đoạn cuối cùng là điều phối đa tác nhân thông qua LangGraph \cite{langgraph2024}, nơi các AI Agent tự động phân tích câu hỏi, lựa chọn chiến lược truy xuất và tổng hợp câu trả lời phù hợp nhất.
+
+Bằng cách xây dựng một bản đồ kiến thức chặt chẽ, hệ thống sẽ khắc phục được tình trạng trả lời thiếu chiều sâu hoặc thông tin không liên quan mà các phương pháp truyền thống thường gặp phải.
+
+\section{Đóng góp}
+
+Nghiên cứu này mang lại ba đóng góp chính, hướng đến việc tạo ra một nền tảng tri thức tin cậy nơi mọi thông tin học tập được tổng hợp và kết nối một cách logic nhất.
+
+\textbf{Đóng góp 1:} Số hóa và cấu trúc hóa thành công kho dữ liệu học vụ phức tạp của Khoa Công nghệ Thông tin thành Đồ thị tri thức (Knowledge Graph) thông qua hệ thống LightRAG. Điểm nổi bật nằm ở việc tích hợp cơ chế kiểm chứng dựa trên chuẩn SHACL, giúp đảm bảo tính đúng đắn và liên kết chặt chẽ của tri thức được biểu diễn trong đồ thị, đồng thời đề xuất giải pháp xử lý thực thể trùng lặp (Entity Resolution) phù hợp với ngữ cảnh tài liệu học thuật tiếng Việt.
+
+\textbf{Đóng góp 2:} Đề xuất và triển khai kiến trúc đa tác nhân (Multi-Agent) thông minh, cho phép hệ thống tự động lựa chọn công cụ và chiến lược truy xuất phù hợp nhất với từng dạng câu hỏi của sinh viên, từ các truy vấn đơn giản về thông tin một môn học đến các yêu cầu phức tạp đòi hỏi suy luận đa bước về lộ trình học tập tổng thể.
+
+\textbf{Đóng góp 3:} Xây dựng pipeline đánh giá tự động kết hợp bộ chỉ số RAGAS (đo lường độ trung thực, độ liên quan, độ chính xác và độ bao phủ của ngữ cảnh) với phương pháp LLM-as-a-Judge, cho phép đo lường và tinh chỉnh chất lượng hệ thống một cách khách quan mà không phụ thuộc hoàn toàn vào đánh giá thủ công.
+
+\section{Bố cục}
+
+Nội dung của khóa luận được tổ chức thành năm chương như sau.
+
+\textbf{Chương 1: Giới thiệu.} Trình bày bối cảnh và động lực nghiên cứu, xác định mục tiêu, phạm vi, giải pháp đề xuất cùng những đóng góp chính của đề tài.
+
+\textbf{Chương 2: Các công trình liên quan.} Tổng quan về các hệ thống hỗ trợ học tập thông minh, phân tích các hệ thống tương tự đã triển khai, cơ sở lý thuyết về Mô hình ngôn ngữ lớn (LLM), kiến trúc RAG, GraphRAG, Knowledge Graph, hệ thống LightRAG và kiến trúc đa tác nhân (Multi-Agent).
+
+\textbf{Chương 3: Phương pháp đề xuất.} Trình bày chi tiết quy trình xử lý dữ liệu, chiến lược xây dựng đồ thị tri thức, cơ chế kiểm chứng bằng SHACL, giải pháp xử lý thực thể trùng lặp, kiến trúc điều phối đa tác nhân và thiết lập thực nghiệm.
+
+\textbf{Chương 4: Cài đặt thử nghiệm và kết quả.} Trình bày kết quả đánh giá chất lượng trích xuất tài liệu (MinerU), chất lượng đồ thị tri thức, hiệu năng truy xuất và sinh văn bản (RAGAS), hiệu năng điều phối đa tác nhân, đánh giá từ người dùng cuối, cùng thiết kế và xây dựng ứng dụng hoàn chỉnh.
+
+\textbf{Chương 5: Kết luận.} Tổng kết các kết quả đạt được, nêu ra những hạn chế còn tồn tại và định hướng phát triển trong tương lai.
