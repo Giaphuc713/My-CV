@@ -722,27 +722,197 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{images/storage_deployment_overview_nobg.png}
+	\begin{tikzpicture}[scale=0.82, transform shape,
+		% ─── Node styles ───
+		engine/.style={rectangle, rounded corners=6pt,
+			draw=blue!50!black, fill=blue!5, line width=1pt,
+			minimum width=5.5cm, minimum height=1.4cm,
+			align=center, font=\bfseries\sffamily},
+		cloud/.style={ellipse, draw=gray!35, fill=gray!4,
+			line width=0.5pt,
+			minimum width=3.1cm, minimum height=1.8cm},
+		contentBox/.style={rectangle, rounded corners=3pt,
+			draw=gray!35, fill=white, line width=0.5pt,
+			minimum width=3.4cm, minimum height=2.2cm,
+			inner sep=0pt},
+		contentTitle/.style={font=\footnotesize\bfseries, text=black!80},
+		contentItem/.style={font=\scriptsize, align=left, text width=3.2cm, inner sep=3pt},
+		catLabel/.style={font=\fontsize{7}{8}\bfseries\sffamily, text=black!70},
+		implLabel/.style={font=\fontsize{6.5}{8}\sffamily, text=gray!55},
+		configBox/.style={rectangle, rounded corners=3pt,
+			draw=gray!35, fill=gray!4, line width=0.5pt,
+			font=\footnotesize, inner sep=5pt, align=center},
+		pipeLabel/.style={font=\footnotesize\bfseries\sffamily, fill=white, inner sep=1pt},
+		flowLabel/.style={font=\scriptsize, fill=white, inner sep=1pt, text=black!55, align=center},
+		% ─── Arrow styles ───
+		mainArr/.style={-{Stealth[length=2.5mm]}, line width=0.8pt, draw=black!50},
+		flowArr/.style={-{Stealth[length=2mm]}, line width=0.6pt, draw=gray!45},
+		pipeArr/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, line width=0.6pt, draw=gray!35, dashed},
+	]
+
+	% ── Helper: database cylinder icon ──
+	\newcommand{\drawDBicon}[3]{%
+		\fill[#3!20] ({#1-0.3},{#2-0.22}) rectangle ({#1+0.3},{#2+0.15});
+		\draw[#3!50!black, line width=0.5pt] ({#1-0.3},{#2-0.22}) -- ({#1-0.3},{#2+0.15});
+		\draw[#3!50!black, line width=0.5pt] ({#1+0.3},{#2-0.22}) -- ({#1+0.3},{#2+0.15});
+		\fill[#3!25] (#1,{#2+0.15}) ellipse (0.3 and 0.09);
+		\draw[#3!50!black, line width=0.5pt] (#1,{#2+0.15}) ellipse (0.3 and 0.09);
+		\draw[#3!50!black, line width=0.5pt] ({#1-0.3},{#2-0.22}) arc(180:360:0.3 and 0.09);
+	}
+
+	% ══════════════════════════════════════
+	%  ROW 1: Inputs → Engine → Output
+	% ══════════════════════════════════════
+
+	\node[engine] (engine) at (0, 0) {
+		{\large LightRAG Engine}\\[2pt]
+		{\scriptsize\normalfont (Retrieval-Augmented Generation)}
+	};
+
+	% Input labels
+	\node[font=\footnotesize\sffamily, anchor=east] (qLabel) at (-4.7, 0.35) {User Queries};
+	\node[font=\footnotesize\sffamily, anchor=east] (dLabel) at (-4.7,-0.35) {Documents};
+	\draw[mainArr] (qLabel.east) -- ([yshift=3pt]engine.west);
+	\draw[mainArr] (dLabel.east) -- ([yshift=-3pt]engine.west);
+
+	% Output label
+	\node[font=\footnotesize\sffamily, anchor=west] (rLabel) at (4.7, 0) {LLM Responses};
+	\draw[mainArr] (engine.east) -- (rLabel.west);
+
+	% ══════════════════════════════════════
+	%  ROW 2: Diagonal pipeline arrows (Removed)
+	% ══════════════════════════════════════
+
+	% ══════════════════════════════════════
+	%  Vertical arrows: Engine → Storages
+	% ══════════════════════════════════════
+
+	\def\sA{-5.7}
+	\def\sB{-1.9}
+	\def\sC{1.9}
+	\def\sD{5.7}
+	\def\cloudY{-4.2}
+	\def\boxY{-7}
+
+	\draw[flowArr] ([xshift=-1.3cm]engine.south) -- (\sA,{\cloudY+0.9})
+		node[flowLabel, pos=0.55, left=1pt] {Contents};
+	\draw[flowArr] ([xshift=-0.4cm]engine.south) -- (\sB,{\cloudY+0.9})
+		node[flowLabel, pos=0.6, left=0pt] {\shortstack{Index\\[-2pt]Vectors}};
+	\draw[flowArr] ([xshift=0.4cm]engine.south) -- (\sC,{\cloudY+0.9})
+		node[flowLabel, pos=0.6, right=0pt] {\shortstack{Build/Update\\[-2pt]Graph}};
+	\draw[flowArr] ([xshift=1.3cm]engine.south) -- (\sD,{\cloudY+0.9})
+		node[flowLabel, pos=0.55, right=1pt] {\shortstack{Track\\[-2pt]Status}};
+
+	% ══════════════════════════════════════
+	%  ROW 3: Four Storage columns
+	% ══════════════════════════════════════
+
+	% ─── 1. Redis (KV_STORAGE) ───
+	\node[cloud, fill=red!3, draw=red!18] (kvCloud) at (\sA, \cloudY) {};
+	\drawDBicon{\sA}{-3.95}{red}
+	\node[font=\small\bfseries\sffamily, text=red!55!black] at (\sA, {\cloudY-0.6}) {Redis};
+
+	\node[contentBox] (kvBox) at (\sA, \boxY) {};
+	\node[contentTitle, anchor=north] at ([yshift=-5pt]kvBox.north) {Contents};
+	\node[contentItem, anchor=north west] at ([shift={(5pt,-16pt)}]kvBox.north west) {
+		LLM Response Cache\\[1pt]
+		Text Chunks\\[1pt]
+		Document Information
+	};
+	\draw[flowArr] (kvCloud.south) -- (kvBox.north);
+	\node[catLabel, below=4pt of kvBox.south] (kvCat) {KV\_STORAGE};
+	\node[implLabel, below=1pt of kvCat] {RedisKVStorage};
+
+	% ─── 2. Qdrant (VECTOR_STORAGE) ───
+	\node[cloud, fill=violet!3, draw=violet!18] (vecCloud) at (\sB, \cloudY) {};
+	\drawDBicon{\sB}{-3.95}{violet}
+	\node[font=\small\bfseries\sffamily, text=violet!55!black] at (\sB, {\cloudY-0.6}) {Qdrant};
+
+	\node[contentBox] (vecBox) at (\sB, \boxY) {};
+	\node[contentTitle, anchor=north] at ([yshift=-5pt]vecBox.north) {Contents};
+	\node[contentItem, anchor=north west] at ([shift={(5pt,-16pt)}]vecBox.north west) {
+		Entities Vectors\\[1pt]
+		Relation Vectors\\[1pt]
+		Chunks Vectors
+	};
+	\draw[flowArr] (vecCloud.south) -- (vecBox.north);
+	\node[catLabel, below=4pt of vecBox.south] (vecCat) {VECTOR\_STORAGE};
+	\node[implLabel, below=1pt of vecCat] {QdrantVectorDBStorage};
+
+	% ─── 3. Neo4j (GRAPH_STORAGE) ───
+	\node[cloud, fill=teal!3, draw=teal!18] (grCloud) at (\sC, \cloudY) {};
+	% Graph icon
+	\fill[teal!40] ({\sC-0.3},-3.85) circle (0.07);
+	\fill[teal!40] ({\sC+0.25},-3.78) circle (0.07);
+	\fill[teal!40] ({\sC+0.3},-4.08) circle (0.07);
+	\draw[teal!45!black, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.25},-3.78);
+	\draw[teal!45!black, line width=0.4pt] ({\sC+0.25},-3.78) -- ({\sC+0.3},-4.08);
+	\draw[teal!45!black, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.3},-4.08);
+	\node[font=\small\bfseries\sffamily, text=teal!55!black] at (\sC, {\cloudY-0.6}) {Neo4j};
+
+	\node[contentBox] (grBox) at (\sC, \boxY) {};
+	\node[contentTitle, anchor=north] at ([yshift=-5pt]grBox.north) {Contents};
+	\node[contentItem, anchor=north west] at ([shift={(5pt,-16pt)}]grBox.north west) {
+		Entity Relation Graph
+	};
+	\draw[flowArr] (grCloud.south) -- (grBox.north);
+	\node[catLabel, below=4pt of grBox.south] (grCat) {GRAPH\_STORAGE};
+	\node[implLabel, below=1pt of grCat] {Neo4JStorage};
+
+	% ─── 4. PostgreSQL (DOC_STATUS_STORAGE) ───
+	\node[cloud, fill=blue!3, draw=blue!18] (dsCloud) at (\sD, \cloudY) {};
+	\drawDBicon{\sD}{-3.95}{blue}
+	\node[font=\small\bfseries\sffamily, text=blue!60!black] at (\sD, {\cloudY-0.6}) {PostgreSQL};
+
+	\node[contentBox] (dsBox) at (\sD, \boxY) {};
+	\node[contentTitle, anchor=north] at ([yshift=-5pt]dsBox.north) {Contents};
+	\node[contentItem, anchor=north west] at ([shift={(5pt,-16pt)}]dsBox.north west) {
+		Document Indexing\\[1pt]
+		Status
+	};
+	\draw[flowArr] (dsCloud.south) -- (dsBox.north);
+	\node[catLabel, below=4pt of dsBox.south] (dsCat) {DOC\_STATUS\_STORAGE};
+	\node[implLabel, below=1pt of dsCat] {PGDocStatusStorage};
+
+	% ══════════════════════════════════════
+	%  Footer
+	% ══════════════════════════════════════
+	\node[configBox] at (0, -9.1) {
+		\textbf{Storage Configuration:}\quad
+		KV $\rightarrow$ Redis,\quad
+		VECTOR $\rightarrow$ Qdrant,\quad
+		GRAPH $\rightarrow$ Neo4j,\quad
+		DOC\_STATUS $\rightarrow$ Postgres
+	};
+
+	\end{tikzpicture}
 	\caption{Tổng quan kiến trúc lưu trữ và triển khai LightRAG}
 	\label{fig:storage_deployment}
 \end{figure}
 
-\indent Thành phần thứ nhất là KV\_STORAGE, triển khai trên Redis, chịu trách nhiệm lưu trữ bộ nhớ đệm phản hồi LLM, các đoạn văn bản đã phân mảnh và siêu dữ liệu tài liệu gốc. Thành phần thứ hai là VECTOR\_STORAGE, triển khai trên Qdrant, lưu trữ vector nhúng của thực thể, quan hệ và đoạn văn bản để phục vụ tìm kiếm ngữ nghĩa. Thành phần thứ ba là GRAPH\_STORAGE, triển khai trên Neo4j, lưu toàn bộ cấu trúc đồ thị tri thức với ngôn ngữ truy vấn Cypher. Thành phần thứ tư là DOC\_STATUS\_STORAGE, triển khai trên Redis, theo dõi trạng thái lập chỉ mục từng tài liệu để tránh xử lý trùng lặp.
+\indent Kiến trúc lưu trữ của LightRAG được thiết kế theo hướng module hóa (modular design), bao gồm 4 thành phần chuyên biệt nhằm tối ưu hóa việc quản lý và truy xuất dữ liệu. Dựa trên yêu cầu về hiệu năng trong môi trường triển khai thực tế, nghiên cứu này lựa chọn tổ hợp công nghệ lưu trữ như sau (chi tiết tại Bảng \ref{tab:storage_mapping} và Hình \ref{fig:storage_deployment}):
+
+\indent KV\_STORAGE (Lưu trữ Key-Value): Sử dụng Redis để quản lý bộ nhớ đệm phản hồi của LLM (LLM response cache), các đoạn văn bản (text chunks) và siêu dữ liệu tài liệu. Redis được chọn nhờ tốc độ đọc/ghi in-memory siêu tốc, đặc biệt phù hợp cho truy xuất tần suất cao. Cấu hình tự động sao lưu dữ liệu (persistence rules) cũng được thiết lập để tránh mất mát khi dịch vụ khởi động lại.
+
+\indent VECTOR\_STORAGE (Lưu trữ Vector): Sử dụng Qdrant để lưu trữ vector nhúng của thực thể, quan hệ và các đoạn văn bản. Qdrant là cơ sở dữ liệu vector chuyên dụng, cung cấp khả năng tìm kiếm ngữ nghĩa cực nhanh và độ chính xác cao đối với dữ liệu quy mô lớn.
+
+\indent GRAPH\_STORAGE (Lưu trữ Đồ thị): Sử dụng Neo4j để lưu trữ toàn bộ cấu trúc đồ thị tri thức (Entity Relation Graph). Theo khuyến nghị từ tài liệu chính thức của LightRAG, Neo4j mang lại hiệu năng truy vấn đồ thị vượt trội nhất trong môi trường sản phẩm (production).
+
+\indent DOC\_STATUS\_STORAGE (Trạng thái tài liệu): Sử dụng PostgreSQL để theo dõi trạng thái lập chỉ mục của từng tài liệu, giúp ngăn chặn xử lý trùng lặp. PostgreSQL được chọn để đảm bảo tính nhất quán (ACID) tuyệt đối và an toàn cho các giao dịch trạng thái.
 
 \begin{table}[H]
 	\centering
-	\caption{Các thành phần lưu trữ trong kiến trúc LightRAG}
+	\caption{Các thành phần lưu trữ trong kiến trúc triển khai LightRAG}
 	\label{tab:storage_mapping}
-
 	\renewcommand{\arraystretch}{1.4}
 	\footnotesize
-	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.5cm}|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{4.5cm}|>{\raggedright\arraybackslash}p{3cm}|}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.6cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{3.7cm}|>{\raggedright\arraybackslash}p{3.7cm}|}
 		\hline
 		Thành phần & Công nghệ & Lớp triển khai & Dữ liệu lưu trữ \\ \hline
 		KV\_STORAGE & Redis & RedisKVStorage & LLM Response Cache, Text Chunks, Document Information \\ \hline
 		VECTOR\_STORAGE & Qdrant & QdrantVectorDBStorage & Entities Vectors, Relation Vectors, Chunks Vectors \\ \hline
 		GRAPH\_STORAGE & Neo4j & Neo4JStorage & Entity Relation Graph \\ \hline
-		DOC\_STATUS\_STORAGE & Redis & RedisDocStatusStorage & Document Indexing Status \\ \hline
+		DOC\_STATUS\_STORAGE & PostgreSQL & PGDocStatusStorage & Document Indexing Status \\ \hline
 	\end{tabular}
 \end{table}
 
