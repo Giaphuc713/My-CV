@@ -20,17 +20,17 @@ Vì những lý do đó, đề tài này được ra đời nhằm xây dựng m
 
 \section{Mục tiêu}
 
-Mục đích cuối cùng của đề tài là tạo ra một trợ lý ảo có thể trả lời chính xác các thắc mắc về học vụ, đồng thời hiểu được sự liên kết logic giữa các khái niệm khác nhau trong chương trình đào tạo. Để đạt được mục đích đó, nghiên cứu đặt ra ba mục tiêu cụ thể.
+Mục tiêu của đề tài là tạo ra một trợ lý ảo có thể trả lời chính xác các thắc mắc về học vụ, đồng thời hiểu được sự liên kết logic giữa các khái niệm khác nhau trong chương trình đào tạo. Để đạt được mục đích đó, nghiên cứu đặt ra ba mục tiêu cụ thể.
 
-\textbf{Mục tiêu 1:} Xây dựng đồ thị tri thức (Knowledge Graph) từ kho dữ liệu học vụ của Khoa Công nghệ Thông tin bằng hệ thống LightRAG \cite{guo2025lightrag}, kết hợp cơ chế kiểm chứng cấu trúc đồ thị dựa trên chuẩn SHACL \cite{shacl_w3c} nhằm đảm bảo tính đúng đắn và liên kết chặt chẽ của tri thức được biểu diễn.
+Đầu tiên, nghiên cứu xây dựng đồ thị tri thức (Knowledge Graph) từ kho dữ liệu học vụ của Khoa Công nghệ Thông tin bằng hệ thống LightRAG \cite{guo2025lightrag}, kết hợp cơ chế kiểm chứng cấu trúc đồ thị dựa trên chuẩn SHACL \cite{shacl_w3c} nhằm đảm bảo tính đúng đắn và liên kết chặt chẽ của tri thức được biểu diễn.
 
-\textbf{Mục tiêu 2:} Phát triển kiến trúc đa tác nhân (Multi-Agent) thông qua nền tảng LangGraph \cite{langgraph2024} để xử lý các truy vấn học tập phức tạp. Hệ thống đa tác nhân cho phép AI tự động phân tích yêu cầu, lựa chọn công cụ truy xuất phù hợp và phối hợp nhiều bước suy luận nhằm đưa ra câu trả lời toàn diện.
+Tiếp theo, nghiên cứu phát triển kiến trúc đa tác nhân (Multi-Agent) thông qua nền tảng LangGraph \cite{langgraph2024} để xử lý các truy vấn học tập phức tạp. Hệ thống đa tác nhân cho phép AI tự động phân tích yêu cầu, lựa chọn công cụ truy xuất phù hợp và phối hợp nhiều bước suy luận nhằm đưa ra câu trả lời toàn diện.
 
-\textbf{Mục tiêu 3:} Xây dựng pipeline đánh giá tự động kết hợp bộ chỉ số RAGAS \cite{es2023ragas} và phương pháp LLM-as-a-Judge \cite{zheng2023judging} để đo lường chất lượng truy xuất, độ trung thực của câu trả lời và hiệu năng điều phối đa tác nhân một cách khách quan và có hệ thống.
+Cuối cùng, nghiên cứu xây dựng pipeline đánh giá tự động kết hợp bộ chỉ số RAGAS \cite{es2023ragas} và phương pháp LLM-as-a-Judge \cite{zheng2023judging} để đo lường chất lượng truy xuất, độ trung thực của câu trả lời và hiệu năng điều phối đa tác nhân một cách khách quan và có hệ thống.
 
-\section{Phạm vi}
+\section{Phạm vi đề tài}
 
-Nghiên cứu này tập trung chủ yếu vào sinh viên Công nghệ thông tin tại Trường Đại học Khoa học Tự nhiên, Đại học Quốc gia Thành phố Hồ Chí Minh (HCMUS). Dữ liệu được sử dụng bao gồm chương trình đào tạo của các ngành thuộc Khoa Công nghệ Thông tin, đề cương chi tiết các môn học cơ sở và chuyên ngành, cùng các quy chế học vụ hiện hành. Phạm vi hệ thống giới hạn ở việc hỗ trợ trả lời các câu hỏi về cách học, mối quan hệ giữa các môn học và lộ trình phát triển chuyên môn trong khuôn khổ chương trình đào tạo của Khoa, chưa mở rộng ra toàn trường hay các khoa khác.
+Nghiên cứu này tập trung chủ yếu vào sinh viên Công nghệ thông tin tại Trường Đại học Khoa học Tự nhiên, Đại học Quốc gia Thành phố Hồ Chí Minh. Dữ liệu được sử dụng bao gồm chương trình đào tạo của các ngành thuộc Khoa Công nghệ Thông tin, đề cương chi tiết các môn học cơ sở và chuyên ngành, cùng các quy chế học vụ hiện hành. Phạm vi hệ thống giới hạn ở việc hỗ trợ trả lời các câu hỏi về cách học, mối quan hệ giữa các môn học và lộ trình phát triển chuyên môn trong khuôn khổ chương trình đào tạo của Khoa, chưa mở rộng ra toàn trường hay các khoa khác.
 
 \section{Giải pháp và cách tiếp cận}
 
@@ -40,24 +40,24 @@ Bằng cách xây dựng một bản đồ kiến thức chặt chẽ, hệ th�
 
 \section{Đóng góp}
 
-Nghiên cứu này mang lại ba đóng góp chính, hướng đến việc tạo ra một nền tảng tri thức tin cậy nơi mọi thông tin học tập được tổng hợp và kết nối một cách logic nhất.
+Nghiên cứu này mang lại ba đóng góp chính, hướng đến việc tạo ra một nền tảng tri thức tin cậy, nơi mọi thông tin học tập được tổng hợp và kết nối một cách logic nhất.
 
-\textbf{Đóng góp 1:} Số hóa và cấu trúc hóa thành công kho dữ liệu học vụ phức tạp của Khoa Công nghệ Thông tin thành Đồ thị tri thức (Knowledge Graph) thông qua hệ thống LightRAG. Điểm nổi bật nằm ở việc tích hợp cơ chế kiểm chứng dựa trên chuẩn SHACL, giúp đảm bảo tính đúng đắn và liên kết chặt chẽ của tri thức được biểu diễn trong đồ thị, đồng thời đề xuất giải pháp xử lý thực thể trùng lặp (Entity Resolution) phù hợp với ngữ cảnh tài liệu học thuật tiếng Việt.
+Đầu tiên, nghiên cứu xây dựng Đồ thị tri thức (Knowledge Graph) từ kho dữ liệu học vụ của Khoa Công nghệ Thông tin thông qua hệ thống LightRAG. Điểm nổi bật của nghiên cứu là tích hợp cơ chế kiểm chứng dựa trên chuẩn SHACL nhằm đảm bảo tính đúng đắn của cấu trúc đồ thị và sự liên kết giữa các thực thể, đồng thời đề xuất giải pháp xử lý thực thể trùng lặp (Entity Resolution) phù hợp với ngữ cảnh tài liệu học thuật tiếng Việt.
 
-\textbf{Đóng góp 2:} Đề xuất và triển khai kiến trúc đa tác nhân (Multi-Agent) thông minh, cho phép hệ thống tự động lựa chọn công cụ và chiến lược truy xuất phù hợp nhất với từng dạng câu hỏi của sinh viên, từ các truy vấn đơn giản về thông tin một môn học đến các yêu cầu phức tạp đòi hỏi suy luận đa bước về lộ trình học tập tổng thể.
+Tiếp theo, nghiên cứu đề xuất và triển khai kiến trúc đa tác nhân (Multi-Agent) trên nền tảng LangGraph, cho phép hệ thống tự động phân tích yêu cầu của người dùng, lựa chọn công cụ truy xuất phù hợp và phối hợp nhiều tác nhân để xử lý các truy vấn liên quan đến thông tin học vụ một cách hiệu quả.
 
-\textbf{Đóng góp 3:} Xây dựng pipeline đánh giá tự động kết hợp bộ chỉ số RAGAS (đo lường độ trung thực, độ liên quan, độ chính xác và độ bao phủ của ngữ cảnh) với phương pháp LLM-as-a-Judge, cho phép đo lường và tinh chỉnh chất lượng hệ thống một cách khách quan mà không phụ thuộc hoàn toàn vào đánh giá thủ công.
+Cuối cùng, xây dựng khung đánh giá tự động kết hợp bộ chỉ số RAGAS (đo lường độ trung thực, độ liên quan, độ chính xác và độ bao phủ của ngữ cảnh) với phương pháp LLM-as-a-Judge, cho phép đo lường và tinh chỉnh chất lượng hệ thống một cách khách quan mà không phụ thuộc hoàn toàn vào đánh giá thủ công.
 
 \section{Bố cục}
 
-Nội dung của khóa luận được tổ chức thành năm chương như sau.
+Nội dung của báo cáo được tổ chức thành năm chương như sau.
 
-\textbf{Chương 1: Giới thiệu.} Trình bày bối cảnh và động lực nghiên cứu, xác định mục tiêu, phạm vi, giải pháp đề xuất cùng những đóng góp chính của đề tài.
+Chương 1: Giới thiệu. Trình bày bối cảnh và động lực nghiên cứu, xác định mục tiêu, phạm vi, giải pháp đề xuất cùng những đóng góp chính của đề tài.
 
-\textbf{Chương 2: Các công trình liên quan.} Tổng quan về các hệ thống hỗ trợ học tập thông minh, phân tích các hệ thống tương tự đã triển khai, cơ sở lý thuyết về Mô hình ngôn ngữ lớn (LLM), kiến trúc RAG, GraphRAG, Knowledge Graph, hệ thống LightRAG và kiến trúc đa tác nhân (Multi-Agent).
+Chương 2: Các công trình liên quan. Tổng quan về các hệ thống hỗ trợ học tập thông minh, phân tích các hệ thống tương tự đã triển khai, cơ sở lý thuyết về Mô hình ngôn ngữ lớn (LLM), kiến trúc RAG, GraphRAG, Knowledge Graph, hệ thống LightRAG và kiến trúc đa tác nhân (Multi-Agent).
 
-\textbf{Chương 3: Phương pháp đề xuất.} Trình bày chi tiết quy trình xử lý dữ liệu, chiến lược xây dựng đồ thị tri thức, cơ chế kiểm chứng bằng SHACL, giải pháp xử lý thực thể trùng lặp, kiến trúc điều phối đa tác nhân và thiết lập thực nghiệm.
+Chương 3: Phương pháp đề xuất. Trình bày chi tiết kiến trúc tổng thể của hệ thống và các phương pháp được đề xuất, bao gồm quy trình xử lý dữ liệu, chiến lược phân mảnh văn bản (Chunking Strategy), phương pháp xây dựng Đồ thị tri thức (Knowledge Graph), cơ chế kiểm chứng bằng SHACL, giải pháp xử lý thực thể trùng lặp (Entity Resolution) và kiến trúc điều phối đa tác nhân (Multi-Agent).
 
-\textbf{Chương 4: Cài đặt thử nghiệm và kết quả.} Trình bày kết quả đánh giá chất lượng trích xuất tài liệu (MinerU), chất lượng đồ thị tri thức, hiệu năng truy xuất và sinh văn bản (RAGAS), hiệu năng điều phối đa tác nhân, đánh giá từ người dùng cuối, cùng thiết kế và xây dựng ứng dụng hoàn chỉnh.
+Chương 4: Cài đặt thử nghiệm và kết quả. Trình bày kết quả đánh giá chất lượng xử lý dữ liệu, chất lượng đồ thị tri thức, hiệu năng truy xuất và sinh văn bản, hiệu năng điều phối đa tác nhân, đánh giá từ người dùng cuối, cùng thiết kế và xây dựng ứng dụng hoàn chỉnh.
 
-\textbf{Chương 5: Kết luận.} Tổng kết các kết quả đạt được, nêu ra những hạn chế còn tồn tại và định hướng phát triển trong tương lai.
+Chương 5: Kết luận. Tổng kết các kết quả đạt được, nêu ra những hạn chế còn tồn tại và định hướng phát triển trong tương lai.
