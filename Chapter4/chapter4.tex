@@ -934,7 +934,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/Register.png}
+    \includegraphics[width=1\textwidth]{images/dangki.jpg}
     \caption{Giao diện Màn hình Đăng ký}
     \label{fig:ui_register}
 \end{figure}
@@ -965,7 +965,7 @@ Cách sử dụng:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/Login.png}
+    \includegraphics[width=1\textwidth]{images/dangnhap.jpg}
     \caption{Giao diện Màn hình Đăng nhập}
     \label{fig:ui_login}
 \end{figure}
@@ -1000,14 +1000,14 @@ Mục đích: Hỗ trợ người dùng cấp lại mật khẩu mới.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/ForgotPass_Step1.png}
+    \includegraphics[width=1\textwidth]{images/quenmk.jpg}
     \caption{Giao diện Màn hình Quên mật khẩu - Yêu cầu mã xác thực}
     \label{fig:ui_forgot_step1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/ForgotPass_Step2.png}
+    \includegraphics[width=1\textwidth]{images/check_email.jpg}
     \caption{Giao diện Màn hình Quên mật khẩu - Xác nhận từ Email}
     \label{fig:ui_forgot_step2}
 \end{figure}
@@ -1038,38 +1038,40 @@ Bước 2: Thực hiện kiểm tra hộp thư và tiến hành thiết lập m�
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/Thong_tin_ca_nhan.png} 
+    \includegraphics[width=1\textwidth]{images/profile.jpg} 
     \caption{Giao diện Màn hình Thông tin cá nhân}
     \label{fig:ui_profile_info}
 \end{figure}
 
-Mục đích: Hiển thị hồ sơ chi tiết của người dùng, và cập nhật thông tin cá nhân.
+Mục đích: Cho phép sinh viên khai báo và cập nhật hồ sơ học tập cá nhân, làm dữ liệu đầu vào để hệ thống RAG cá nhân hóa nội dung tư vấn môn học và lộ trình học tập.
 
 Bao gồm:
 \begin{enumerate}
-    \item Thông tin tóm tắt: Hiển thị ảnh đại diện, họ và tên, số điện thoại, email liên hệ, ngày vào học và vai trò người dùng.
-    \item Thông tin cá nhân: Hiển thị chi tiết các dữ liệu học vụ và thông tin cá nhân.
+    \item Trường "Ngành đào tạo": Danh sách chọn ngành học hiện tại của sinh viên.
+    \item Trường "Năm học hiện tại": Danh sách chọn năm học của sinh viên.
+    \item Trường "Định hướng nghề nghiệp": Ô nhập văn bản tự do để sinh viên mô tả mục tiêu nghề nghiệp.
+    \item Nút chức năng "Đóng" và "Lưu thay đổi".
 \end{enumerate}
 
 Cách sử dụng:
-Để xem thông tin người dùng:
+Để cập nhật hồ sơ học tập:
 \begin{enumerate}
-    \item Truy cập vào trang cá nhân ở góc màn hình bên phải.
-    \item Hệ thống sẽ tự động truy xuất và hiển thị toàn bộ hồ sơ hiện tại của người dùng lên giao diện.
+    \item Người dùng mở bảng "Hồ sơ học tập sinh viên" từ màn hình AI Chat.
+    \item Chọn ngành đào tạo và năm học hiện tại tương ứng từ danh sách sổ xuống.
+    \item Nhập định hướng nghề nghiệp mong muốn vào ô văn bản.
+    \item Nhấn nút "Lưu thay đổi" để hệ thống ghi nhận và đồng bộ hồ sơ học tập vào bộ nhớ dài hạn phục vụ cho AI Agent.
 \end{enumerate}
 
-Để cập nhật thông tin:
+Để đóng bảng thông tin mà không lưu thay đổi:
 \begin{enumerate}
-    \item Tại khu vực "Thông tin cá nhân", người dùng nhấn vào biểu tượng chỉnh sửa ở góc trên bên phải.
-    \item Hệ thống sẽ mở ra các trường dữ liệu cho phép người dùng thay đổi hoặc bổ sung thông tin.
-    \item Sau khi nhập liệu xong, người dùng lưu lại để hệ thống cập nhật vào cơ sở dữ liệu.
+    \item Nhấn nút "Đóng" hoặc biểu tượng "X" ở góc trên bên phải của bảng.
 \end{enumerate}
 
 \subsubsection{Màn hình AI Chat (Website)}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{AI_Chat.png}
+	\includegraphics[width=1\textwidth]{chat_mode.jpg}
 	\caption{Giao diện Màn hình AI Chat}
 	\label{fig:ui_ai_chat}
 \end{figure}
@@ -1080,7 +1082,7 @@ Bao gồm:
 \begin{enumerate}
 	\item Thanh lịch sử hội thoại (bên trái)
 	\item Khu vực hiển thị hội thoại (trung tâm)
-	\item Ô nhập câu hỏi và nút gửi (phía dưới)
+	\item Ô nhập câu hỏi, danh sách chọn Mode và nút gửi (phía dưới)
 \end{enumerate}
 
 Cách sử dụng:
@@ -1095,6 +1097,12 @@ Cách sử dụng:
 \begin{enumerate}
 	\item Chọn phiên hội thoại tại thanh danh sách bên trái.
 	\item Hệ thống hiển thị toàn bộ nội dung của phiên đó.
+\end{enumerate}
+
+Để lựa chọn chế độ trả lời:
+\begin{enumerate}
+	\item Flash (mặc định, dùng được cả khi chưa đăng nhập): truy vấn ít dữ liệu hơn, trả lời ngắn gọn, tóm tắt trọng tâm, không phân tích chi tiết, ưu tiên tốc độ.
+	\item Pro (yêu cầu đăng nhập): truy vấn sâu hơn, AI thực hiện phân tích từng bước để đưa ra lộ trình học chi tiết, đầy đủ theo đúng ngành/khóa, ưu tiên độ chính xác và chiều sâu.
 \end{enumerate}
 
 \subsubsection{Màn hình Đăng ký (Mobile)}
