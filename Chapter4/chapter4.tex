@@ -56,49 +56,66 @@
 \end{table}
 
 
-\section{Đánh giá chất lượng đồ thị tri thức}
+\section{Đánh giá chất lượng nội tại của Đồ thị tri thức (Knowledge Graph)}
 
+Dựa trên các tiêu chí và phương pháp đánh giá đã được trình bày ở Chương 3, hệ thống tiến hành đo lường chất lượng đồ thị tri thức trên mô hình Qwen2.5-72B-Instruct. Đặc biệt, đối với phương pháp đánh giá LLM-as-a-Judge, việc lấy mẫu đánh giá đồ thị được thực hiện ở hai quy mô $N=50$ và $N=400$. Cấp độ $N=50$ đóng vai trò tập mẫu kiểm tra nhanh (sanity check), giúp hệ thống phản hồi nhanh chóng trong quá trình tinh chỉnh prompt và gỡ lỗi sơ bộ mà không tốn quá nhiều chi phí API. Cấp độ $N=400$, trong khi đó, là tập mẫu chính thức được xác định dựa trên lý thuyết hội tụ tri thức và công thức tính cỡ mẫu thống kê, nhằm đảm bảo bao phủ các mối quan hệ hiếm gặp trong đồ thị và đạt độ tin cậy thống kê 95\% với biên độ sai số xấp xỉ 5\%.
 
-
-Dưới đây là kết quả thực nghiệm đối soát toàn diện giữa kiến trúc LightRAG nguyên bản (Origin) và kiến trúc tối ưu (Tối ưu) tích hợp SHACL:
+Bảng kết quả dưới đây tóm tắt các chỉ số hiệu năng thực nghiệm trên ba khía cạnh cốt lõi: tính toàn vẹn cấu trúc (Structure Health), độ chính xác trích xuất (Extraction Correctness) và tính hợp lệ lược đồ (Ontology Validation).
 
 \begin{table}[H]
-	\centering
-	\caption{Tổng hợp kết quả đánh giá đồ thị tri thức trên các cấp độ lấy mẫu khác nhau}
-	\label{tab:triple_comparison}
-
-	\small
-	\resizebox{1.05\textwidth}{!}{
-		\begin{tabular}{|l|c|c|c|c|c|c|}
-			\hline
-			Chỉ số đánh giá & \multicolumn{2}{c|}{Cấp độ N=10} & \multicolumn{2}{c|}{Cấp độ N=200} & \multicolumn{2}{c|}{Cấp độ N=500} \\ \cline{2-7} 
-			& Origin & Tối ưu & Origin & Tối ưu & Origin & Tối ưu \\ \hline
-			Nút mồ côi (Dangling) & 19.4\% & 5.2\% & 19.4\% & 5.2\% & 19.4\% & 5.2\% \\ \hline
-			Độ phủ văn bản (Chunk) & 36.1\% & 96.9\% & 36.1\% & 96.9\% & 36.1\% & 96.9\% \\ \hline
-			Độ có cơ sở (Grounded) & 0.910 & 0.914 & 0.990 & 1.000 & 0.986 & 0.998 \\ \hline
-			Bỏ sót gộp (C1 Rate) & 44.0\% & 6.0\% & 45.0\% & 7.0\% & 36.8\% & 8.0\% \\ \hline
-			Độ thuần khiết (C2 Rate) & 60.0\% & 70.0\% & 71.5\% & 78.0\% & 74.4\% & 78.7\% \\ \hline
-			Overall V-Measure & 57.9\% & 80.2\% & 62.2\% & 84.8\% & 68.3\% & 84.8\% \\ \hline
-		\end{tabular}
-	}
+    \centering
+    \caption{Kết quả đánh giá nội tại của Đồ thị tri thức}
+    \label{tab:graph_quality_results}
+    \small
+    \resizebox{1.0\textwidth}{!}{
+        \begin{tabular}{|l|c|c|}
+            \hline
+            \textbf{Tiêu chí đánh giá} & \textbf{Tập mẫu nhỏ (N=50)} & \textbf{Tập mẫu chuẩn (N=400)} \\
+            \hline
+            \multicolumn{3}{|l|}{\textbf{Khía cạnh 1: Tính toàn vẹn cấu trúc (Đánh giá trên toàn bộ đồ thị)}} \\
+            \hline
+            Tổng số nút (Nodes) / Tổng số cạnh (Edges) & \multicolumn{2}{c|}{3.808 / 3.775} \\
+            Tỷ lệ nút mồ côi (Dangling Nodes) & \multicolumn{2}{c|}{0.8\% (31 nút)} \\
+            Độ phủ văn bản (Chunk Coverage) & \multicolumn{2}{c|}{96.1\% (570/593 chunks)} \\
+            \hline
+            \multicolumn{3}{|l|}{\textbf{Khía cạnh 2: Độ chính xác trích xuất (LLM-as-a-Judge)}} \\
+            \hline
+            Độ có cơ sở (Groundedness Precision) & 98.00\% & 94.08\% \\
+            Tỷ lệ ảo giác (Hallucination - NO verdict) & 2.0\% & 5.0\% \\
+            Tỷ lệ chưa rõ ràng (UNKNOWN verdict) & 0.0\% & 5.0\% \\
+            \hline
+            \multicolumn{3}{|l|}{\textbf{Khía cạnh 3: Tính hợp lệ lược đồ (Ontology Validation)}} \\
+            \hline
+            Tỷ lệ vượt qua câu hỏi năng lực (CQ Pass Rate) & \multicolumn{2}{c|}{71.4\%} \\
+            Lỗi thiết kế nghiêm trọng (Critical/Major Pitfalls) & \multicolumn{2}{c|}{0} \\
+            Lỗi thiết kế nhỏ (Minor Pitfalls - Cảnh báo vòng lặp) & \multicolumn{2}{c|}{1} \\
+            \hline
+        \end{tabular}
+    }
 \end{table}
 
-Phân tích kết quả thực nghiệm cho thấy một sự cải thiện vượt bậc và toàn diện sau khi áp dụng quy trình tối ưu. Cụ thể, tỷ lệ nút mồ côi đã giảm mạnh từ 19.4\% xuống chỉ còn 5.2\%. Sự chuyển biến này chứng minh rằng việc áp dụng SHACL cùng thuật toán duyệt đồ thị đã ép buộc các thực thể hòa nhập vào ngữ cảnh chung, triệt tiêu hiệu quả các "ốc đảo tri thức" cô lập và đảm bảo tính liên kết logic trong từng câu trả lời của AI. Nhờ vậy, hệ thống cũng ghi nhận một bước đột phá lớn về độ phủ văn bản khi tăng từ 36.1\% lên mức ấn tượng 96.9\%; điều này khẳng định gần như toàn bộ thông tin trọng yếu đã được "hấp thụ" thành công vào đồ thị tri thức mà không bị bỏ sót. Cùng với đó, chất lượng hợp nhất thực thể cũng chứng kiến sự thăng tiến đáng kể khi chỉ số V-Measure tăng từ khoảng 60\% lên 85\%, kéo theo tỷ lệ bỏ sót gộp (C1) giảm mạnh từ 44\% xuống 8\%. Những con số này minh chứng cho việc giải quyết thành công tình trạng phân mảnh thực thể, làm cho đồ thị trở nên tinh gọn, trong khi vẫn cho phép sự can thiệp thủ công qua giao diện để duy trì độ chuẩn xác tuyệt đối. Đáng chú ý nhất, độ có cơ sở (Groundedness) luôn được duy trì ở mức tiệm cận tuyệt đối (0.998 - 1.000), qua đó khẳng định sự kết hợp giữa SHACL và mô hình ngôn ngữ cấp chuyên gia đã loại bỏ hoàn toàn các quan hệ sai lệch, đáp ứng trọn vẹn tiêu chuẩn tin cậy học thuật \cite{graphrag}.
+\subsection{Phân tích và Nhận xét kết quả}
+
+Kết quả thực nghiệm từ Bảng \ref{tab:graph_quality_results} cho thấy hệ thống đồ thị tri thức đạt được chất lượng rất khả quan trong bối cảnh dữ liệu học thuật.
+
+Xét về mặt cấu trúc (Structure Health), đồ thị thể hiện tính liên kết chặt chẽ với tỷ lệ nút mồ côi (Dangling Nodes) cực thấp, chỉ 0.8\% tương đương 31 nút, chứng minh rằng hầu hết các thực thể trích xuất ra đều hòa nhập vào ngữ cảnh chung, triệt tiêu hiệu quả các ``ốc đảo tri thức'' cô lập. Hơn nữa, độ phủ văn bản đạt 96.1\%, khẳng định gần như toàn bộ thông tin trọng yếu từ các tài liệu chương trình đào tạo đã được hấp thụ thành công vào mạng lưới đồ thị mà không bị bỏ sót.
+
+Xét về độ chính xác trích xuất (Extraction Correctness), quá trình đối sánh giữa $N=50$ và $N=400$ cho thấy sự hội tụ của dữ liệu. Ở tập mẫu nhỏ, độ chính xác (Groundedness) đạt 98.00\%, nhưng khi mở rộng lên 400 mẫu, chỉ số này giảm nhẹ về 94.08\%, kèm theo 5.0\% tỷ lệ ảo giác và 5.0\% không xác định. Dù vậy, theo tiêu chuẩn đánh giá LLM-as-a-Judge của Edge và cộng sự \cite{edge2024}, mức Groundedness vượt ngưỡng 0.85 đã được coi là rất tốt, và tỷ lệ 94.08\% trên tập mẫu lớn đủ đảm bảo độ tin cậy thống kê cao, chứng minh mô hình giám khảo có khả năng nhận diện và trích xuất đúng các ràng buộc chuyên môn phức tạp như học phần tiên quyết và chuẩn đầu ra.
+
+Liên quan đến quyết định loại bỏ khâu gộp thực thể (Merge Quality), như đã biện luận ở Chương 3, kết quả chạy thực nghiệm trực tiếp đã xác nhận tính đúng đắn của quyết định này. Các cụm thực thể bị nghi ngờ trùng lặp (Suspicious Duplicates) hầu hết đều rơi vào các học phần có tên gần giống nhau nhưng hoàn toàn độc lập về nội dung, điển hình như Anh Văn 2 và Anh Văn 3 với độ tương đồng cosine lên đến 0.971. Việc áp dụng thuật toán gộp máy móc trong trường hợp này sẽ sinh ra các chuỗi quan hệ sai lệch nghiêm trọng, làm sai lệch lộ trình học tập của sinh viên.
+
+Cuối cùng, về tính hợp lệ lược đồ (Ontology Validation), lược đồ đạt tỷ lệ phản hồi 71.4\% đối với các câu hỏi năng lực cơ bản. Công cụ rà soát tự động không phát hiện bất kỳ lỗi thiết kế nghiêm trọng nào, chỉ tồn tại duy nhất một cảnh báo nhỏ (Minor P24) liên quan đến khả năng xảy ra vòng lặp, vốn có thể kiểm soát dễ dàng ở tầng ứng dụng.
+
+Tóm lại, việc ứng dụng các tiêu chuẩn Ontology và phương pháp đánh giá LLM-as-a-Judge bằng mô hình tham số lớn đã cung cấp một góc nhìn định lượng sâu sắc về chất lượng nội tại của đồ thị. Kết quả thực nghiệm khẳng định mạng lưới đồ thị xây dựng hoàn toàn đáp ứng được các yêu cầu khắt khe của hệ thống GraphRAG trong môi trường học thuật.
 
 \section{Đánh giá chất lượng truy xuất và sinh văn bản (RAG Metrics)}
 \label{sec:rag_metrics}
 
 Để đánh giá chất lượng của phân hệ sinh câu trả lời và hiệu quả của tầng truy xuất bối cảnh, nhóm thực hiện đã thực thi tệp kịch bản tự động trên bộ dữ liệu kiểm thử bao gồm 40 câu hỏi chuyên sâu xoay quanh quy chế học vụ và thông tin các môn học thuộc chương trình đào tạo. Quy trình đánh giá áp dụng phương pháp LLM-as-a-Judge với mô hình giám khảo Qwen2.5-14B hoạt động trên môi trường điện toán đám mây GPU của Vast.ai. Hệ thống được cấu hình với các kỹ thuật tối ưu hóa cốt lõi bao gồm mở rộng câu hỏi (Query Expansion) và truy xuất kết hợp (Hybrid Retrieval).
 
-Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas} được áp dụng để tính toán các chỉ số dựa trên mối quan hệ phân tích giữa bốn thành phần: câu hỏi đầu vào, ngữ cảnh truy xuất từ đồ thị tri thức, câu trả lời do hệ thống sinh ra và đáp án mẫu chuẩn (Ground Truth). Cơ chế xác định các giá trị định lượng cụ thể được thực hiện thông qua việc biện luận các tiêu chí cốt lõi.
+Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas} được áp dụng để tính toán các chỉ số dựa trên mối quan hệ phân tích giữa bốn thành phần: câu hỏi đầu vào, ngữ cảnh truy xuất từ đồ thị tri thức, câu trả lời do hệ thống sinh ra và đáp án mẫu chuẩn (Ground Truth).
 
-- Độ liên quan của câu trả lời (Answer Relevance): Đạt tỷ lệ 79.12\%. Chỉ số này đo lường mức độ đáp ứng đúng trọng tâm và bám sát ý định ban đầu của người dùng trong truy vấn \cite{lewis2020rag}. Thuật toán sử dụng mô hình giám khảo để sinh ngược lại một tập hợp câu hỏi giả định dựa trên câu trả lời thực tế, sau đó tính toán giá trị độ tương đồng ngữ nghĩa bằng khoảng cách cosine giữa vector nhúng của câu hỏi sinh ngược này với câu hỏi gốc của sinh viên.
-
-- Độ chính xác của câu trả lời (Answer Correctness): Đạt tỷ lệ 67.15\%. Chỉ số đánh giá mức độ trùng khớp về mặt dữ kiện thực tế và ngữ nghĩa cốt lõi giữa câu trả lời của hệ thống so với đáp án chuẩn. Quá trình chấm điểm kết hợp việc so khớp các cặp thông tin đúng/sai (Factual Overlap) cùng với việc đo lường sự tương đồng về mặt cấu trúc văn bản.
-
-- Độ trung thực (Faithfulness): Đạt tỷ lệ 67.25\%. Chỉ số đo lường tính căn cứ của nội dung được tạo ra, đảm bảo câu trả lời dựa hoàn toàn trên tài liệu bối cảnh được cung cấp từ đồ thị tri thức nhằm hạn chế hiện tượng ảo giác thông tin \cite{ji2023survey}. Mô hình giám khảo bóc tách câu trả lời thành các mệnh đề độc lập, sau đó kiểm tra xem từng mệnh đề đó có thể được suy ra một cách hợp lệ từ các phân đoạn ngữ cảnh hay không.
-
-- Độ gọi ngữ cảnh (Context Recall): Đạt tỷ lệ 74.15\%. Tiêu chí này xác định tỷ lệ các sự thật cốt lõi xuất hiện trong đáp án chuẩn được bao phủ đầy đủ bởi phần ngữ cảnh mà thuật toán trích xuất từ đồ thị tri thức \cite{edge2024graphrag}. Nhờ cơ chế duyệt tìm cấu trúc thực thể liên kết, tầng truy xuất định vị hiệu quả các khái niệm phân tán để cung cấp thông tin nền đầy đủ cho mô hình sinh văn bản.
+Về độ liên quan của câu trả lời (Answer Relevance), hệ thống đạt 79.12\%. Chỉ số này đo lường mức độ đáp ứng đúng trọng tâm và bám sát ý định ban đầu của người dùng \cite{lewis2020rag}, được tính bằng cách mô hình giám khảo sinh ngược lại các câu hỏi giả định từ câu trả lời thực tế rồi đo độ tương đồng cosine với câu hỏi gốc. Về độ chính xác của câu trả lời (Answer Correctness), hệ thống đạt 67.15\%, phản ánh mức độ trùng khớp về dữ kiện và ngữ nghĩa giữa câu trả lời của hệ thống so với đáp án chuẩn thông qua sự kết hợp giữa so khớp thực tế (Factual Overlap) và đo lường tương đồng cấu trúc văn bản. Về độ trung thực (Faithfulness), hệ thống đạt 67.25\%, đo lường tỷ lệ nội dung được chứng minh có căn cứ từ ngữ cảnh đồ thị tri thức nhằm hạn chế hiện tượng ảo giác \cite{ji2023survey}. Cuối cùng, về độ gọi ngữ cảnh (Context Recall), hệ thống đạt 74.15\%, xác định tỷ lệ các sự thật cốt lõi trong đáp án chuẩn được bao phủ đầy đủ bởi ngữ cảnh trích xuất từ đồ thị \cite{edge2024}, nhờ cơ chế duyệt tìm cấu trúc thực thể liên kết giúp định vị hiệu quả các khái niệm phân tán.
 
 Các thông số định lượng đo lường từ quá trình thực nghiệm trên bộ mẫu 40 câu hỏi được tổng hợp cụ thể trong Bảng \ref{tab:ragas_results}.
 
@@ -120,11 +137,7 @@ Các thông số định lượng đo lường từ quá trình thực nghiệm 
 \section{Đánh giá hiệu năng điều phối đa tác nhân (Agentic Metrics)}
 \label{sec:agentic_metrics}
 
-Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý, nhưng cấu trúc này cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Quá trình kiểm định ghi nhận các thông số hiệu năng sau:
-
-- Tỷ lệ điều phối đúng công cụ (Routing Accuracy): Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng công cụ truy xuất (Local, Global hoặc Hybrid).
-
-- Tốc độ phản hồi (Average Latency): Thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG, và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
+Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý, song cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Về tỷ lệ điều phối đúng công cụ (Routing Accuracy), Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng chế độ truy xuất phù hợp (Local, Global hoặc Hybrid). Về tốc độ phản hồi (Average Latency), thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
 
 \section{Đánh giá hệ thống từ phía người dùng cuối}
 Quá trình thử nghiệm thực tế (beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru 40 câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
