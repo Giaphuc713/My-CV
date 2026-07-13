@@ -1,4 +1,250 @@
 \chapter*{Đề cương chi tiết}
-\label{thanks}
+\label{proposal}
 
-Bản \href{https://www.overleaf.com/read/jwrxbcrmkgfh}{đề cương} đã thực hiện và nộp cho giáo vụ trước đó \textit{(phải có chữ ký của giảng viên hướng dẫn)}.
+\begin{refsection}
+
+\begin{center}
+    \large\bfseries ĐỀ CƯƠNG THỰC TẬP DỰ ÁN TỐT NGHIỆP \\[0.8cm]
+
+    {\large\bfseries HỆ THỐNG HỖ TRỢ THÔNG TIN HỌC TẬP CHO SINH VIÊN SỬ DỤNG AI AGENTS\par}
+    \vspace{.6cm}
+
+    {\large\bfseries AN AI AGENT--BASED SYSTEM FOR LEARNING INFORMATION SUPPORT FOR STUDENTS\par}
+\end{center}
+
+\vspace{.5cm}
+
+\newcounter{propsec}
+\newcounter{propsubsec}[propsec]
+\newcounter{propsubsubsec}[propsubsec]
+\renewcommand{\thepropsubsec}{\thepropsec.\arabic{propsubsec}}
+\renewcommand{\thepropsubsubsec}{\thepropsubsec.\arabic{propsubsubsec}}
+
+\stepcounter{propsec}
+\section*{\thepropsec\quad Thông tin chung}
+
+Người hướng dẫn:
+\begin{itemize}
+    \item TS. Nguyễn Trần Minh Thư (Khoa Công nghệ Thông tin)
+\end{itemize}
+
+Nhóm sinh viên thực hiện:
+\begin{enumerate}
+    \item Nguyễn Chí Danh (MSSV: 22120048)
+    \item Lý Trường Nam (MSSV: 22120218)
+    \item Phạm Tấn Nghĩa (MSSV: 22120230)
+    \item Hà Gia Phúc (MSSV: 22120272)
+    \item Nguyễn Trường Tân (MSSV: 22120326)
+    \item Trần Nhật Tân (MSSV: 22120328)
+\end{enumerate}
+
+Loại đề tài: Ứng dụng
+
+Thời gian thực hiện: Từ \textit{01/2026} đến \textit{07/2026}
+
+\stepcounter{propsec}
+\section*{\thepropsec\quad Nội dung thực hiện}
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Giới thiệu về đề tài}
+
+Hiện nay, trong môi trường đại học, quá trình đăng ký môn học và xây dựng lộ trình học tập đóng vai trò vô cùng quan trọng đối với sự phát triển của sinh viên. Tuy nhiên, trên thực tế, sinh viên thường xuyên gặp nhiều khó khăn trong việc lựa chọn các học phần phù hợp với từng học kỳ, cũng như chưa thực sự hiểu rõ mối liên hệ mật thiết giữa các môn học và định hướng nghề nghiệp trong tương lai. Bên cạnh đó, sinh viên còn thường rơi vào tình trạng thiếu thông tin về nội dung cốt lõi, tài liệu tham khảo và quy chế học vụ của nhà trường, dẫn đến việc học tập thiếu định hướng và kém hiệu quả.
+
+Để giải quyết các vấn đề trên, đề tài đề xuất xây dựng một hệ thống hỗ trợ thông tin học tập thông minh dựa trên kiến trúc AI Agents kết hợp với LightRAG nhằm xây dựng và khai thác Đồ thị tri thức (Knowledge Graph). Hệ thống thu thập dữ liệu học vụ từ các nguồn đa dạng bao gồm chương trình đào tạo, đề cương chi tiết môn học và quy chế học vụ của Khoa Công nghệ Thông tin, sau đó cấu trúc hóa toàn bộ thành một mạng lưới tri thức có khả năng suy luận đa bước. Thay vì chỉ tìm kiếm từ khóa đơn thuần, hệ thống có thể hiểu được các mối quan hệ logic giữa môn tiên quyết, môn kế tiếp và các yêu cầu tốt nghiệp, từ đó cung cấp câu trả lời chính xác và có căn cứ rõ ràng hơn so với các chatbot thông thường. Điều này giúp sinh viên tra cứu thông tin học vụ, hiểu rõ mối liên hệ giữa các học phần và lập kế hoạch học tập hiệu quả trong suốt quá trình đào tạo.
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Mục tiêu đề tài}
+
+\stepcounter{propsubsubsec}
+\subsubsection*{\thepropsubsubsec\quad Tại sao cần thực hiện đề tài này?}
+
+Trong bối cảnh giáo dục đại học hiện nay, sinh viên thường xuyên đối mặt với sự thiếu liên kết giữa các môn học trong chương trình đào tạo và định hướng học tập thực tế. Khó khăn lớn nhất là việc nhiều sinh viên không thể xác định được môn học nào thực sự cần thiết để đạt mục tiêu của mình, cũng như không nắm rõ các điều kiện tiên quyết và song hành phức tạp giữa các học phần. Bên cạnh đó, thông tin học vụ hiện tại thường tồn tại dưới dạng các tệp PDF rời rạc hoặc trang web tĩnh, khiến sinh viên phải tự tra cứu thủ công qua nhiều nguồn mà vẫn không có được câu trả lời tổng hợp và chính xác. Các mô hình AI phổ biến đôi khi cung cấp thông tin sai lệch do không được huấn luyện trên dữ liệu đặc thù của nhà trường, gây ra những hậu quả nghiêm trọng cho lộ trình học tập của sinh viên. Chính vì vậy, việc xây dựng một hệ thống hỗ trợ thông minh, có khả năng trả lời chính xác dựa trên kho tri thức học vụ thực tế của Khoa, là vô cùng cấp thiết và có ý nghĩa thực tiễn cao.
+
+\stepcounter{propsubsubsec}
+\subsubsection*{\thepropsubsubsec\quad Đề tài mang lại được điều gì?}
+
+Đề tài hướng đến việc phát triển hệ thống hỗ trợ thông tin học tập thông minh cho sinh viên Khoa Công nghệ Thông tin -- Trường Đại học Khoa học Tự nhiên với các khả năng chính:
+
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Gợi ý môn tiên quyết, môn kế tiếp và lập kế hoạch học tập tối ưu theo từng học kỳ.
+    \item Cung cấp thông tin kiến thức, nội dung, tài liệu của từng môn học, đồng thời giải đáp các thắc mắc về quy chế học vụ và điều kiện tốt nghiệp.
+    \item Ứng dụng AI Agent hỗ trợ học tập cá nhân hóa, theo dõi tiến trình học và gợi ý hướng đi phù hợp với từng sinh viên.
+    \item Cung cấp ứng dụng Mobile (Android) cho phép sinh viên tra cứu thông tin học vụ và đặt câu hỏi với AI Agent mọi lúc, mọi nơi.
+\end{itemize}
+
+\stepcounter{propsubsubsec}
+\subsubsection*{\thepropsubsubsec\quad Ảnh hưởng và ý nghĩa của kết quả đề tài}
+
+Kết quả của đề tài không chỉ là một công cụ hỗ trợ tra cứu đơn thuần mà còn là giải pháp nâng cao tính chủ động và hiệu quả học tập cho sinh viên trong suốt quá trình đào tạo. Đối với giảng viên và nhà trường, hệ thống giúp giảm bớt áp lực trong công tác tư vấn học tập, đồng thời cung cấp một kho tri thức học vụ được số hóa và cấu trúc hóa hoàn chỉnh, tạo cơ sở để cải tiến chương trình đào tạo sát với thực tiễn hơn. Ý nghĩa khoa học của nghiên cứu còn nằm ở việc đề xuất và hiện thực hóa một quy trình xây dựng Đồ thị tri thức chất lượng cao cho văn bản học thuật tiếng Việt, bao gồm các cơ chế xác thực SHACL và phân giải thực thể, mở rộng hướng ứng dụng của xử lý ngôn ngữ tự nhiên (NLP) và các mô hình ngôn ngữ lớn (LLM) vào bối cảnh giáo dục đại học một cách hiệu quả. Đây là một bước tiến quan trọng trong việc hình thành các hệ thống giáo dục thông minh, góp phần hiện đại hóa phương thức tương tác giữa sinh viên và tri thức. Về lâu dài, dự án hướng tới xây dựng một môi trường học tập kết nối, nơi tri thức học vụ được lưu trữ và cập nhật liên tục, góp phần nâng cao chất lượng đầu ra cho ngành Công nghệ Thông tin.
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Phạm vi của đề tài}
+
+Đề tài tập trung nghiên cứu và xây dựng hệ thống hỗ trợ thông tin học tập cho sinh viên Khoa Công nghệ Thông tin -- Trường Đại học Khoa học Tự nhiên thông qua các hướng sau:
+
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Xây dựng quy trình thu thập và tiền xử lý dữ liệu: Triển khai hệ thống cào dữ liệu thông minh (Smart Scraper) từ website Khoa kết hợp với công cụ MinerU để bóc tách nội dung chính xác từ các tài liệu PDF phức tạp, bao gồm tài liệu dạng scan, bảng biểu và công thức toán học.
+    \item Tối ưu hóa truy xuất tri thức với LightRAG: Nghiên cứu và tùy chỉnh pipeline trích xuất thực thể (Entities) và mối quan hệ (Relationships) từ chương trình đào tạo để xây dựng Đồ thị tri thức, kết hợp chiến lược phân đoạn kép (Dual Chunking) và cơ chế xác thực SHACL, phân giải thực thể tự động.
+    \item Triển khai kiến trúc Đa tác nhân (Multi-Agent): Thiết lập luồng điều phối Agentic Workflow sử dụng framework LangGraph, trong đó các tác nhân chuyên biệt phối hợp phân tích câu hỏi, truy xuất tri thức và tổng hợp câu trả lời cho sinh viên.
+\end{itemize}
+
+\noindent{Đối tượng nghiên cứu:} Các mô hình ngôn ngữ lớn (LLM), kỹ thuật GraphRAG (LightRAG), và kiến trúc hệ thống Đa tác nhân (Multi-Agent) trên nền tảng LangGraph.
+
+\medskip
+\noindent{Các thực thể chính trong hệ thống:}
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Môn học: Thực thể trung tâm với các mối quan hệ ``tiên quyết'', ``song hành'', ``thuộc khối kiến thức''.
+    \item Chương trình đào tạo: Nhóm các môn học theo ngành và chuyên ngành.
+    \item Chuẩn đầu ra: Các kỹ năng, kiến thức mà sinh viên cần đạt sau khi hoàn thành môn học.
+    \item Văn bản quy định: Nguồn gốc tri thức bao gồm quy chế học vụ và đề cương chi tiết.
+\end{itemize}
+
+\medskip
+\noindent{Tập dữ liệu (Dataset):}
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Dữ liệu chương trình đào tạo của Khoa Công nghệ Thông tin -- Trường Đại học Khoa học Tự nhiên (các khóa từ 2022 đến 2025, bao gồm sáu ngành và khối ngành thuộc Khoa, bao gồm: Cử nhân tài năng, Công nghệ thông tin, Hệ thống thông tin, Khoa học máy tính, Kỹ thuật phần mềm và Trí tuệ nhân tạo).
+    \item Dữ liệu đề cương chi tiết các học phần và quy chế học vụ, quy định xét chuyên ngành.
+    \item Dữ liệu thu thập tự động từ website của Khoa (fit.hcmus.edu.vn) và Trường (hcmus.edu.vn).
+\end{itemize}
+
+\medskip
+\noindent{Phạm vi dữ liệu:} Hệ thống chỉ hỗ trợ dữ liệu tri thức và chương trình đào tạo thuộc Khoa Công nghệ Thông tin -- Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM.
+
+\medskip
+\noindent{Ràng buộc kỹ thuật:} Hệ thống yêu cầu kết nối Internet để truy xuất API của mô hình ngôn ngữ lớn, độ chính xác của tư vấn phụ thuộc vào tính cập nhật của dữ liệu chương trình đào tạo được nạp vào Đồ thị tri thức.
+
+\medskip
+\noindent{Giới hạn chức năng:} Hệ thống đóng vai trò hỗ trợ tư vấn và định hướng thông tin học vụ, không thay thế cho các quyết định hành chính chính thức từ phòng đào tạo.
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Cách tiếp cận dự kiến}
+
+Các hệ thống sinh văn bản tăng cường truy xuất (Retrieval-Augmented Generation -- RAG) truyền thống đã giải quyết được bài toán giao tiếp ngôn ngữ tự nhiên, nhưng vẫn gặp hạn chế lớn do phụ thuộc vào biểu diễn dữ liệu dạng phẳng, dẫn đến việc bỏ sót các mối quan hệ phức tạp giữa các môn học. Các mô hình nâng cao hơn như GraphRAG của Microsoft có khả năng suy luận đa bước nhưng lại phát sinh chi phí tính toán rất lớn và không hỗ trợ cập nhật dữ liệu tăng dần \cite{graphrag2024}. Để khắc phục những hạn chế trên, đề tài áp dụng kiến trúc LightRAG kết hợp hệ thống Đa tác nhân (Multi-Agent), vừa đảm bảo khả năng suy luận trên Đồ thị tri thức, vừa tối ưu hóa chi phí và hỗ trợ cập nhật tri thức linh hoạt \cite{lightrag2024}.
+
+Với mục tiêu đó, nhóm thực hiện các bước tiếp cận như sau:
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Khảo sát nhu cầu của sinh viên về các tính năng và nghiệp vụ cần quan tâm liên quan đến tư vấn lộ trình học tập, tài liệu môn học để xây dựng một hệ thống tư vấn học tập hoàn chỉnh cho sinh viên.
+    \item Thu thập và tiền xử lý dữ liệu học vụ: triển khai hệ thống thu thập dữ liệu tự động từ website Khoa kết hợp với công cụ trích xuất tài liệu PDF chất lượng cao để đảm bảo đầu vào sạch và đầy đủ cho các bước xử lý tiếp theo.
+    \item Xây dựng Đồ thị tri thức với LightRAG: trích xuất tự động các thực thể và mối quan hệ từ tài liệu học vụ, đảm bảo chất lượng tri thức thông qua cơ chế xác thực và phân giải thực thể trùng lặp.
+    \item Xây dựng hệ thống Đa tác nhân: thiết kế luồng điều phối AI Agent có khả năng phân tích câu hỏi, truy xuất tri thức phù hợp và tổng hợp câu trả lời chính xác, đồng thời tích hợp bộ nhớ để duy trì ngữ cảnh hội thoại.
+    \item Thiết kế và triển khai ứng dụng: xây dựng giao diện web và ứng dụng Mobile thân thiện với người dùng, tích hợp hệ thống xác thực tài khoản và kết nối với tầng AI.
+    \item Đánh giá hệ thống và kiểm thử: đánh giá chất lượng truy xuất và sinh văn bản trên bộ câu hỏi chuẩn, đánh giá chất lượng Đồ thị tri thức, sau đó tiến hành thử nghiệm thực tế với sinh viên để thu thập phản hồi và cải thiện hệ thống.
+\end{itemize}
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Kết quả dự kiến của đề tài}
+
+Hệ thống AI được xây dựng có khả năng đưa ra câu trả lời chính xác, có căn cứ dựa trên kho tri thức học vụ thực tế của Khoa, hạn chế tối đa hiện tượng ảo giác thông tin (hallucination) nhờ kiến trúc GraphRAG và cơ chế xác thực SHACL. Hệ thống hỗ trợ cập nhật tri thức tăng dần mà không cần xây dựng lại toàn bộ Đồ thị, đồng thời tối ưu chi phí gọi API thông qua cơ chế phân cấp truy vấn của LightRAG. Sản phẩm đầu ra bao gồm:
+
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item Website tư vấn học tập tích hợp AI Agent, có khả năng: trả lời câu hỏi về môn tiên quyết, quy chế học vụ và điều kiện tốt nghiệp, cung cấp lộ trình học tập cá nhân hóa, hiển thị câu trả lời theo luồng với trích dẫn nguồn gốc tài liệu rõ ràng.
+    \item Ứng dụng Mobile (Android) cung cấp trải nghiệm tương tự website, cho phép sinh viên tra cứu thông tin học vụ, nhận gợi ý lộ trình học tập và đặt câu hỏi với AI Agent thuận tiện mọi lúc, mọi nơi.
+    \item Tài liệu kỹ thuật hệ thống bao gồm đặc tả yêu cầu, mô hình cơ sở dữ liệu, sơ đồ kiến trúc và báo cáo đánh giá hiệu năng.
+\end{itemize}
+
+\noindent{Các công trình khoa học liên quan:}
+\begin{itemize}[label={--}, leftmargin=1.5em]
+    \item \textit{LightRAG: Simple and Fast Retrieval-Augmented Generation} \cite{lightrag2024} -- Giới thiệu kiến trúc GraphRAG nhẹ tích hợp đồ thị thực thể vào quá trình truy xuất, hỗ trợ cập nhật tri thức tăng dần với chi phí tính toán thấp.
+    \item \textit{From Local to Global: A Graph RAG Approach to Query-Focused Summarization} \cite{graphrag2024} -- Đề xuất kiến trúc GraphRAG phân cấp cộng đồng của Microsoft, cơ sở lý thuyết để so sánh và lựa chọn LightRAG trong đề tài.
+    \item \textit{RAGAS: Automated Evaluation of Retrieval Augmented Generation} \cite{ragas2023} -- Framework đánh giá tự động hệ thống RAG theo các chỉ số Faithfulness, Answer Relevance, Context Precision và Context Recall, được áp dụng trực tiếp trong đề tài.
+\end{itemize}
+
+\stepcounter{propsubsec}
+\subsection*{\thepropsubsec\quad Kế hoạch thực hiện}
+{\small
+\begin{longtable}{|C{0.9cm}|C{2.2cm}|C{2.2cm}|L{5.8cm}|L{2.4cm}|}
+    \hline
+    STT & Bắt đầu & Kết thúc & Nội dung công việc & Thành viên thực hiện \\
+    \hline
+    \endfirsthead
+
+    \hline
+    STT & Bắt đầu & Kết thúc & Nội dung công việc & Thành viên thực hiện \\
+    \hline
+    \endhead
+
+    1 & 26/10/2025 & 02/11/2025 &
+    Chuẩn bị câu hỏi khảo sát tình trạng của sinh viên khi đăng ký môn học và các vấn đề khi học tập.
+    & Tất cả thành viên \\ \hline
+
+    2 & 02/11/2025 & 09/11/2025 &
+    Thu thập kết quả khảo sát. \newline
+    Phân tích kết quả khảo sát và viết báo cáo. \newline
+    Thu thập tài liệu đào tạo (PDF chương trình đào tạo, đề cương, quy chế học vụ), đánh giá chất lượng dữ liệu đầu vào, xác định phạm vi và yêu cầu hệ thống.
+    & Tất cả thành viên \\ \hline
+
+    3 & 09/11/2025 & 23/11/2025 &
+    Tổng hợp yêu cầu hệ thống, viết đặc tả Use Case, thiết kế kiến trúc tổng thể sơ bộ, phân công nhiệm vụ cho từng thành viên. \newline
+    Đề xuất giải pháp thực hiện ứng dụng.
+    & Tất cả thành viên \\ \hline
+
+    4 & 23/11/2025 & 14/12/2025 &
+    Tìm hiểu GraphRAG và Knowledge Graph. \newline
+    Tìm giải pháp tối ưu hơn GraphRAG cho việc rút trích dữ liệu. \newline
+    Nghiên cứu các công trình liên quan về RAG, GraphRAG và hệ thống Đa tác nhân.
+    & Tất cả thành viên \\ \hline
+
+    5 & 14/12/2025 & 01/01/2026 &
+    Nghiên cứu chuyên sâu về LightRAG.
+    & Tất cả thành viên \\ \hline
+
+    6 & 01/01/2026 & 15/01/2026 &
+    Thiết kế UI/UX trên Figma cho ứng dụng web, thiết kế API xác thực (đăng ký, đăng nhập, quên mật khẩu), thiết kế cơ sở dữ liệu PostgreSQL, MongoDB, nghiên cứu LangGraph để xây dựng Agentic Workflow.
+    & Tất cả thành viên \\ \hline
+
+    7 & 15/01/2026 & 08/02/2026 &
+    Triển khai Smart Scraper Engine thu thập dữ liệu từ website Khoa, tích hợp MinerU để tiền xử lý tài liệu PDF phức tạp, xây dựng LightRAG với tùy chỉnh SHACL và Entity Resolution, xây dựng hệ thống Đa tác nhân sơ bộ với LangGraph.
+    & Tất cả thành viên \\ \hline
+
+    8 & 08/02/2026 & 15/02/2026 &
+    Nghiên cứu và thiết kế cơ chế bộ nhớ dài hạn cho Agent (Long-term Memory), tối ưu hóa độ trễ phản hồi và giảm chi phí gọi API LLM.
+    & Tất cả thành viên \\ \hline
+
+    9 & 15/02/2026 & 15/03/2026 &
+    Tích hợp và triển khai toàn bộ hệ thống: backend Spring Boot, frontend Next.js, cơ sở dữ liệu (PostgreSQL, MongoDB, Neo4j, Qdrant, Redis) và hệ thống AI Agent.
+    & Tất cả thành viên \\ \hline
+
+    10 & 15/03/2026 & 08/04/2026 &
+    Tùy chỉnh pipeline trích xuất thực thể, nghiên cứu và triển khai cơ chế xác thực SHACL và phân giải thực thể (Entity Resolution).
+    & Tất cả thành viên \\ \hline
+
+    11 & 08/04/2026 & 29/04/2026 &
+    Đánh giá chất lượng Đồ thị tri thức (V-Measure, Groundedness, tỷ lệ nút mồ côi), đánh giá chất lượng RAG với framework RAGAS (Faithfulness, Answer Relevance, Context Recall), kiểm thử và tối ưu hóa hệ thống.
+    & Tất cả thành viên \\ \hline
+
+    12 & 29/04/2026 & 14/05/2026 &
+    Thử nghiệm hệ thống trên môi trường production, tiến hành beta testing với sinh viên Khoa Công nghệ Thông tin.
+    & Tất cả thành viên \\ \hline
+
+    13 & 14/05/2026 & 20/05/2026 &
+    Thu thập và phân tích phản hồi từ người dùng thực, chuẩn bị bộ câu hỏi đánh giá trải nghiệm sử dụng.
+    & Tất cả thành viên \\ \hline
+
+    14 & 20/05/2026 & 15/06/2026 &
+    Cải thiện và hoàn thiện hệ thống dựa trên phản hồi người dùng, viết và hoàn thiện báo cáo tốt nghiệp.
+    & Tất cả thành viên \\ \hline
+
+    15 & 15/06/2026 & 06/07/2026 &
+    Hoàn thiện báo cáo, chuẩn bị tài liệu hướng dẫn triển khai hệ thống và chuẩn bị bảo vệ đồ án tốt nghiệp.
+    & Tất cả thành viên \\ \hline
+
+    \multicolumn{3}{|c|}{Phát triển về sau} &
+    Nâng cấp và cải tiến hệ thống: mở rộng dữ liệu sang các Khoa khác trong Trường, tích hợp trực tiếp với cổng thông tin đào tạo của Trường. &
+    \\ \hline
+\end{longtable}
+}
+
+\pagebreak
+\nocite{graphrag2024,lightrag2024,graphrepo,stepchain2025,rag_survey2023}
+\printbibliography[title={Tài liệu}]
+
+\end{refsection}
+
+\bigskip
+\begin{table}[H]
+\centering
+\footnotesize
+    \begin{tabular}{C{7.5cm}C{7.5cm}}
+    XÁC NHẬN\newline CỦA NGƯỜI HƯỚNG DẪN\newline \textit{(Ký và ghi rõ họ tên)} & \textit{TP. Hồ Chí Minh, ngày 16 tháng 03 năm 2026}\newline NHÓM SINH VIÊN THỰC HIỆN\newline \textit{(Ký và ghi rõ họ tên)}
+    \end{tabular}
+\end{table}
