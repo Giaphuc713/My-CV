@@ -503,19 +503,19 @@ Hình~\ref{fig:kg-concept-model} thể hiện mô hình khái niệm các loại
 \centering
 \begin{tikzpicture}[
 	docnode/.style={rectangle, rounded corners=6pt,
-		draw=blue!50!violet!80, fill=blue!15!violet!25,
+		draw=black, fill=gray!35, line width=1pt,
 		minimum width=4.3cm, minimum height=1.3cm,
 		align=center, inner sep=7pt},
 	coursenode/.style={rectangle, rounded corners=6pt,
-		draw=teal!80, fill=teal!30,
+		draw=black, fill=white, line width=1pt,
 		minimum width=4.2cm, minimum height=1.3cm,
 		align=center, inner sep=7pt},
 	outcomenode/.style={rectangle, rounded corners=6pt,
-		draw=orange!70!red!60, fill=orange!35!red!20,
+		draw=black, fill=gray!15, line width=1pt,
 		minimum width=4.3cm, minimum height=1.3cm,
 		align=center, inner sep=7pt},
 	programnode/.style={rectangle, rounded corners=6pt,
-		draw=gray!65, fill=gray!20,
+		draw=black, fill=gray!50, line width=1.2pt,
 		minimum width=5.2cm, minimum height=1.3cm,
 		align=center, inner sep=7pt},
 	rel/.style={-Stealth, thick, draw=black!65},
@@ -547,16 +547,16 @@ Hình~\ref{fig:kg-concept-model} thể hiện mô hình khái niệm các loại
 
 % ==================== Legend ====================
 \begin{scope}[shift={(1.2,-3.2)}]
-	\filldraw[draw=blue!50!violet!80, fill=blue!15!violet!25] (0.0, 0.0) circle (0.18cm);
+	\filldraw[draw=black, fill=gray!35, line width=1pt] (0.0, 0.0) circle (0.18cm);
 	\node[right=0.08cm] at (0.20, 0.0) {\small Văn bản quy định};
 
-	\filldraw[draw=teal!80, fill=teal!30] (5.0, 0.0) circle (0.18cm);
+	\filldraw[draw=black, fill=white, line width=1pt] (5.0, 0.0) circle (0.18cm);
 	\node[right=0.08cm] at (5.20, 0.0) {\small Môn học};
 
-	\filldraw[draw=orange!70!red!60, fill=orange!35!red!20] (0.0, -0.8) circle (0.18cm);
+	\filldraw[draw=black, fill=gray!15, line width=1pt] (0.0, -0.8) circle (0.18cm);
 	\node[right=0.08cm] at (0.20, -0.8) {\small Chuẩn đầu ra};
 
-	\filldraw[draw=gray!65, fill=gray!20] (5.0, -0.8) circle (0.18cm);
+	\filldraw[draw=black, fill=gray!50, line width=1.2pt] (5.0, -0.8) circle (0.18cm);
 	\node[right=0.08cm] at (5.20, -0.8) {\small Chương trình đào tạo};
 \end{scope}
 
@@ -648,38 +648,38 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     every node/.style={font=\small},
     coursenode/.style={
         rectangle, rounded corners=5pt,
-        draw=blue!70, fill=blue!10,
+        draw=black, fill=white, line width=1pt,
         minimum width=4.2cm, minimum height=1.0cm,
         align=center, inner sep=6pt
     },
     conceptnode/.style={
         rectangle, rounded corners=5pt,
-        draw=teal!70, fill=teal!8,
+        draw=black!70, fill=gray!15,
         minimum width=3.4cm, minimum height=1.0cm,
         align=center, inner sep=5pt
     },
     deptnode/.style={
         rectangle, rounded corners=5pt,
-        draw=gray!60, fill=gray!8,
+        draw=black!70, fill=gray!25,
         minimum width=3.4cm, minimum height=1.0cm,
         align=center, inner sep=5pt
     },
     aliasnode/.style={
         rectangle, rounded corners=4pt,
-        draw=blue!40, fill=blue!4,
+        draw=black!70, fill=white, dashed, line width=0.8pt,
         minimum width=3.4cm, minimum height=0.9cm,
         align=center, inner sep=5pt
     },
     instrnode/.style={
         rectangle, rounded corners=5pt,
-        draw=orange!60, fill=orange!7,
+        draw=black, fill=gray!35,
         minimum width=3.4cm, minimum height=1.0cm,
         align=center, inner sep=5pt
     },
-    rel/.style={-Stealth, thick, draw=blue!55},
-    sameas/.style={-Stealth, thick, dashed, draw=orange!70},
+    rel/.style={-Stealth, thick, draw=black},
+    sameas/.style={-Stealth, thick, dashed, draw=black},
     lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
-    slbl/.style={font=\small, color=orange!80!black, fill=white, inner sep=3pt},
+    slbl/.style={font=\small, color=black, fill=white, inner sep=3pt},
 ]
 
 % ── Hàng trên: prerequisite courses ──
@@ -687,7 +687,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 \node[coursenode] (ctdl) at (7.0, 5.0) {Cấu trúc dữ liệu\\{\small :Course}};
 
 % ── Hàng giữa: central node ──
-\node[coursenode, draw=blue!90, fill=blue!20, font=\small, minimum width=5.5cm]
+\node[coursenode, draw=black, fill=gray!20, font=\small, minimum width=5.5cm, line width=1.5pt]
     (csdl) at (7.0, 2.5) {Cơ sở dữ liệu\\{\small :Course \quad entity\_id="cơ sở dữ liệu"}};
 
 % ── Alias trái: CSDL ──
@@ -731,7 +731,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	\begin{tikzpicture}[scale=0.82, transform shape,
 		% ─── Node styles ───
 		engine/.style={rectangle, rounded corners=6pt,
-			draw=blue!50!black, fill=blue!5, line width=1pt,
+			draw=black, fill=gray!15, line width=1.2pt,
 			minimum width=5.5cm, minimum height=1.4cm,
 			align=center, font=\bfseries\sffamily},
 		cloud/.style={ellipse, draw=gray!35, fill=gray!4,
@@ -814,9 +814,9 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	% ══════════════════════════════════════
 
 	% ─── 1. Redis (KV_STORAGE) ───
-	\node[cloud, fill=red!3, draw=red!18] (kvCloud) at (\sA, \cloudY) {};
-	\drawDBicon{\sA}{-3.95}{red}
-	\node[font=\small\bfseries\sffamily, text=red!55!black] at (\sA, {\cloudY-0.6}) {Redis};
+	\node[cloud, fill=gray!3, draw=gray!25] (kvCloud) at (\sA, \cloudY) {};
+	\drawDBicon{\sA}{-3.95}{gray}
+	\node[font=\small\bfseries\sffamily, text=black!85] at (\sA, {\cloudY-0.6}) {Redis};
 
 	\node[contentBox] (kvBox) at (\sA, \boxY) {};
 	\node[contentTitle, anchor=north] at ([yshift=-5pt]kvBox.north) {Contents};
@@ -830,9 +830,9 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	\node[implLabel, below=1pt of kvCat] {RedisKVStorage};
 
 	% ─── 2. Qdrant (VECTOR_STORAGE) ───
-	\node[cloud, fill=violet!3, draw=violet!18] (vecCloud) at (\sB, \cloudY) {};
-	\drawDBicon{\sB}{-3.95}{violet}
-	\node[font=\small\bfseries\sffamily, text=violet!55!black] at (\sB, {\cloudY-0.6}) {Qdrant};
+	\node[cloud, fill=gray!3, draw=gray!25] (vecCloud) at (\sB, \cloudY) {};
+	\drawDBicon{\sB}{-3.95}{gray}
+	\node[font=\small\bfseries\sffamily, text=black!85] at (\sB, {\cloudY-0.6}) {Qdrant};
 
 	\node[contentBox] (vecBox) at (\sB, \boxY) {};
 	\node[contentTitle, anchor=north] at ([yshift=-5pt]vecBox.north) {Contents};
@@ -846,15 +846,15 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	\node[implLabel, below=1pt of vecCat] {QdrantVectorDBStorage};
 
 	% ─── 3. Neo4j (GRAPH_STORAGE) ───
-	\node[cloud, fill=teal!3, draw=teal!18] (grCloud) at (\sC, \cloudY) {};
+	\node[cloud, fill=gray!3, draw=gray!25] (grCloud) at (\sC, \cloudY) {};
 	% Graph icon
-	\fill[teal!40] ({\sC-0.3},-3.85) circle (0.07);
-	\fill[teal!40] ({\sC+0.25},-3.78) circle (0.07);
-	\fill[teal!40] ({\sC+0.3},-4.08) circle (0.07);
-	\draw[teal!45!black, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.25},-3.78);
-	\draw[teal!45!black, line width=0.4pt] ({\sC+0.25},-3.78) -- ({\sC+0.3},-4.08);
-	\draw[teal!45!black, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.3},-4.08);
-	\node[font=\small\bfseries\sffamily, text=teal!55!black] at (\sC, {\cloudY-0.6}) {Neo4j};
+	\fill[gray!40] ({\sC-0.3},-3.85) circle (0.07);
+	\fill[gray!40] ({\sC+0.25},-3.78) circle (0.07);
+	\fill[gray!40] ({\sC+0.3},-4.08) circle (0.07);
+	\draw[gray!60, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.25},-3.78);
+	\draw[gray!60, line width=0.4pt] ({\sC+0.25},-3.78) -- ({\sC+0.3},-4.08);
+	\draw[gray!60, line width=0.4pt] ({\sC-0.3},-3.85) -- ({\sC+0.3},-4.08);
+	\node[font=\small\bfseries\sffamily, text=black!85] at (\sC, {\cloudY-0.6}) {Neo4j};
 
 	\node[contentBox] (grBox) at (\sC, \boxY) {};
 	\node[contentTitle, anchor=north] at ([yshift=-5pt]grBox.north) {Contents};
@@ -866,9 +866,9 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	\node[implLabel, below=1pt of grCat] {Neo4JStorage};
 
 	% ─── 4. PostgreSQL (DOC_STATUS_STORAGE) ───
-	\node[cloud, fill=blue!3, draw=blue!18] (dsCloud) at (\sD, \cloudY) {};
-	\drawDBicon{\sD}{-3.95}{blue}
-	\node[font=\small\bfseries\sffamily, text=blue!60!black] at (\sD, {\cloudY-0.6}) {PostgreSQL};
+	\node[cloud, fill=gray!3, draw=gray!25] (dsCloud) at (\sD, \cloudY) {};
+	\drawDBicon{\sD}{-3.95}{gray}
+	\node[font=\small\bfseries\sffamily, text=black!85] at (\sD, {\cloudY-0.6}) {PostgreSQL};
 
 	\node[contentBox] (dsBox) at (\sD, \boxY) {};
 	\node[contentTitle, anchor=north] at ([yshift=-5pt]dsBox.north) {Contents};

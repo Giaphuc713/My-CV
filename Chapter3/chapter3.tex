@@ -7,17 +7,17 @@
 \begin{figure}[H]
 	\centering
 	\resizebox{\textwidth}{!}{%
-\definecolor{cInputFill}{HTML}{B71C1C}
-\definecolor{cInputDraw}{HTML}{7F0000}
-\definecolor{cProcessFill}{HTML}{B9F6CA}
-\definecolor{cProcessDraw}{HTML}{69F0AE}
-\definecolor{cLLMFill}{HTML}{E1BEE7}
-\definecolor{cLLMDraw}{HTML}{AB47BC}
-\definecolor{cSHACLFill}{HTML}{FFE0B2}
-\definecolor{cSHACLDraw}{HTML}{FB8C00}
-\definecolor{cStorageFill}{HTML}{00695C}
-\definecolor{cStorageDraw}{HTML}{004D40}
-\definecolor{cSkipFill}{HTML}{EEEEEE}
+\definecolor{cInputFill}{HTML}{505050}
+\definecolor{cInputDraw}{HTML}{000000}
+\definecolor{cProcessFill}{HTML}{FFFFFF}
+\definecolor{cProcessDraw}{HTML}{000000}
+\definecolor{cLLMFill}{HTML}{FFFFFF}
+\definecolor{cLLMDraw}{HTML}{000000}
+\definecolor{cSHACLFill}{HTML}{FFFFFF}
+\definecolor{cSHACLDraw}{HTML}{000000}
+\definecolor{cStorageFill}{HTML}{707070}
+\definecolor{cStorageDraw}{HTML}{000000}
+\definecolor{cSkipFill}{HTML}{F5F5F5}
 \definecolor{cSkipDraw}{HTML}{9E9E9E}
 \definecolor{cSkipText}{HTML}{757575}
 \tikzset{
@@ -193,9 +193,9 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 	\begin{tikzpicture}[
     scale=0.5, transform shape,
     >=Stealth,
-    startstop/.style={rectangle, rounded corners, minimum width=2.6cm, minimum height=0.9cm, text centered, draw=black, fill=red!20, font=\bfseries},
-    process/.style={rectangle, rounded corners, minimum width=3.2cm, minimum height=1cm, text centered, text width=3.2cm, draw=black, fill=orange!10},
-    decision/.style={diamond, aspect=2.3, minimum width=3cm, minimum height=1cm, text centered, text width=2.4cm, draw=black, fill=green!20},
+    startstop/.style={rectangle, rounded corners, minimum width=2.6cm, minimum height=0.9cm, text centered, draw=black, fill=gray!25, font=\bfseries},
+    process/.style={rectangle, rounded corners, minimum width=3.2cm, minimum height=1cm, text centered, text width=3.2cm, draw=black, fill=white},
+    decision/.style={diamond, aspect=2.3, minimum width=3cm, minimum height=1cm, text centered, text width=2.4cm, draw=black, fill=gray!10},
     arrow/.style={thick,->,>=Stealth,rounded corners=4pt},
     line/.style={thick,rounded corners=4pt}
 ]
@@ -207,8 +207,8 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 \node (init) [process, text width=4.5cm] at (0, -2.4) {Khởi tạo cấu hình \& Tham số};
 
 \node (doctype) [decision, aspect=2.3, text width=2.6cm] at (0, -5.6) {Loại tài liệu?};
-\node (img) [process, fill=blue!10, text width=2.6cm] at (-5.8, -5.6) {Hình ảnh};
-\node (office) [process, fill=blue!10, text width=3.4cm] at (6.8, -5.6) {Xử lý tài liệu Office \\ (Word, Excel, PPT)};
+\node (img) [process, text width=2.6cm] at (-5.8, -5.6) {Hình ảnh};
+\node (office) [process, text width=3.4cm] at (6.8, -5.6) {Xử lý tài liệu Office \\ (Word, Excel, PPT)};
 
 \node (pdf) [decision, aspect=2.1, text width=2.6cm] at (0, -9.2) {Tình trạng PDF?};
 \node (ocr_true) [process, text width=3.2cm] at (-4.5, -12.4) {Bật chế độ OCR \\ (Ảnh quét)};
@@ -219,8 +219,8 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 % Nhánh kết thúc đợt (Trục chính)
 \node (post) [process, text width=4.2cm] at (0, -23.2) {Hậu xử lý dữ liệu \& Hoàn thiện JSON};
-\node (export_md) [process, fill=blue!10, text width=4cm] at (0, -25.8) {Xuất ra file Markdown};
-\node (clean_html) [process, fill=yellow!20, text width=4.6cm] at (0, -28.6) {Chuyển ký tự HTML trong Markdown thành Markdown thuần};
+\node (export_md) [process, text width=4cm] at (0, -25.8) {Xuất ra file Markdown};
+\node (clean_html) [process, text width=4.6cm] at (0, -28.6) {Chuyển ký tự HTML trong Markdown thành Markdown thuần};
 \node (end) [startstop] at (0, -31.4) {Kết thúc};
 
 % ====================================================
@@ -581,10 +581,10 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 		\node (dec) [decision, below=1.5cm of g2, text width=3.2cm] {\texttt{shacl\_pass} \& grounded?};
 
-		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=green!8] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
-		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=yellow!12] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
-		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=red!8] {REJECTED \\ \footnotesize(Loại bỏ)};
-		\node (staging) [smallbox, below=1.2cm of pending, text width=4cm, fill=orange!8] {Staging Area \\ \footnotesize(Giao diện Admin \& API rà soát)};
+		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=white] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
+		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=white] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
+		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=white] {REJECTED \\ \footnotesize(Loại bỏ)};
+		\node (staging) [smallbox, below=1.2cm of pending, text width=4cm, fill=white] {Staging Area \\ \footnotesize(Giao diện Admin \& API rà soát)};
 
 		% Arrows
 		\draw [arrow] (in) -- (g1);
@@ -647,35 +647,35 @@ giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mớ
     %
     inputbox/.style={
         rectangle, rounded corners=4pt,
-        draw=gray!60, fill=gray!8,
+        draw=black, fill=gray!10,
         text width=9cm, align=center,
         minimum height=0.9cm, inner sep=6pt
     },
     stagebox/.style={
         rectangle, rounded corners=5pt,
-        draw=blue!50, fill=blue!5,
+        draw=black, fill=white,
         text width=9cm, align=left,
         inner sep=10pt
     },
     decisionbox/.style={
-        diamond, draw=orange!60, fill=orange!8,
+        diamond, draw=black, fill=white,
         text width=2.6cm, align=center,
         aspect=2.8, inner sep=2pt
     },
     skipbox/.style={
         rectangle, rounded corners=3pt,
-        draw=gray!50, fill=gray!6,
+        draw=black, fill=white, dashed,
         text width=3.2cm, align=center,
         minimum height=0.8cm, inner sep=5pt
     },
     outputbox/.style={
         rectangle, rounded corners=4pt,
-        draw=green!55!black, fill=green!6,
+        draw=black, fill=gray!15,
         text width=9cm, align=center,
         minimum height=0.9cm, inner sep=6pt
     },
-    arrow/.style={-Stealth, thick, color=gray!70},
-    dasharrow/.style={-Stealth, thick, dashed, color=orange!60}
+    arrow/.style={-Stealth, thick, color=black},
+    dasharrow/.style={-Stealth, thick, dashed, color=black}
 ]
 
 %% INPUT
@@ -806,26 +806,26 @@ khi áp dụng module phân giải thực thể với dữ liệu từ corpus h�
     every node/.style={font=\normalsize},
     canonical/.style={
         rectangle, rounded corners=6pt,
-        draw=blue!80, fill=blue!15,
+        draw=black, fill=gray!25, line width=1.2pt,
         minimum width=5.0cm, minimum height=1.0cm,
         align=center, inner sep=7pt, font=\normalsize\bfseries
     },
     alias/.style={
         rectangle, rounded corners=5pt,
-        draw=blue!50, fill=blue!5,
+        draw=black!70, fill=white,
         minimum width=3.0cm, minimum height=0.9cm,
         align=center, inner sep=6pt
     },
     concept/.style={
         rectangle, rounded corners=4pt,
-        draw=gray!55, fill=gray!7,
+        draw=black!70, fill=gray!10,
         minimum width=3.2cm, minimum height=0.85cm,
         align=center, inner sep=5pt
     },
-    sameas/.style={-Stealth, thick, dashed, draw=orange!65},
-    rel/.style={-Stealth, thick, draw=blue!55},
+    sameas/.style={-Stealth, thick, dashed, draw=black},
+    rel/.style={-Stealth, thick, draw=black},
     lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
-    slbl/.style={font=\small\bfseries, color=orange!75, fill=white, inner sep=2pt},
+    slbl/.style={font=\small\bfseries, color=black, fill=white, inner sep=2pt},
 ]
 
 % ── Hàng trên: concept nodes ───────────────────────────────────────────
@@ -893,10 +893,10 @@ khi áp dụng module phân giải thực thể với dữ liệu từ corpus h�
 \end{tikzpicture}
 }% end resizebox
 \caption{Ví dụ cấu trúc knowledge graph sau khi áp dụng phân giải thực
-thể trên corpus học thuật HCMUS. Các nút màu đậm là thực thể dạng
-chuẩn (\textit{canonical}); các nút màu nhạt là hình thức tên thay
+thể trên corpus học thuật HCMUS. Các nút viền đậm, màu xám đậm là thực thể dạng
+chuẩn (\textit{canonical}); các nút màu trắng là hình thức tên thay
 thế (\textit{alias}) được liên kết về nút chuẩn qua quan hệ SAME\_AS
-(đường nét đứt cam). Quan hệ ngữ nghĩa thông thường (mũi tên xanh)
+(đường nét đứt). Quan hệ ngữ nghĩa thông thường (mũi tên nét liền)
 chỉ xuất phát từ nút chuẩn, đảm bảo tri thức không bị phân tán.}
 \label{fig:sameas-graph}
 \end{figure}
@@ -1031,15 +1031,15 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 		\begin{tikzpicture}[
 			>={Stealth[scale=1.2]},
 			base/.style={align=center, font=\sffamily\small, inner sep=0.3cm, thick},
-			inputQuery/.style={base, rectangle, rounded corners=5pt, fill=magenta!80!black, text=white, draw=magenta!90!black, minimum width=3.5cm},
-			outputResp/.style={base, rectangle, rounded corners=5pt, fill=teal!80!black, text=white, draw=teal!90!black, minimum width=4cm},
-			retrieveBox/.style={base, rectangle, rounded corners=5pt, fill=pink!10, draw=pink!60!black, minimum width=3.5cm},
-			ragSystemBox/.style={base, rectangle, rounded corners=5pt, fill=green!15, draw=green!70!black, minimum width=5.5cm, minimum height=1.5cm},
-			generateBox/.style={base, rectangle, rounded corners=5pt, fill=yellow!10, draw=yellow!60!black, minimum width=4.5cm},
-			storageBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=green!70!black, text=white, draw=green!40!black, minimum height=1.3cm, minimum width=4cm},
-			memoryBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=blue!10, draw=blue!70!black, minimum height=1.3cm, text width=4cm},
-			llmBox/.style={base, rectangle, rounded corners=5pt, fill=purple!10, draw=purple!60!black, minimum width=4.5cm},
-			decisionBox/.style={base, diamond, aspect=2.5, fill=orange!20, draw=orange!70!black, inner sep=2pt, text width=3cm},
+			inputQuery/.style={base, rectangle, rounded corners=5pt, fill=black!80, text=white, draw=black, minimum width=3.5cm},
+			outputResp/.style={base, rectangle, rounded corners=5pt, fill=black!80, text=white, draw=black, minimum width=4cm},
+			retrieveBox/.style={base, rectangle, rounded corners=5pt, fill=white, draw=black, minimum width=3.5cm},
+			ragSystemBox/.style={base, rectangle, rounded corners=5pt, fill=white, draw=black, minimum width=5.5cm, minimum height=1.5cm},
+			generateBox/.style={base, rectangle, rounded corners=5pt, fill=white, draw=black, minimum width=4.5cm},
+			storageBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=gray!30, text=black, draw=black, minimum height=1.3cm, minimum width=4cm},
+			memoryBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=white, draw=black, minimum height=1.3cm, text width=4cm},
+			llmBox/.style={base, rectangle, rounded corners=5pt, fill=white, draw=black, minimum width=4.5cm},
+			decisionBox/.style={base, diamond, aspect=2.5, fill=white, draw=black, inner sep=2pt, text width=3cm},
 			groupLabel/.style={font=\bfseries\sffamily\large, right, fill=white, inner sep=3pt, rounded corners=3pt},
 			labelTag/.style={font=\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt} % Nhãn đè lên vạch không bị rối
 		]
@@ -1049,20 +1049,20 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 			% ==========================================
 			\begin{scope}[on background layer]
 				% 0. Pre-Process Group
-				\filldraw[fill=blue!5, draw=blue!40, dashed, rounded corners=15pt, very thick] (-15, 6.8) rectangle (16, 0.5);
-				\node[groupLabel, text=blue!70!black] at (-14.5, 6.8) {0. Phân tích \& Định tuyến (Analyzer Agent)};
+				\filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=15pt, very thick] (-15, 6.8) rectangle (16, 0.5);
+				\node[groupLabel, text=black] at (-14.5, 6.8) {0. Phân tích \& Định tuyến (Analyzer Agent)};
 				
 				% 1. Retrieve Group 
-				\filldraw[fill=green!5, draw=green!40, dashed, rounded corners=15pt, very thick] (-15, 0) rectangle (16, -4.5);
-				\node[groupLabel, text=green!70!black] at (-14.5, 0) {1. Truy xuất Ngữ cảnh (LightRAG System)};
+				\filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=15pt, very thick] (-15, 0) rectangle (16, -4.5);
+				\node[groupLabel, text=black] at (-14.5, 0) {1. Truy xuất Ngữ cảnh (LightRAG System)};
 				
 				% 2. Generation Group
-				\filldraw[fill=yellow!5, draw=yellow!40, dashed, rounded corners=15pt, very thick] (-15, -5) rectangle (16, -7.5);
-				\node[groupLabel, text=yellow!70!black] at (-14.5, -5) {2. Tạo sinh câu trả lời (Generator Agent)};
+				\filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=15pt, very thick] (-15, -5) rectangle (16, -7.5);
+				\node[groupLabel, text=black] at (-14.5, -5) {2. Tạo sinh câu trả lời (Generator Agent)};
 				
 				% 3. Memory Group
-				\filldraw[fill=purple!5, draw=purple!40, dashed, rounded corners=15pt, very thick] (-1, -8) rectangle (16, -11);
-				\node[groupLabel, text=purple!70!black] at (-0.5, -8) {3. Cập nhật Bộ nhớ (Memory Agent)};
+				\filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=15pt, very thick] (-1, -8) rectangle (16, -11);
+				\node[groupLabel, text=black] at (-0.5, -8) {3. Cập nhật Bộ nhớ (Memory Agent)};
 			\end{scope}
 
 			% ==========================================
@@ -1099,7 +1099,7 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 			
 			% --- Phase 0 ---
 			\draw[->, thick] (Query) -- (AnalyzerLLM);
-			\draw[->, thick, dashed, draw=blue!70!black] (ChatHistory.south) -- node[labelTag, right] {Tóm tắt} (AnalyzerLLM.north);
+			\draw[->, thick, dashed, draw=black] (ChatHistory.south) -- node[labelTag, right] {Tóm tắt} (AnalyzerLLM.north);
 			\draw[->, thick] (AnalyzerLLM) -- (RoutingDecision);
 			\draw[->, thick] (RoutingDecision) -- node[labelTag, above] {decision == 'retrieve'} (ModeSelection);
 
@@ -1108,19 +1108,19 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 
 			% --- Bypass Lines ---
 			% 1. Lịch sử chat -> Prompt (Vành đai Trái)
-			\draw[->, thick, dashed, draw=blue!70!black, rounded corners] 
+			\draw[->, thick, dashed, draw=black, rounded corners] 
 				(ChatHistory.west) -- (-14.3, 4.5) -- (-14.3, -4.8) -- (0.5, -4.8) -- ([xshift=-1cm]GenPrompt.north);
-			\node[labelTag, text=blue!70!black] at (-11.5, 4.5) {Recent Messages};
+			\node[labelTag, text=black] at (-11.5, 4.5) {Recent Messages};
 
-			% 2. Direct Answer (Cam - Vành đai trên -> Vành đai Phải trong)
-			\draw[->, very thick, draw=orange!90!red, rounded corners] 
+			% 2. Direct Answer (Vành đai trên -> Vành đai Phải trong)
+			\draw[->, very thick, draw=black, rounded corners] 
 				(RoutingDecision.north) -- (0, 3.2) -- (14.5, 3.2) -- (14.5, -4.8) -- (2.5, -4.8) -- ([xshift=1cm]GenPrompt.north);
-			\node[labelTag, text=orange!90!red] at (11, 3.2) {decision == 'direct\_answer'};
+			\node[labelTag, text=black] at (11, 3.2) {decision == 'direct\_answer'};
 
-			% 3. Reject (Đỏ - Vành đai Phải ngoài cùng)
-			\draw[->, very thick, draw=red, rounded corners] 
+			% 3. Reject (Vành đai Phải ngoài cùng)
+			\draw[->, very thick, draw=black, rounded corners] 
 				(RoutingDecision.north) -- (0, 3.9) -- (15.5, 3.9) -- (15.5, -6.2) -- (Response.east);
-			\node[labelTag, text=red] at (11, 3.9) {decision == 'reject'};
+			\node[labelTag, text=black] at (11, 3.9) {decision == 'reject'};
 
 			% --- Retrieval Output to Context ---
 			\draw[->, thick, rounded corners] (LightRAGSystem.south) -- (0, -4.8) -- (-5.5, -4.8) -- (CombCtx.north);
@@ -1131,9 +1131,9 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 			\draw[->, thick] (GeneratorLLM.east) -- (Response.west);
 
 			% --- Phase 3: Memory Updates ---
-			\draw[->, thick, dashed, draw=purple!80!black] (Response.south) -- node[labelTag, right] {Trigger Update} (MemUpdateLLM.north);
-			\draw[->, thick, dashed, draw=purple!80!black] (MemUpdateLLM.west) -- node[labelTag, above] {Save Summary} (LongTermMem.east);
-			\draw[->, thick, dashed, draw=blue!70!black] (LongTermMem.north) -- node[labelTag, right] {Load Profile} (GenPrompt.south);
+			\draw[->, thick, dashed, draw=black] (Response.south) -- node[labelTag, right] {Trigger Update} (MemUpdateLLM.north);
+			\draw[->, thick, dashed, draw=black] (MemUpdateLLM.west) -- node[labelTag, above] {Save Summary} (LongTermMem.east);
+			\draw[->, thick, dashed, draw=black] (LongTermMem.north) -- node[labelTag, right] {Load Profile} (GenPrompt.south);
 
 		\end{tikzpicture}
 	}
@@ -1145,6 +1145,7 @@ Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân
 Khác với RAG truyền thống dựa thuần túy trên độ tương đồng vector, hệ thống sử dụng LightRAG để truy xuất trên cấu trúc đồ thị tri thức (Knowledge Graph). Điểm tối ưu quan trọng là các từ khóa đã được Analyze Agent trích xuất sẵn ở mức cao và mức thấp được truyền thẳng vào LightRAG:
 $$Q_{RAG} = Q_{standalone} + K_{high} + K_{low}$$
 Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa nội bộ (vốn cần thêm một lần gọi mô hình), giúp giảm độ trễ mà vẫn định hướng truy xuất chính xác. Tùy theo độ khái quát và mục đích tra cứu của câu hỏi, hệ thống hỗ trợ bốn chế độ truy vấn chính bao gồm:
+
 \indent Chế độ truy vấn cơ bản (Naive Query): Đây là phương pháp tìm kiếm truyền thống dựa trên độ tương đồng vector. Hệ thống truy xuất các đoạn văn bản (text chunks) có bản nhúng vector gần nhất với câu hỏi mà không tận dụng cấu trúc đồ thị. Chế độ này phù hợp cho các câu hỏi đơn giản, yêu cầu trích xuất thông tin trực tiếp từ một đoạn văn cụ thể.
 
 \indent Chế độ truy vấn cục bộ (Local Query): Chế độ này được tối ưu hóa cho các câu hỏi chi tiết về một khái niệm cụ thể (Low-level Query). Hệ thống sử dụng cơ chế tìm kiếm vector để xác định các thực thể liên quan nhất, sau đó mở rộng truy xuất các nút lân cận và các mối quan hệ trực tiếp trong đồ thị tri thức. Quy trình này cung cấp một ngữ cảnh tri thức tập trung, giúp mô hình ngôn ngữ trả lời chính xác các thuộc tính và mối quan hệ vi mô của thực thể.
@@ -1161,10 +1162,10 @@ Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình l�
 	\begin{tikzpicture}[
 	    >=Stealth,
 	    every node/.style={font=\sffamily\small},
-	    storageBox/.style={rectangle, rounded corners=3pt, draw=green!70!black, fill=green!10, thick, align=center, text width=4.8cm, minimum height=1.0cm},
-	    nodeBox/.style={rectangle, rounded corners=3pt, draw=gray!60, fill=white, thick, align=center, text width=3.8cm, minimum height=0.8cm},
-	    inputBox/.style={rectangle, rounded corners=3pt, draw=purple!80!black, fill=purple!10, thick, align=center, text width=3.2cm, minimum height=0.8cm},
-	    outputBox/.style={rectangle, rounded corners=3pt, draw=teal!80!black, fill=teal!15, thick, align=center, text width=3.2cm, minimum height=0.8cm},
+	    storageBox/.style={rectangle, rounded corners=3pt, draw=black, fill=gray!15, thick, align=center, text width=4.8cm, minimum height=1.0cm},
+	    nodeBox/.style={rectangle, rounded corners=3pt, draw=black!70, fill=white, thick, align=center, text width=3.8cm, minimum height=0.8cm},
+	    inputBox/.style={rectangle, rounded corners=3pt, draw=black, fill=gray!30, thick, align=center, text width=3.2cm, minimum height=0.8cm},
+	    outputBox/.style={rectangle, rounded corners=3pt, draw=black, fill=gray!30, thick, align=center, text width=3.2cm, minimum height=0.8cm},
 	    labelTag/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt},
 	    solidEdge/.style={-{Stealth[length=2.5mm]}, thick},
 	]
@@ -1179,8 +1180,8 @@ Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình l�
 	    \node[storageBox] (VDB_R) at ( 14.0, 10.0) {Cơ sở dữ liệu Vector\\(Nano Vector DB - Phải)};
 
 	    %% KHUNG RETRIEVE
-	    \filldraw[fill=pink!8, draw=pink!40, dashed, rounded corners=12pt, very thick] (-18.0, 6.8) rectangle (18.0, -1.1);
-	    \node[font=\sffamily\bfseries\large, anchor=north west, color=pink!70!black] at (-17.7, 6.5) {Retrieve (Phân hệ Truy xuất)};
+	    \filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=12pt, very thick] (-18.0, 6.8) rectangle (18.0, -1.1);
+	    \node[font=\sffamily\bfseries\large, anchor=north west, color=black] at (-17.7, 6.5) {Retrieve (Phân hệ Truy xuất)};
 
 	    %% TRUNG TAM: Keyword Extraction
 	    \node[nodeBox] (KWEPrompt)    at (-5.8, -0.2) {Keywords Extraction Prompt\\(Mẫu gợi ý trích xuất)};
@@ -1207,8 +1208,8 @@ Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình l�
 	    \node[inputBox] (Query) at (-17.0, -3.5) {Query\\(Câu hỏi)};
 
 	    %% KHUNG GENERATION
-	    \filldraw[fill=yellow!8, draw=yellow!40, dashed, rounded corners=12pt, very thick] (-5.8, -1.4) rectangle (5.8, -5.5);
-	    \node[font=\sffamily\bfseries\large, anchor=north west, color=yellow!70!black] at (-5.5, -1.7) {Generation (Tạo sinh)};
+	    \filldraw[fill=gray!3, draw=black!40, dashed, rounded corners=12pt, very thick] (-5.8, -1.4) rectangle (5.8, -5.5);
+	    \node[font=\sffamily\bfseries\large, anchor=north west, color=black] at (-5.5, -1.7) {Generation (Tạo sinh)};
 	    \node[nodeBox] (CombCtx)      at (  0.0, -2.6) {combined context\\(Ngữ cảnh kết hợp)};
 	    \node[nodeBox] (SysTpl)       at ( -2.5, -4.4) {System Template Prompt\\(Mẫu gợi ý hệ thống)};
 	    \node[nodeBox] (SysPromptGen) at (  2.5, -4.4) {System Prompt\\(Gợi ý hệ thống)};
@@ -1225,7 +1226,7 @@ Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình l�
 	    \draw[solidEdge] (KWEPrompt.east) -- (SysPromptExt.west);
 
 	    %% B. SysPromptExt -> KWExtract (thang dung len)
-	    \draw[solidEdge] (SysPromptExt.north) -- node[labelTag, text=green!60!black, fill=pink!8, pos=0.5] {use LLM} (KWExtract.south);
+	    \draw[solidEdge] (SysPromptExt.north) -- node[labelTag, text=black, fill=gray!15, pos=0.5] {use LLM} (KWExtract.south);
 
 	    %% C. KWExtract -> LowKW (re trai tai y=2.2)
 	    \draw[solidEdge] (KWExtract.north) -- (0.0, 2.2) -- (-2.5, 2.2) -- (LowKW.south);
@@ -1234,10 +1235,10 @@ Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình l�
 	    \draw[solidEdge] (0.0, 2.2) -- (2.5, 2.2) -- (HighKW.south);
 
 	    %% E. LowKW -> Embed1
-	    \draw[solidEdge] (LowKW.north)  -- node[labelTag, text=red!80!black, fill=pink!8, pos=0.5] {use EB Model} (Embed1.south);
+	    \draw[solidEdge] (LowKW.north)  -- node[labelTag, text=black, fill=gray!15, pos=0.5] {use EB Model} (Embed1.south);
 
 	    %% F. HighKW -> Embed2
-	    \draw[solidEdge] (HighKW.north) -- node[labelTag, text=red!80!black, fill=pink!8, pos=0.5] {use EB Model} (Embed2.south);
+	    \draw[solidEdge] (HighKW.north) -- node[labelTag, text=black, fill=gray!15, pos=0.5] {use EB Model} (Embed2.south);
 
 	    %% G. Embed1 -> VDB_L (bus y=7.0 phia tren khung Retrieve)
 	    \draw[solidEdge] (Embed1.north) -- (-2.5, 7.0) -- (-14.0, 7.0) -- (VDB_L.south);
