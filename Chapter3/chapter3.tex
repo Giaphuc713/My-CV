@@ -1,10 +1,10 @@
 \chapter{Phương pháp đề xuất}
 \label{Chapter3}
 
-\indent Trên cơ sở phân tích lý thuyết và yêu cầu thực tiễn, đề xuất kiến trúc hệ thống hỗ trợ học tập thông minh dựa trên sự LightRAG \cite{lightrag} một mã nguồn mở được phát triển từ GraphRAG \cite{graphrag} và LangGraph.
+\indent Trên cơ sở phân tích lý thuyết và yêu cầu thực tiễn, đề xuất kiến trúc hệ thống hỗ trợ học tập thông minh dựa trên LightRAG \cite{guo2025lightrag}, một mã nguồn mở được phát triển từ GraphRAG \cite{edge2024graphrag} và LangGraph \cite{langgraph2024}.
 \section{Quy trình xử lý dữ liệu}
 
-\begin{figure}[p]
+\begin{figure}[H]
 	\centering
 	\resizebox{\textwidth}{!}{%
 \definecolor{cInputFill}{HTML}{B71C1C}
@@ -161,11 +161,32 @@
 \subsection{Tiền xử lý dữ liệu tri thức}
 
 \subsubsection{Hệ thống MinerU}
-\textit{Cơ sở lựa chọn công cụ và vai trò trong hệ thống}: Trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
+Cơ sở lựa chọn công cụ và vai trò trong hệ thống như trong môi trường học thuật, nguồn dữ liệu đầu vào thường rất đa dạng và phức tạp, bao gồm các tệp PDF được scan từ văn bản giấy, tài liệu chứa nhiều biểu đồ, hình ảnh, và đặc biệt là các công thức toán học. Các công cụ trích xuất văn bản truyền thống thường xuyên gặp thất bại trong việc xử lý các tài liệu này, dẫn đến việc mất thông tin quan trọng hoặc làm xáo trộn cấu trúc bài giảng.
 
 \indent Để giải quyết triệt để thách thức này, hệ thống áp dụng công cụ MinerU \cite{mineru_2024} (từ phiên bản 3.2.3 trở lên) làm giải pháp lõi cho quy trình tiền xử lý dữ liệu. Đây là một công cụ trích xuất dữ liệu đa phương thức chất lượng cao, tích hợp các mô hình tiên tiến như Vision-Language Model (VLM) cho việc phân tích bố cục (Layout Analysis), mô hình OCR để nhận diện văn bản trên ảnh, và mô hình Mathematical Formula Recognition (MFR) để chuyển đổi công thức toán học sang chuẩn LaTeX. Sự kết hợp này giúp MinerU không chỉ trích xuất chính xác văn bản mà còn bảo toàn hoàn hảo cấu trúc logic của tài liệu gốc, đặc biệt phù hợp với các giáo trình, bài báo khoa học và tài liệu lưu trữ của trường đại học.
 
-\textit{Luồng xử lý tự động (Hybrid-Auto-Engine)}: Chế độ \texttt{-b hybrid\allowbreak-auto\allowbreak-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
+\indent Để đạt hiệu quả tối ưu trong việc bóc tách các tài liệu học thuật phức tạp, MinerU phiên bản 3.x+ tích hợp một chuỗi các mô hình học sâu chuyên biệt cho từng loại tác vụ trong luồng xử lý hybrid. Cơ chế này giúp phân rã và xử lý chính xác từng phần của trang văn bản thông qua các mô hình được liệt kê chi tiết trong Bảng~\ref{tab:mineru_models}.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.4}
+	\caption{Bảng tổng hợp các mô hình thành phần trong MinerU (Version 3.x+)}
+	\label{tab:mineru_models}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{6.8cm}|}
+		\hline
+		\textbf{Loại tác vụ (Task Type)} & \textbf{Tên mô hình (Model Name)} & \textbf{Vai trò và đặc điểm} \\ \hline
+		Phân tích bố cục (Layout Detection) & PPDocLayoutV2 & Quét toàn bộ trang, nhận diện cấu trúc và phân loại 24 loại vùng dữ liệu khác nhau (văn bản, tiêu đề, ảnh, bảng biểu...). \\ \hline
+		Nhận diện công thức (Formula Rec) & UniMERNet (Mặc định) hoặc PP-FormulaNet Plus M & Dịch các vùng ảnh chứa công thức (cả inline và block) sang mã chuẩn LaTeX. Bản Plus M bổ sung tối ưu cho công thức kèm ký tự tiếng Trung. \\ \hline
+		Nhận diện chữ (OCR) & PytorchPaddleOCR (paddleocr\_torch) & Trích xuất ký tự văn bản thuần với độ phủ lên tới 109 ngôn ngữ. \\ \hline
+		Phân loại bảng (Table Cls) & PaddleTableCls (dựa trên PP-LCNet) & Phân loại xem bảng đó thuộc dạng có viền (wired) hay không viền (wireless) để điều phối qua mô hình cấu trúc phù hợp. \\ \hline
+		Cấu trúc bảng (Table Parsing) & SlanetPlus (cho bảng không viền) hoặc Unet (cho bảng có viền) & Bóc tách cấu trúc hàng/cột, xử lý các ô gộp phức tạp và chuyển đổi thành định dạng HTML/Markdown. \\ \hline
+		Phát hiện hướng (Orientation) & PaddleOrientationCls (PP-LCNet) & Tự động phát hiện và xoay thẳng lại các trang hoặc bảng biểu bị đặt ngược hoặc nghiêng góc. \\ \hline
+	\end{tabular}
+\end{table}
+
+\indent Bên cạnh các mô hình chuyên biệt nêu trên, trong các phiên bản cập nhật mới nhất (như dòng MinerU 2.5 Pro trở lên), hệ thống hỗ trợ tích hợp trực tiếp mô hình ngôn ngữ lớn đa phương thức Vision-Language Model (VLM) đóng vai trò là động cơ trích xuất duy nhất hoặc phối hợp (Hybrid). Khi hoạt động trong vai trò VLM chính của đường ống (pipeline), mô hình MinerU 2.5 Pro VLM tiếp nhận trực tiếp ảnh chụp trang tài liệu để thực hiện đồng thời các tác vụ nhận diện bố cục, nhận diện chữ (OCR), và dịch công thức toán học/bảng biểu chỉ qua một lượt suy luận duy nhất (single-turn inference). Giải pháp này giúp giảm bớt sự phụ thuộc vào chuỗi nhiều mô hình nhỏ kế tiếp nhau, hạn chế tối đa sai số tích lũy giữa các bước phân tích bố cục và nhận diện chữ, qua đó duy trì cấu trúc tài liệu một cách tự nhiên và chính xác hơn.
+
+Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid\allowbreak-auto\allowbreak-engine} trong MinerU thực thi một quy trình xử lý khép kín, kết hợp giữa mô hình đa phương thức (VLM) để bóc tách cấu trúc và các mô hình truyền thống (OCR, MFR) để nhận dạng văn bản. Dưới đây là sơ đồ chi tiết về luồng hoạt động này:
 
 \begin{figure}[H]
 	\centering
@@ -282,13 +303,7 @@
 
 
 
-\indent Quy trình xử lý được thực hiện tuần tự qua các giai đoạn. Đầu tiên, hệ thống tiến hành phân loại và phân tích định dạng của tệp đầu vào để xác định là văn bản gốc hay bản quét. Dựa trên kết quả này, cơ chế nhận dạng ký tự quang học sẽ tự động được kích hoạt nếu cần thiết. Tiếp theo, hệ thống đánh giá tài nguyên phần cứng hiện có, cụ thể là dung lượng bộ nhớ đồ họa VRAM, để tính toán tỷ lệ phân lô phù hợp, đảm bảo tối ưu hóa hiệu suất mà không gây tràn bộ nhớ.
-
-\indent Sau quá trình khởi tạo, tài liệu được phân chia thành các đoạn nhỏ để xử lý dần. Tại mỗi phân đoạn, hệ thống sử dụng một mô hình đa phương thức VLM mạnh mẽ để bóc tách cấu trúc tổng thể, nhận diện các khối văn bản, bảng biểu, hình ảnh và công thức. Đối với các vùng chứa hình ảnh và bảng biểu, hệ thống sẽ tiến hành làm mờ nhằm không gây nhiễu cho các mô hình phía sau. Đồng thời, các công thức toán học nằm trong dòng văn bản sẽ được mô hình MFR chuyên biệt nhận diện và dịch đổi sang định dạng mã chuẩn LaTeX. Các khối chữ chưa xử lý được chuyển qua mô hình nhận diện ký tự quang học OCR. Nhằm đảm bảo độ chính xác, các kết quả có độ tin cậy thấp sẽ bị hệ thống tự động lọc bỏ.
-
-\indent Cuối cùng, ở giai đoạn tổng hợp, tọa độ của các khối thông tin được chuẩn hóa về một hệ quy chiếu chung. Tất cả các dữ liệu trích xuất từ mô hình đa phương thức, mô hình nhận diện chữ và mô hình công thức được gộp chung vào một cấu trúc dữ liệu trung gian. Quy trình này lặp lại cho đến khi xử lý hết các phân đoạn của tài liệu, sau đó hệ thống sẽ giải phóng tài nguyên bộ nhớ và hoàn tất việc tạo ra một văn bản đầu ra đồng nhất và giữ nguyên cấu trúc logic gốc.
-
-\indent Nhờ đường ống Hybrid này, MinerU khắc phục hoàn toàn những nhược điểm của việc đọc tệp bằng \texttt{textract} hay \texttt{pypdf} thông thường, cung cấp dòng dữ liệu đầu vào sắc nét và có độ tin cậy tuyệt đối cho mô hình ngôn ngữ phía sau.
+\indent Quy trình xử lý được thực hiện tuần tự qua các giai đoạn. Đầu tiên, hệ thống tiến hành phân loại và phân tích định dạng của tệp đầu vào để xác định là văn bản gốc hay bản quét. Dựa trên kết quả này, cơ chế nhận dạng ký tự quang học sẽ tự động được kích hoạt nếu cần thiết. Tiếp theo, hệ thống đánh giá tài nguyên phần cứng hiện có, cụ thể là dung lượng bộ nhớ đồ họa VRAM, để tính toán tỷ lệ phân lô phù hợp, đảm bảo tối ưu hóa hiệu suất mà không gây tràn bộ nhớ. Sau quá trình khởi tạo, tài liệu được phân chia thành các đoạn nhỏ để xử lý dần. Tại mỗi phân đoạn, hệ thống sử dụng một mô hình đa phương thức VLM mạnh mẽ để bóc tách cấu trúc tổng thể, nhận diện các khối văn bản, bảng biểu, hình ảnh và công thức. Đối với các vùng chứa hình ảnh và bảng biểu, hệ thống sẽ tiến hành làm mờ nhằm không gây nhiễu cho các mô hình phía sau. Đồng thời, các công thức toán học nằm trong dòng văn bản sẽ được mô hình MFR chuyên biệt nhận diện và dịch đổi sang định dạng mã chuẩn LaTeX. Các khối chữ chưa xử lý được chuyển qua mô hình nhận diện ký tự quang học OCR. Nhằm đảm bảo độ chính xác, các kết quả có độ tin cậy thấp sẽ bị hệ thống tự động lọc bỏ. Cuối cùng, ở giai đoạn tổng hợp, tọa độ của các khối thông tin được chuẩn hóa về một hệ quy chiếu chung. Tất cả các dữ liệu trích xuất từ mô hình đa phương thức, mô hình nhận diện chữ và mô hình công thức được gộp chung vào một cấu trúc dữ liệu trung gian. Quy trình này lặp lại cho đến khi xử lý hết các phân đoạn của tài liệu, sau đó hệ thống sẽ giải phóng tài nguyên bộ nhớ và hoàn tất việc tạo ra một văn bản đầu ra đồng nhất và giữ nguyên cấu trúc logic gốc. Nhờ đường ống Hybrid này, MinerU khắc phục hoàn toàn những nhược điểm của việc đọc tệp bằng \texttt{textract} hay \texttt{pypdf} thông thường, cung cấp dòng dữ liệu đầu vào sắc nét và có độ tin cậy tuyệt đối cho mô hình ngôn ngữ phía sau.
 
 \subsection{Luồng logic xử lý và cơ chế kiểm tra trùng lặp}
 
@@ -429,16 +444,13 @@
 
 \subsubsection{Lựa chọn mô hình nhúng (Embedding Model)}
 
-\indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở intfloat/multilingual-e5-large-instruct được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn VN-MTEB (Vietnamese Massive Text Embedding Benchmark) công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm:
+\indent Để tối ưu hóa phân hệ truy xuất ngữ cảnh (Retriever) trong kiến trúc RAG và cải thiện trực tiếp chỉ số độ gọi bối cảnh (Context Recall), hệ thống đề xuất sử dụng mô hình nhúng mã nguồn mở intfloat/multilingual-e5-large-instruct được phát triển bởi Microsoft Research \cite{multilingual_e5}. Mô hình này sở hữu kiến trúc biểu diễn hai chiều Encoder sâu sắc, được huấn luyện dựa trên tập ngữ liệu khổng lồ đa ngôn ngữ và đã chứng minh năng lực vượt trội khi đạt điểm số cao nhất trong bảng xếp hạng năng lực xử lý tiếng Việt tiêu chuẩn VN-MTEB (Vietnamese Massive Text Embedding Benchmark) công bố tại hội nghị khoa học EACL 2026 \cite{vn_mteb_eacl}. Qua nghiên cứu thực nghiệm, sự lựa chọn này đem lại các giá trị tối ưu vượt bậc cùng chiến lược xử lý các hạn chế vật lý bao gồm các khía cạnh cụ thể.
 
+\indent Về cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning), điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
 
-	
-- Cơ chế học có chỉ dẫn theo tác vụ (Task-aware Instruction Tuning): Điểm cải tiến cốt lõi của phiên bản Instruct so với các kiến trúc nhúng phẳng thông thường là khả năng hiểu sâu sắc mục đích nghiệp vụ thông qua câu lệnh chỉ dẫn hệ thống \cite{optimal_rag_textbook}. Trước khi thực hiện vector hóa, hệ thống sẽ tự động cấu hình chèn tiền tố ngữ cảnh định hướng: chèn \texttt{"query:"} vào trước câu hỏi thảo luận học vụ của sinh viên và chèn \texttt{"passage:"} vào trước các phân đoạn tài liệu bối cảnh thô. Cơ chế này giúp mô hình chủ động căn chỉnh ma trận biểu diễn không gian, kéo các vector câu hỏi và vector bối cảnh chứa câu trả lời học vụ lại gần nhau hơn, giải quyết bài toán truy xuất bối cảnh chính xác \cite{multilingual_e5}.
-	
-- Khả năng căn chỉnh đa ngữ (Cross-lingual Alignment): Do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
-	
-- Hạn chế kỹ thuật về giới hạn vật lý và giải pháp tối ưu: Hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
+\indent Về khả năng căn chỉnh đa ngữ (Cross-lingual Alignment), do đặc thù của kho tri thức học tập ngành Công nghệ thông tin đan xen dày đặc thuật ngữ tiếng Anh và tiếng Việt, mô hình E5 có khả năng ánh xạ các thực thể ngữ nghĩa đồng dạng của hai ngôn ngữ về cùng các vùng lân cận trong không gian vector 1024 chiều \cite{multilingual_e5}. Điều này giúp hệ thống phản hồi chính xác về bối cảnh ngay cả khi sinh viên đặt câu hỏi bằng tiếng Việt nhưng tài liệu đề cương được lưu trữ lại bằng tiếng Anh \cite{multilingual_e5}.
 
+\indent Về hạn chế kỹ thuật của giới hạn vật lý và giải pháp tối ưu, hạn chế lớn nhất của mô hình nhúng này là cửa sổ ngữ cảnh đầu vào (Context Window) bị giới hạn nghiêm ngặt ở mức 512 tokens \cite{multilingual_e5}. Nếu phân đoạn văn bản vượt quá giới hạn này, mô hình sẽ kích hoạt cơ chế tự động cắt tỉa phần đuôi, gây thất thoát nghiêm trọng thông tin cấu trúc môn học. Để xử lý triệt để hạn chế này, hệ thống LightRAG đã thu hẹp cấu hình phân đoạn tịnh tiến (Chunking), hạ kích thước mỗi mảnh (Chunk Size) từ 1200 tokens mặc định xuống mức 400–500 tokens, phối hợp với cửa sổ dịch chuyển chồng lấp 50 tokens. Chiến lược này giúp bối cảnh văn bản lọt gọn vào giới hạn vật lý của mô hình biểu diễn mà vẫn bảo toàn ngữ nghĩa.
 
 \indent Về mặt kiến trúc vận hành thực tế hệ thống, mô hình nhúng mở multilingual-e5-large-instruct sở hữu dung lượng tham số ở mức trung bình (560 triệu tham số) \cite{multilingual_e5}, mở ra hai kịch bản triển khai linh hoạt đáp ứng hoàn hảo từng môi trường hạ tầng:
 \clearpage
@@ -551,7 +563,7 @@
 
 \indent Quyết định cuối cùng cho mỗi thực thể và quan hệ được tổng hợp tại tầng ra quyết định thuần túy theo nguyên tắc phân cấp niềm tin: các kiểm tra xác định (cấu trúc và bằng chứng văn bản) giữ quyền quyết định tuyệt đối, thay vì hoàn toàn phụ thuộc vào điểm số tự tin của LLM phản biện. Cụ thể, nếu vi phạm cấu trúc ở mức lỗi, dữ liệu bị từ chối (\texttt{REJECTED}); nếu hợp lệ về cấu trúc và có bằng chứng văn bản xác định, dữ liệu được phê duyệt (\texttt{APPROVED}); nếu hợp lệ về cấu trúc nhưng thiếu bằng chứng (ví dụ suy luận ngầm ẩn), dữ liệu chỉ được đưa vào trạng thái chờ xem xét (\texttt{PENDING\_REVIEW}) khi độ tin cậy của LLM phản biện đạt ngưỡng 0.8. Nghĩa là, LLM chỉ được phép đẩy các trường hợp ranh giới vào diện xem xét, chứ không bao giờ được quyền tự ý chấp nhận một tri thức vô căn cứ.
 
-\indent Kết quả kiểm chứng điều hướng trực tiếp quá trình hợp nhất dữ liệu vào đồ thị. Các mục bị từ chối (\texttt{REJECTED}) sẽ bị loại bỏ ngay lập tức, ngăn chặn việc làm ô nhiễm đồ thị. Các mục hợp lệ (\texttt{APPROVED}) được hợp nhất bình thường. Những mục chờ xem xét (\texttt{PENDING\_REVIEW}) tạm thời được chấp nhận nhưng bị gắn cờ cảnh báo (\texttt{shacl\_review}) trong dữ liệu, sẵn sàng cho các đợt rà soát. Việc lưu vết minh bạch từng quyết định (kèm theo đoạn văn bản làm bằng chứng) đảm bảo rằng đồ thị luôn có cơ sở vững chắc và đáng tin cậy. Hình~\ref{fig:flow_shacl_3guard} minh họa quy trình kiểm chứng dựa trên SHACL.
+\indent Kết quả kiểm chứng điều hướng trực tiếp quá trình hợp nhất dữ liệu vào đồ thị. Các mục bị từ chối (\texttt{REJECTED}) sẽ bị loại bỏ ngay lập tức, ngăn chặn việc làm ô nhiễm đồ thị. Các mục hợp lệ (\texttt{APPROVED}) được hợp nhất bình thường. Đối với các mục chờ xem xét (\texttt{PENDING\_REVIEW}), quy trình quản lý dữ liệu chờ duyệt này được đưa vào một vùng đệm lưu trữ gọi là Staging Area (Cơ sở dữ liệu Staging). Tại đây, người quản trị có thể can thiệp thủ công thông qua giao diện quản trị hoặc các API để rà soát chi tiết từng thực thể hoặc mối quan hệ (Staging Review): nếu được phê duyệt (Admin Approved), dữ liệu sẽ được chuyển trạng thái thành \texttt{APPROVED} và hợp nhất vào đồ thị tri thức chính thức; ngược lại nếu bị bác bỏ (Admin Rejected), dữ liệu sẽ chuyển thành \texttt{REJECTED} và bị xóa hoàn toàn khỏi vùng đệm. Việc lưu vết minh bạch từng quyết định (kèm theo đoạn văn bản làm bằng chứng) đảm bảo rằng đồ thị luôn có cơ sở vững chắc và đáng tin cậy. Hình~\ref{fig:flow_shacl_3guard} minh họa quy trình kiểm chứng dựa trên SHACL kết hợp rà soát Staging Review.
 
 \begin{figure}[H]
 	\centering
@@ -572,6 +584,7 @@
 		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=green!8] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
 		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=yellow!12] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
 		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=red!8] {REJECTED \\ \footnotesize(Loại bỏ)};
+		\node (staging) [smallbox, below=1.2cm of pending, text width=4cm, fill=orange!8] {Staging Area \\ \footnotesize(Giao diện Admin \& API rà soát)};
 
 		% Arrows
 		\draw [arrow] (in) -- (g1);
@@ -583,6 +596,9 @@
 		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Đủ bằng chứng} (approved);
 		\draw [arrow] (dec) -- node[anchor=west, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending);
 		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Lỗi cấu trúc} (rejected);
+		\draw [arrow] (pending) -- (staging);
+		\draw [arrow, dashed, rounded corners] (staging.west) -| node[anchor=north, pos=0.25, font=\footnotesize] {Admin duyệt} (approved.south);
+		\draw [arrow, dashed, rounded corners] (staging.east) -| node[anchor=north, pos=0.25, font=\footnotesize] {Admin bác bỏ} (rejected.south);
 	\end{tikzpicture}
 	\caption{Quy trình kiểm chứng tri thức SHACL và đối chiếu bằng chứng xác định}
 	\label{fig:flow_shacl_3guard}
@@ -605,28 +621,26 @@ Decision(LLM đưa ra quyết định).
 
 Cách tiếp cận này được xây dựng trên nền tảng của hai công trình nghiên
 cứu trong lĩnh vực căn chỉnh thực thể (\textit{entity alignment}) giữa
-các knowledge graph:
-
-
-HELEA~\cite{helea2024} chứng minh hiệu quả của
+các knowledge graph: HELEA~\cite{helea2024} chứng minh hiệu quả của
     pipeline hai giai đoạn: đầu tiên truy hồi ứng viên bằng embedding
     similarity, sau đó dùng mô hình ngôn ngữ lớn để xếp hạng lại
     (\textit{reranking}). Cơ chế này vừa đảm bảo không bỏ sót ứng viên
-    tiềm năng, vừa tận dụng khả năng suy luận ngữ nghĩa sâu của LLM.
-
-EasyEA~\cite{easyea2024} chứng minh rằng mô hình
+    tiềm năng, vừa tận dụng khả năng suy luận ngữ nghĩa sâu của LLM. Kế tiếp là EasyEA~\cite{easyea2024} chứng minh rằng mô hình
     ngôn ngữ lớn, khbi được cung cấp đủ ngữ cảnh, có khả năng đưa ra
     quyết định căn chỉnh thực thể chính xác theo phương thức
     \textit{zero-shot} kbhông cần dữ liệu huấn luyện nhãn, phù hợp
-    với bối cảnh corpus tiếng Việt học thuật hiện tại.
-
-
-Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
+    với bối cảnh corpus tiếng Việt học thuật hiện tại. Trong Hình~\ref{fig:entity-resolution-flow} Trình bày kiến trúc tổng thể của
 nhất đồ thị.
 
 % ---- TIKZ DIAGRAM ----
 \begin{figure}[H]
 \centering
+\caption{Kiến trúc hai giai đoạn của module phân giải thực thể.
+Giai đoạn Candidate Retrieval sử dụng embedding similarity để truy hồi
+các thực thể ngữ nghĩa tương đồng từ vector store. Giai đoạn LLM
+Decision chỉ được kích hoạt khi có ứng viên vượt ngưỡng $\tau$,
+giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mới.}
+\label{fig:entity-resolution-flow}
 \begin{tikzpicture}[
     node distance=0.55cm and 1.5cm,
     every node/.style={font=\small},
@@ -717,12 +731,6 @@ nhất đồ thị.
 \draw[arrow] (skip.south) |- (output.east);
 
 \end{tikzpicture}
-\caption{Kiến trúc hai giai đoạn của module phân giải thực thể.
-Giai đoạn Candidate Retrieval sử dụng embedding similarity để truy hồi
-các thực thể ngữ nghĩa tương đồng từ vector store. Giai đoạn LLM
-Decision chỉ được kích hoạt khi có ứng viên vượt ngưỡng $\tau$,
-giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mới.}
-\label{fig:entity-resolution-flow}
 \end{figure}
 
 Giai đoạn 1: Candidate Retrieval.
@@ -982,190 +990,6 @@ là hướng phát triển ưu tiên trong giai đoạn tiếp theo.
 
 \indent Cuối cùng, LightRAG hỗ trợ tùy chỉnh lời nhắc trích xuất theo lĩnh vực (domain-specific prompt tuning): người dùng có thể cung cấp danh sách các kiểu thực thể ưu tiên và các mẫu quan hệ đặc thù, từ đó định hướng mô hình tập trung vào tri thức có giá trị nhất trong từng miền chuyên môn cụ thể.
 
-\begin{figure}[H]
-	\centering
-	\resizebox{\textwidth}{!}{
-		\begin{tikzpicture}[
-			>={Stealth[scale=1.2]},
-			base/.style={align=center, font=\sffamily\small, inner sep=0.3cm, thick},
-			inputQuery/.style={base, rectangle, rounded corners=5pt, fill=magenta!80!black, text=white, draw=magenta!90!black, minimum width=3.5cm},
-			outputResp/.style={base, rectangle, rounded corners=5pt, fill=teal!80!black, text=white, draw=teal!90!black, minimum width=4cm},
-			retrieveBox/.style={base, rectangle, rounded corners=5pt, fill=pink!10, draw=pink!60!black, minimum width=3.5cm},
-			generateBox/.style={base, rectangle, rounded corners=5pt, fill=yellow!10, draw=yellow!60!black, minimum width=4.5cm},
-			storageBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=green!70!black, text=white, draw=green!40!black, minimum height=1.3cm, minimum width=4cm},
-			memoryBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=blue!10, draw=blue!70!black, minimum height=1.3cm, text width=4cm},
-			llmBox/.style={base, rectangle, rounded corners=5pt, fill=purple!10, draw=purple!60!black, minimum width=4.5cm},
-			decisionBox/.style={base, diamond, aspect=2.5, fill=orange!20, draw=orange!70!black, inner sep=2pt, text width=3cm},
-			groupLabel/.style={font=\bfseries\sffamily\large, right},
-			labelTag/.style={font=\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt} % Nhãn đè lên vạch không bị rối
-		]
-
-			% ==========================================
-			% LAYER 0: BACKGROUND GROUPS 
-			% ==========================================
-			\begin{scope}[on background layer]
-				% 0. Pre-Process Group
-				\filldraw[fill=blue!5, draw=blue!40, dashed, rounded corners=15pt, very thick] (-15, 6) rectangle (16.5, 0);
-				\node[groupLabel, color=blue!70!black] at (-14.7, 5.3) {0. Query Processing \& Routing (Analyzer Agent)};
-				
-				% 1. Retrieve Group 
-				\filldraw[fill=green!5, draw=green!40, dashed, rounded corners=15pt, very thick] (-15, -0.5) rectangle (16.5, -13.5);
-				\node[groupLabel, color=green!70!black] at (-14.7, -1.2) {1. Retrieve Context (LightRAG)};
-				
-				% 2. Generation Group
-				\filldraw[fill=yellow!5, draw=yellow!40, dashed, rounded corners=15pt, very thick] (-15, -14) rectangle (16.5, -17);
-				\node[groupLabel, color=yellow!70!black] at (-14.7, -14.7) {2. Generation (Generator Agent)};
-				
-				% 3. Memory Group
-				\filldraw[fill=purple!5, draw=purple!40, dashed, rounded corners=15pt, very thick] (-1, -17.5) rectangle (16.5, -21);
-				\node[groupLabel, color=purple!70!black] at (8, -18.2) {3. Update Memory};
-			\end{scope}
-
-			% ==========================================
-			% 0. PRE-PROCESS \& ROUTING PHASE 
-			% ==========================================
-			\node[inputQuery] (Query) at (-12, 1.5) {Query\\(Câu hỏi)};
-			\node[memoryBox, text width=3.5cm] (ChatHistory) at (-6, 4.5) {Chat History\\(Lịch sử ngắn hạn)};
-			\node[llmBox, text width=6cm] (AnalyzerLLM) at (-6, 1.5) {Analyzer LLM\\1. Làm rõ câu hỏi\\2. Phân loại ý định\\3. Trích xuất Keywords};
-			\node[decisionBox] (RoutingDecision) at (0, 1.5) {Decision\\(Routing)};
-			\node[decisionBox, text width=4cm] (ModeSelection) at (7, 1.5) {RAG Mode Selection\\\scriptsize(local, global, hybrid, mix)\\\scriptsize*Fallback mặc định: mix};
-
-			% ==========================================
-			% 1. RETRIEVAL PHASE (Toạ độ cứng)
-			% ==========================================
-			% --- Left Pillar (Local) --- X = -12
-			\node[retrieveBox] (LowKW) at (-12, -3) {low\_level\_keywords\\(Thực thể)};
-			\node[retrieveBox] (Embed1) at (-12, -5.5) {Embedding};
-			\node[storageBox] (StoreVDB_Ent) at (-12, -8) {Store in Vector DB\\(Entities)};
-			\node[retrieveBox] (TopK_Ent) at (-12, -10.5) {TopK Entities Results};
-			
-			% --- Right Pillar (Global) --- X = 12
-			\node[retrieveBox] (HighKW) at (12, -3) {high\_level\_keywords\\(Chủ đề)};
-			\node[retrieveBox] (Embed2) at (12, -5.5) {Embedding};
-			\node[storageBox] (StoreVDB_Rel) at (12, -8) {Store in Vector DB\\(Relations)};
-			\node[retrieveBox] (TopK_Rel) at (12, -10.5) {TopK Relations Results};
-
-			% --- Center Storages --- X = 0
-			\node[storageBox] (StoreKG) at (0, -4.5) {Store in Knowledge Graph\\(Neo4j)};
-			\node[storageBox] (StoreKV) at (0, -8.5) {Store in KV Storage\\(Text Chunks)};
-
-			% --- Context Output Boxes --- X = ±5.5
-			\node[retrieveBox] (RelRel) at (-5.5, -4.5) {Related\\Relations};
-			\node[retrieveBox] (RelText_Local) at (-5.5, -8.5) {Related\\text\_units};
-			\node[retrieveBox, minimum width=4cm] (LocalCtx) at (-5.5, -12) {Local Query Context};
-
-			\node[retrieveBox] (RelEnt) at (5.5, -4.5) {Related\\Entities};
-			\node[retrieveBox] (RelText_Global) at (5.5, -8.5) {Related\\text\_units};
-			\node[retrieveBox, minimum width=4cm] (GlobalCtx) at (5.5, -12) {Global Query Context};
-
-			% ==========================================
-			% 2. GENERATION PHASE
-			% ==========================================
-			\node[generateBox] (CombCtx) at (-5.5, -15.5) {Combined Context\\(Local + Global)};
-			\node[generateBox, text width=5.5cm] (GenPrompt) at (1.5, -15.5) {Build Generation Request\\(Inject Memory \& Context)};
-			\node[llmBox] (GeneratorLLM) at (8, -15.5) {Generator LLM};
-			\node[outputResp] (Response) at (13.5, -15.5) {Response\\(Câu trả lời)};
-
-			% ==========================================
-			% 3. MEMORY UPDATE 
-			% ==========================================
-			\node[llmBox, text width=3.5cm] (MemUpdateLLM) at (13.5, -19.5) {Update Profile LLM\\(Phân tích)};
-			\node[memoryBox, text width=3.5cm] (LongTermMem) at (1.5, -19.5) {Long-Term Memory\\(Hồ sơ user)};
-
-			% ==========================================
-			% WIRING \& ROUTING (KHÔNG CẮT NHAU)
-			% ==========================================
-			
-			% --- Phase 0 ---
-			\draw[->, thick] (Query) -- (AnalyzerLLM);
-			\draw[->, thick, dashed, draw=blue!70!black] (ChatHistory.south) -- node[labelTag, right] {Tóm tắt} (AnalyzerLLM.north);
-			\draw[->, thick] (AnalyzerLLM) -- (RoutingDecision);
-			\draw[->, thick] (RoutingDecision) -- node[labelTag, above] {decision == 'retrieve'} (ModeSelection);
-
-			% Routing Mode -> KW (Đi vuông góc, ngang rồi dọc)
-			\draw[->, thick, rounded corners] (ModeSelection.south) |- (-12, -0.2) -- node[labelTag, right, pos=0.8] {Mode: local/mix} (LowKW.north);
-			\draw[->, thick, rounded corners] (ModeSelection.south) |- (12, -0.2) -- node[labelTag, left, pos=0.8] {Mode: global/mix} (HighKW.north);
-
-			% --- Bypass Lines (Đi hoàn toàn ở vành đai rỗng) ---
-			% 1. Lịch sử chat -> Prompt (Vành đai Trái)
-			\draw[->, thick, dashed, draw=blue!70!black, rounded corners] 
-				(ChatHistory.west) -- (-14.3, 4.5) -- (-14.3, -14) -- (0.5, -14) -- ([xshift=-1cm]GenPrompt.north);
-			\node[labelTag, text=blue!70!black] at (-11.5, 4.5) {Recent Messages};
-
-			% 2. Direct Answer (Cam - Vành đai trên -> Vành đai Phải trong)
-			\draw[->, very thick, draw=orange!90!red, rounded corners] 
-				(RoutingDecision.north) -- (0, 3) -- (14.5, 3) -- (14.5, -14) -- (2.5, -14) -- ([xshift=1cm]GenPrompt.north);
-			\node[labelTag, text=orange!90!red] at (11, 3) {decision == 'direct\_answer'};
-
-			% 3. Reject (Đỏ - Vành đai Phải ngoài cùng)
-			\draw[->, very thick, draw=red, rounded corners] 
-				(RoutingDecision.north) -- (0, 3.8) -- (15.5, 3.8) -- (15.5, -15.5) -- (Response.east);
-			\node[labelTag, text=red] at (11, 3.8) {decision == 'reject'};
-
-			% --- Retrieval Vertical Pillars ---
-			\draw[->, thick] (LowKW) -- (Embed1);
-			\draw[->, thick] (Embed1) -- (StoreVDB_Ent);
-			\draw[->, thick] (StoreVDB_Ent) -- (TopK_Ent);
-
-			\draw[->, thick] (HighKW) -- (Embed2);
-			\draw[->, thick] (Embed2) -- (StoreVDB_Rel);
-			\draw[->, thick] (StoreVDB_Rel) -- (TopK_Rel);
-
-			% --- BUS DATA MẠNG (Tuyệt đối Planar) ---
-			% 1. Từ TopK Entity đổ vào trung tâm (Đường bus X = -9 và X = -8.5)
-			\draw[->, thick, rounded corners] (TopK_Ent.east) -- (-9, -10.5) -- (-9, -2.5) -- (-1.5, -2.5) -- ([xshift=-1cm]StoreKG.north);
-			\draw[->, thick, rounded corners] (TopK_Ent.east) -- (-8.5, -10.5) -- (-8.5, -6.5) -- (-1.5, -6.5) -- ([xshift=-1cm]StoreKV.north);
-
-			% 2. Từ TopK Relations đổ vào trung tâm (Đường bus X = 9 và X = 8.5)
-			\draw[->, thick, rounded corners] (TopK_Rel.west) -- (9, -10.5) -- (9, -2.5) -- (1.5, -2.5) -- ([xshift=1cm]StoreKG.north);
-			\draw[->, thick, rounded corners] (TopK_Rel.west) -- (8.5, -10.5) -- (8.5, -6.5) -- (1.5, -6.5) -- ([xshift=1cm]StoreKV.north);
-
-			% --- Trả KQ từ Storage ra Context box (Đi thẳng 1 đường ngang) ---
-			\draw[->, thick] (StoreKG.west) -- (RelRel.east);
-			\draw[->, thick] (StoreKG.east) -- (RelEnt.west);
-			\draw[->, thick] (StoreKV.west) -- (RelText_Local.east);
-			\draw[->, thick] (StoreKV.east) -- (RelText_Global.west);
-
-			% --- Gom Context cục bộ (Đi luồng lách không đè nét) ---
-			% Từ RelRel vòng qua bên trái của RelText_Local
-			\draw[->, thick, rounded corners] (RelRel.west) -- (-7.8, -4.5) -- (-7.8, -11.2) |- ([yshift=0.2cm]LocalCtx.170);
-			\draw[->, thick] (RelText_Local.south) -- (LocalCtx.north);
-			\draw[->, thick, rounded corners] (TopK_Ent.south) |- (-7.5, -12) -- (LocalCtx.west);
-
-			% Từ RelEnt vòng qua bên phải của RelText_Global
-			\draw[->, thick, rounded corners] (RelEnt.east) -- (7.8, -4.5) -- (7.8, -11.2) |- ([yshift=0.2cm]GlobalCtx.10);
-			\draw[->, thick] (RelText_Global.south) -- (GlobalCtx.north);
-			\draw[->, thick, rounded corners] (TopK_Rel.south) |- (7.5, -12) -- (GlobalCtx.east);
-
-			% --- Phase 2: Generation (Vuông góc chuẩn) ---
-			\draw[->, thick] (LocalCtx.south) -- (CombCtx.north);
-			\draw[->, thick, rounded corners] (GlobalCtx.south) -- (5.5, -13.5) -- (-4.5, -13.5) -- ([xshift=1cm]CombCtx.north);
-			
-			\draw[->, thick] (CombCtx.east) -- (GenPrompt.west);
-			\draw[->, thick] (GenPrompt.east) -- (GeneratorLLM.west);
-			\draw[->, thick] (GeneratorLLM.east) -- (Response.west);
-
-			% --- Phase 3: Memory Updates (Vòng khép kín bên dưới) ---
-			\draw[->, thick, dashed, draw=purple!80!black] (Response.south) -- node[labelTag, right] {Trigger Update} (MemUpdateLLM.north);
-			\draw[->, thick, dashed, draw=purple!80!black] (MemUpdateLLM.west) -- node[labelTag, above] {Save Summary} (LongTermMem.east);
-			\draw[->, thick, dashed, draw=blue!70!black] (LongTermMem.north) -- node[labelTag, right] {Load Profile} (GenPrompt.south);
-
-		\end{tikzpicture}
-	}
-	\caption{Quy trình truy vấn đa chế độ và cơ chế tối ưu phản hồi trong LightRAG}
-	\label{fig:flow_query_lightrag}
-\end{figure}
-
-\indent Một trong những ưu điểm nổi bật nhất của LightRAG so với các hệ thống RAG truyền thống là khả năng thực hiện các truy vấn đa chế độ, cho phép hệ thống đáp ứng linh hoạt các loại câu hỏi khác nhau từ người học. Hệ thống hỗ trợ bốn chế độ truy vấn chính: Naive, Local, Global và Mix.
-
-\indent Chế độ truy vấn cơ bản (Naive Query): Đây là phương pháp tìm kiếm truyền thống dựa trên độ tương đồng vector. Hệ thống truy xuất các đoạn văn bản (chunks) có bản nhúng vector gần nhất với câu hỏi mà không tận dụng cấu trúc đồ thị. Chế độ này phù hợp cho các câu hỏi đơn giản, yêu cầu trích xuất thông tin trực tiếp từ một đoạn văn cụ thể.
-
-\indent Chế độ truy vấn cục bộ (Local Query): Chế độ này được tối ưu hóa cho các câu hỏi chi tiết về một khái niệm cụ thể (Low-level Query). Hệ thống sử dụng cơ chế tìm kiếm vector để xác định các thực thể liên quan nhất, sau đó mở rộng truy xuất các nút lân cận và các mối quan hệ trực tiếp trong đồ thị tri thức. Quy trình này cung cấp một ngữ cảnh tri thức tập trung, giúp mô hình ngôn ngữ trả lời chính xác các thuộc tính và mối quan hệ vi mô của thực thể.
-
-\indent Chế độ truy vấn toàn cục (Global Query): Đối với các câu hỏi mang tính tổng quát cao (High-level Query), đòi hỏi sự hiểu biết về toàn bộ kho dữ liệu, chế độ toàn cục phát huy vai trò chủ đạo. Thay vì tìm kiếm đoạn văn rời rạc, hệ thống tận dụng cấu trúc đồ thị ở mức độ vĩ mô bằng cách tổng hợp các mô tả tóm tắt của thực thể và quan hệ quan trọng. Cách tiếp cận này giúp mô hình ngôn ngữ bao quát được các chủ đề lớn và đưa ra những nhận định mang tính hệ thống vượt qua giới hạn cửa sổ ngữ cảnh thông thường.
-
-\indent Chế độ truy vấn hỗn hợp (Mix Query): Đây là sự kết hợp giữa tìm kiếm cục bộ và toàn cục. Chế độ Mix đồng thời truy xuất các chi tiết cụ thể từ đồ thị lân cận và các tóm tắt tri thức vĩ mô từ cấp độ toàn cục. Quy trình xử lý này đảm bảo câu trả lời vừa có độ chính xác của dữ liệu chi tiết, vừa có chiều sâu của lập luận hệ thống, đáp ứng tốt nhất cho các nhiệm vụ phân tích tri thức đa tầng.
-
 \section{Mô hình hóa trạng thái hệ thống (Agent State)}
 Phân hệ trợ lý ảo được xây dựng trên nền tảng LangGraph và thiết kế dưới dạng một đồ thị trạng thái có hướng (state graph), trong đó mỗi nút đại diện cho một tác vụ tính toán và các cạnh đại diện cho luồng điều khiển. Trạng thái dùng chung của hệ thống được mô hình hóa bằng kiểu \texttt{AgentState} và có thể biểu diễn bởi tập hợp $S = \{Q, U, H, A, D, K, M, G, F\}$. Trong đó, $Q$ (Query) là câu hỏi đầu vào, $U$ (User ID) là mã định danh người dùng phục vụ cá nhân hóa, và $H$ (Chat History) là lịch sử hội thoại ngắn hạn đã được tóm tắt. Thành phần $A$ (Analysis) lưu kết quả phân tích ý định, $D$ (Decision) là quyết định điều phối với ba giá trị \texttt{direct\_answer}, \texttt{retrieve} hoặc \texttt{reject}, còn $K$ (Keywords) là tập từ khóa truy xuất được tách thành hai mức cao và thấp. Cuối cùng, $M$ (Long-term Memory) là hồ sơ người dùng dài hạn, $G$ (Generation Request) là gói ngữ cảnh đầy đủ để sinh câu trả lời, và $F$ (Final Response) là câu trả lời cuối cùng trả về cho người dùng. So với các kiến trúc có vòng lặp tự đánh giá, hệ thống đề xuất chủ trương giữ luồng điều phối tuyến tính và tất định để tối ưu độ trễ phản hồi, dồn chất lượng vào khâu phân tích đầu vào và truy xuất tri thức thay vì hậu kiểm nhiều vòng.
 
@@ -1199,10 +1023,298 @@ Nút \texttt{generate} phân nhánh theo quyết định điều phối: với \
 Bước 4: Cập nhật bộ nhớ dài hạn (có điều kiện).
 Khác với cập nhật theo chu kỳ cố định, hệ thống chỉ kích hoạt nút \texttt{update\_long\_term} khi khâu phân tích đánh dấu cờ \texttt{should\_update\_long\_term} - tức khi người dùng cung cấp một sự kiện ổn định đáng ghi nhớ. Khi đó, \textit{Long-term Memory Agent} trích xuất và hợp nhất thông tin mới vào hồ sơ; ngược lại, đồ thị kết thúc ngay sau bước sinh để giảm độ trễ.
 
+Quy trình điều phối tổng thể và luồng dữ liệu giữa các phân hệ được mô tả trực quan trong Hình~\ref{fig:flow_query_lightrag}.
+
+\begin{figure}[H]
+	\centering
+	\resizebox{\textwidth}{!}{
+		\begin{tikzpicture}[
+			>={Stealth[scale=1.2]},
+			base/.style={align=center, font=\sffamily\small, inner sep=0.3cm, thick},
+			inputQuery/.style={base, rectangle, rounded corners=5pt, fill=magenta!80!black, text=white, draw=magenta!90!black, minimum width=3.5cm},
+			outputResp/.style={base, rectangle, rounded corners=5pt, fill=teal!80!black, text=white, draw=teal!90!black, minimum width=4cm},
+			retrieveBox/.style={base, rectangle, rounded corners=5pt, fill=pink!10, draw=pink!60!black, minimum width=3.5cm},
+			ragSystemBox/.style={base, rectangle, rounded corners=5pt, fill=green!15, draw=green!70!black, minimum width=5.5cm, minimum height=1.5cm},
+			generateBox/.style={base, rectangle, rounded corners=5pt, fill=yellow!10, draw=yellow!60!black, minimum width=4.5cm},
+			storageBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=green!70!black, text=white, draw=green!40!black, minimum height=1.3cm, minimum width=4cm},
+			memoryBox/.style={base, cylinder, shape border rotate=90, aspect=0.2, fill=blue!10, draw=blue!70!black, minimum height=1.3cm, text width=4cm},
+			llmBox/.style={base, rectangle, rounded corners=5pt, fill=purple!10, draw=purple!60!black, minimum width=4.5cm},
+			decisionBox/.style={base, diamond, aspect=2.5, fill=orange!20, draw=orange!70!black, inner sep=2pt, text width=3cm},
+			groupLabel/.style={font=\bfseries\sffamily\large, right, fill=white, inner sep=3pt, rounded corners=3pt},
+			labelTag/.style={font=\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt} % Nhãn đè lên vạch không bị rối
+		]
+
+			% ==========================================
+			% LAYER 0: BACKGROUND GROUPS 
+			% ==========================================
+			\begin{scope}[on background layer]
+				% 0. Pre-Process Group
+				\filldraw[fill=blue!5, draw=blue!40, dashed, rounded corners=15pt, very thick] (-15, 6.8) rectangle (16, 0.5);
+				\node[groupLabel, text=blue!70!black] at (-14.5, 6.8) {0. Phân tích \& Định tuyến (Analyzer Agent)};
+				
+				% 1. Retrieve Group 
+				\filldraw[fill=green!5, draw=green!40, dashed, rounded corners=15pt, very thick] (-15, 0) rectangle (16, -4.5);
+				\node[groupLabel, text=green!70!black] at (-14.5, 0) {1. Truy xuất Ngữ cảnh (LightRAG System)};
+				
+				% 2. Generation Group
+				\filldraw[fill=yellow!5, draw=yellow!40, dashed, rounded corners=15pt, very thick] (-15, -5) rectangle (16, -7.5);
+				\node[groupLabel, text=yellow!70!black] at (-14.5, -5) {2. Tạo sinh câu trả lời (Generator Agent)};
+				
+				% 3. Memory Group
+				\filldraw[fill=purple!5, draw=purple!40, dashed, rounded corners=15pt, very thick] (-1, -8) rectangle (16, -11);
+				\node[groupLabel, text=purple!70!black] at (-0.5, -8) {3. Cập nhật Bộ nhớ (Memory Agent)};
+			\end{scope}
+
+			% ==========================================
+			% 0. PRE-PROCESS \& ROUTING PHASE 
+			% ==========================================
+			\node[inputQuery] (Query) at (-12, 1.5) {Query\\(Câu hỏi)};
+			\node[memoryBox, text width=3.5cm] (ChatHistory) at (-6, 4.5) {Chat History\\(Lịch sử ngắn hạn)};
+			\node[llmBox, text width=6cm] (AnalyzerLLM) at (-6, 1.5) {Analyzer LLM\\1. Làm rõ câu hỏi\\2. Phân loại ý định\\3. Trích xuất Keywords};
+			\node[decisionBox] (RoutingDecision) at (0, 1.5) {Decision\\(Routing)};
+			\node[decisionBox, text width=4cm] (ModeSelection) at (7, 1.5) {RAG Mode Selection\\\scriptsize(local, global, hybrid, mix)\\\scriptsize*Fallback mặc định: mix};
+
+			% ==========================================
+			% 1. RETRIEVAL PHASE (LightRAG call simplified)
+			% ==========================================
+			\node[ragSystemBox, text width=6.5cm] (LightRAGSystem) at (0, -2.2) {LightRAG Core System\\- Tìm kiếm Vector (Entities/Relations)\\- Duyệt đồ thị quan hệ\\- Lọc nhiễu và Trích xuất ngữ cảnh};
+
+			% ==========================================
+			% 2. GENERATION PHASE
+			% ==========================================
+			\node[generateBox] (CombCtx) at (-5.5, -6.2) {Combined Context\\(Ngữ cảnh kết hợp)};
+			\node[generateBox, text width=5.5cm] (GenPrompt) at (1.5, -6.2) {Build Generation Request\\(Inject Memory \& Context)};
+			\node[llmBox] (GeneratorLLM) at (7.5, -6.2) {Generator LLM};
+			\node[outputResp] (Response) at (13, -6.2) {Response\\(Câu trả lời)};
+
+			% ==========================================
+			% 3. MEMORY UPDATE 
+			% ==========================================
+			\node[llmBox, text width=3.5cm] (MemUpdateLLM) at (13, -9.5) {Update Profile LLM\\(Phân tích)};
+			\node[memoryBox, text width=3.5cm] (LongTermMem) at (1.5, -9.5) {Long-Term Memory\\(Hồ sơ user)};
+
+			% ==========================================
+			% WIRING \& ROUTING
+			% ==========================================
+			
+			% --- Phase 0 ---
+			\draw[->, thick] (Query) -- (AnalyzerLLM);
+			\draw[->, thick, dashed, draw=blue!70!black] (ChatHistory.south) -- node[labelTag, right] {Tóm tắt} (AnalyzerLLM.north);
+			\draw[->, thick] (AnalyzerLLM) -- (RoutingDecision);
+			\draw[->, thick] (RoutingDecision) -- node[labelTag, above] {decision == 'retrieve'} (ModeSelection);
+
+			% Routing Mode -> LightRAG Call
+			\draw[->, thick, rounded corners] (ModeSelection.south) |- (0, -0.5) -- node[labelTag, right, pos=0.85] {Mode: local/global/mix} (LightRAGSystem.north);
+
+			% --- Bypass Lines ---
+			% 1. Lịch sử chat -> Prompt (Vành đai Trái)
+			\draw[->, thick, dashed, draw=blue!70!black, rounded corners] 
+				(ChatHistory.west) -- (-14.3, 4.5) -- (-14.3, -4.8) -- (0.5, -4.8) -- ([xshift=-1cm]GenPrompt.north);
+			\node[labelTag, text=blue!70!black] at (-11.5, 4.5) {Recent Messages};
+
+			% 2. Direct Answer (Cam - Vành đai trên -> Vành đai Phải trong)
+			\draw[->, very thick, draw=orange!90!red, rounded corners] 
+				(RoutingDecision.north) -- (0, 3.2) -- (14.5, 3.2) -- (14.5, -4.8) -- (2.5, -4.8) -- ([xshift=1cm]GenPrompt.north);
+			\node[labelTag, text=orange!90!red] at (11, 3.2) {decision == 'direct\_answer'};
+
+			% 3. Reject (Đỏ - Vành đai Phải ngoài cùng)
+			\draw[->, very thick, draw=red, rounded corners] 
+				(RoutingDecision.north) -- (0, 3.9) -- (15.5, 3.9) -- (15.5, -6.2) -- (Response.east);
+			\node[labelTag, text=red] at (11, 3.9) {decision == 'reject'};
+
+			% --- Retrieval Output to Context ---
+			\draw[->, thick, rounded corners] (LightRAGSystem.south) -- (0, -4.8) -- (-5.5, -4.8) -- (CombCtx.north);
+
+			% --- Phase 2: Generation ---
+			\draw[->, thick] (CombCtx.east) -- (GenPrompt.west);
+			\draw[->, thick] (GenPrompt.east) -- (GeneratorLLM.west);
+			\draw[->, thick] (GeneratorLLM.east) -- (Response.west);
+
+			% --- Phase 3: Memory Updates ---
+			\draw[->, thick, dashed, draw=purple!80!black] (Response.south) -- node[labelTag, right] {Trigger Update} (MemUpdateLLM.north);
+			\draw[->, thick, dashed, draw=purple!80!black] (MemUpdateLLM.west) -- node[labelTag, above] {Save Summary} (LongTermMem.east);
+			\draw[->, thick, dashed, draw=blue!70!black] (LongTermMem.north) -- node[labelTag, right] {Load Profile} (GenPrompt.south);
+
+		\end{tikzpicture}
+	}
+	\caption{Sơ đồ kiến trúc điều phối Agent tổng thể của trợ lý ảo}
+	\label{fig:flow_query_lightrag}
+\end{figure}
+
 \subsection{Cơ chế truy xuất tri thức (LightRAG Integration)}
 Khác với RAG truyền thống dựa thuần túy trên độ tương đồng vector, hệ thống sử dụng LightRAG để truy xuất trên cấu trúc đồ thị tri thức (Knowledge Graph). Điểm tối ưu quan trọng là các từ khóa đã được Analyze Agent trích xuất sẵn ở mức cao và mức thấp được truyền thẳng vào LightRAG:
 $$Q_{RAG} = Q_{standalone} + K_{high} + K_{low}$$
-Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa nội bộ (vốn cần thêm một lần gọi mô hình), giúp giảm độ trễ mà vẫn định hướng truy xuất chính xác. Tùy theo độ khái quát của câu hỏi, hệ thống lựa chọn một trong các chế độ truy vấn \texttt{naive}, \texttt{local}, \texttt{global}, \texttt{hybrid} hoặc \texttt{mix} đã trình bày ở phần trên. Việc viết lại câu hỏi thành dạng độc lập kết hợp với từ khóa giúp khắc phục hiện tượng mất ngữ cảnh khi câu hỏi của sinh viên quá ngắn hoặc mơ hồ. Toàn bộ trạng thái hội thoại được lưu bền vững qua cơ chế checkpoint trên MongoDB, cho phép khôi phục đúng bước đang xử lý khi có gián đoạn.
+Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa nội bộ (vốn cần thêm một lần gọi mô hình), giúp giảm độ trễ mà vẫn định hướng truy xuất chính xác. Tùy theo độ khái quát và mục đích tra cứu của câu hỏi, hệ thống hỗ trợ bốn chế độ truy vấn chính bao gồm:
+\indent Chế độ truy vấn cơ bản (Naive Query): Đây là phương pháp tìm kiếm truyền thống dựa trên độ tương đồng vector. Hệ thống truy xuất các đoạn văn bản (text chunks) có bản nhúng vector gần nhất với câu hỏi mà không tận dụng cấu trúc đồ thị. Chế độ này phù hợp cho các câu hỏi đơn giản, yêu cầu trích xuất thông tin trực tiếp từ một đoạn văn cụ thể.
+
+\indent Chế độ truy vấn cục bộ (Local Query): Chế độ này được tối ưu hóa cho các câu hỏi chi tiết về một khái niệm cụ thể (Low-level Query). Hệ thống sử dụng cơ chế tìm kiếm vector để xác định các thực thể liên quan nhất, sau đó mở rộng truy xuất các nút lân cận và các mối quan hệ trực tiếp trong đồ thị tri thức. Quy trình này cung cấp một ngữ cảnh tri thức tập trung, giúp mô hình ngôn ngữ trả lời chính xác các thuộc tính và mối quan hệ vi mô của thực thể.
+
+\indent Chế độ truy vấn toàn cục (Global Query): Đối với các câu hỏi mang tính tổng quát cao (High-level Query), đòi hỏi sự hiểu biết về toàn bộ kho dữ liệu, chế độ toàn cục phát huy vai trò chủ đạo. Thay vì tìm kiếm đoạn văn rời rạc, hệ thống tận dụng cấu trúc đồ thị ở mức độ vĩ mô bằng cách tổng hợp các mô tả tóm tắt của thực thể và quan hệ quan trọng. Cách tiếp cận này giúp mô hình ngôn ngữ bao quát được các chủ đề lớn và đưa ra những nhận định mang tính hệ thống vượt qua giới hạn cửa sổ ngữ cảnh thông thường.
+
+\indent Chế độ truy vấn hỗn hợp (Mix Query): Đây là sự kết hợp giữa tìm kiếm cục bộ và toàn cục. Chế độ Mix đồng thời truy xuất các chi tiết cụ thể từ đồ thị lân cận và các tóm tắt tri thức vĩ mô từ cấp độ toàn cục. Quy trình xử lý này đảm bảo câu trả lời vừa có độ chính xác của dữ liệu chi tiết, vừa có chiều sâu của lập luận hệ thống, đáp ứng tốt nhất cho các nhiệm vụ phân tích tri thức đa tầng.
+
+Cơ chế truy xuất hai luồng cục bộ và toàn cục cùng quy trình lọc ngữ cảnh của LightRAG được thể hiện chi tiết ở Hình~\ref{fig:lightrag_retrieval_internal}.
+
+ \begin{figure}[H]
+	\centering
+	\resizebox{\textwidth}{!}{
+	\begin{tikzpicture}[
+	    >=Stealth,
+	    every node/.style={font=\sffamily\small},
+	    storageBox/.style={rectangle, rounded corners=3pt, draw=green!70!black, fill=green!10, thick, align=center, text width=4.8cm, minimum height=1.0cm},
+	    nodeBox/.style={rectangle, rounded corners=3pt, draw=gray!60, fill=white, thick, align=center, text width=3.8cm, minimum height=0.8cm},
+	    inputBox/.style={rectangle, rounded corners=3pt, draw=purple!80!black, fill=purple!10, thick, align=center, text width=3.2cm, minimum height=0.8cm},
+	    outputBox/.style={rectangle, rounded corners=3pt, draw=teal!80!black, fill=teal!15, thick, align=center, text width=3.2cm, minimum height=0.8cm},
+	    labelTag/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, rounded corners=2pt},
+	    solidEdge/.style={-{Stealth[length=2.5mm]}, thick},
+	]
+
+	    % ==========================================
+	    % 1. DINH VI CAC NODE
+	    % ==========================================
+
+	    %% STORAGE ROW (tren cung) -- gian rong +-14
+	    \node[storageBox] (VDB_L) at (-14.0, 10.0) {Cơ sở dữ liệu Vector\\(Nano Vector DB - Trái)};
+	    \node[storageBox] (KG)    at (  0.0, 10.0) {Đồ thị tri thức\\(Knowledge Graph)};
+	    \node[storageBox] (VDB_R) at ( 14.0, 10.0) {Cơ sở dữ liệu Vector\\(Nano Vector DB - Phải)};
+
+	    %% KHUNG RETRIEVE
+	    \filldraw[fill=pink!8, draw=pink!40, dashed, rounded corners=12pt, very thick] (-18.0, 6.8) rectangle (18.0, -1.1);
+	    \node[font=\sffamily\bfseries\large, anchor=north west, color=pink!70!black] at (-17.7, 6.5) {Retrieve (Phân hệ Truy xuất)};
+
+	    %% TRUNG TAM: Keyword Extraction
+	    \node[nodeBox] (KWEPrompt)    at (-5.8, -0.2) {Keywords Extraction Prompt\\(Mẫu gợi ý trích xuất)};
+	    \node[nodeBox] (SysPromptExt) at (  0.0, -0.2) {System Prompt\\(Gợi ý hệ thống)};
+	    \node[nodeBox] (KWExtract)    at (  0.0,  1.5) {keywords\_extraction\\(Trích xuất từ khóa)};
+	    \node[nodeBox] (LowKW)        at ( -2.5,  3.0) {low\_level\_keywords\\(Từ khóa mức thấp)};
+	    \node[nodeBox] (HighKW)       at (  2.5,  3.0) {high\_level\_keywords\\(Từ khóa mức cao)};
+	    \node[nodeBox] (Embed1)       at ( -2.5,  4.8) {Embedding (Nhúng)};
+	    \node[nodeBox] (Embed2)       at (  2.5,  4.8) {Embedding (Nhúng)};
+
+	    %% NHANH TRAI (Low-Level Retrieval)
+	    \node[nodeBox] (TopK_E)    at (-11.0,  5.5) {TopK Entities Results\\(Kết quả Top-K Thực thể)};
+	    \node[nodeBox] (RelText_L) at (-16.0,  3.5) {Related text\_units\\(Đoạn văn bản liên quan)};
+	    \node[nodeBox] (RelRel)    at ( -7.0,  3.5) {Related Relations\\(Quan hệ liên quan)};
+	    \node[nodeBox] (LocalCtx)  at (-11.0,  1.5) {Local Query Context\\(Ngữ cảnh truy vấn cục bộ)};
+
+	    %% NHANH PHAI (High-Level Retrieval)
+	    \node[nodeBox] (TopK_R)    at ( 11.0,  5.5) {TopK Relations Results\\(Kết quả Top-K Quan hệ)};
+	    \node[nodeBox] (RelText_R) at ( 16.0,  3.5) {Related text\_units\\(Đoạn văn bản liên quan)};
+	    \node[nodeBox] (RelEnt)    at (  7.0,  3.5) {Related Entities\\(Thực thể liên quan)};
+	    \node[nodeBox] (GlobalCtx) at ( 11.0,  1.5) {Global Query Context\\(Ngữ cảnh truy vấn toàn cục)};
+
+	    %% QUERY INPUT
+	    \node[inputBox] (Query) at (-17.0, -3.5) {Query\\(Câu hỏi)};
+
+	    %% KHUNG GENERATION
+	    \filldraw[fill=yellow!8, draw=yellow!40, dashed, rounded corners=12pt, very thick] (-5.8, -1.4) rectangle (5.8, -5.5);
+	    \node[font=\sffamily\bfseries\large, anchor=north west, color=yellow!70!black] at (-5.5, -1.7) {Generation (Tạo sinh)};
+	    \node[nodeBox] (CombCtx)      at (  0.0, -2.6) {combined context\\(Ngữ cảnh kết hợp)};
+	    \node[nodeBox] (SysTpl)       at ( -2.5, -4.4) {System Template Prompt\\(Mẫu gợi ý hệ thống)};
+	    \node[nodeBox] (SysPromptGen) at (  2.5, -4.4) {System Prompt\\(Gợi ý hệ thống)};
+
+	    %% RESPONSE OUTPUT
+	    \node[outputBox] (Response) at (0.0, -7.2) {Response\\(Câu trả lời)};
+
+	    % ==========================================
+	    % 2. DINH TUYEN MUI TEN (goc vuong tuyet doi)
+	    % Moi ket noi dung bus lane y rieng biet
+	    % ==========================================
+
+	    %% A. KWEPrompt -> SysPromptExt (ngang)
+	    \draw[solidEdge] (KWEPrompt.east) -- (SysPromptExt.west);
+
+	    %% B. SysPromptExt -> KWExtract (thang dung len)
+	    \draw[solidEdge] (SysPromptExt.north) -- node[labelTag, text=green!60!black, fill=pink!8, pos=0.5] {use LLM} (KWExtract.south);
+
+	    %% C. KWExtract -> LowKW (re trai tai y=2.2)
+	    \draw[solidEdge] (KWExtract.north) -- (0.0, 2.2) -- (-2.5, 2.2) -- (LowKW.south);
+
+	    %% D. KWExtract -> HighKW (re phai tu nut giao y=2.2)
+	    \draw[solidEdge] (0.0, 2.2) -- (2.5, 2.2) -- (HighKW.south);
+
+	    %% E. LowKW -> Embed1
+	    \draw[solidEdge] (LowKW.north)  -- node[labelTag, text=red!80!black, fill=pink!8, pos=0.5] {use EB Model} (Embed1.south);
+
+	    %% F. HighKW -> Embed2
+	    \draw[solidEdge] (HighKW.north) -- node[labelTag, text=red!80!black, fill=pink!8, pos=0.5] {use EB Model} (Embed2.south);
+
+	    %% G. Embed1 -> VDB_L (bus y=7.0 phia tren khung Retrieve)
+	    \draw[solidEdge] (Embed1.north) -- (-2.5, 7.0) -- (-14.0, 7.0) -- (VDB_L.south);
+
+	    %% H. Embed2 -> VDB_R (bus y=7.0, doi xung G)
+	    \draw[solidEdge] (Embed2.north) -- ( 2.5, 7.0) -- ( 14.0, 7.0) -- (VDB_R.south);
+
+	    %% I. VDB_L -> TopK_E  (bus y=9.0, lech +3mm, sang phai den x=-11.3)
+	    \draw[solidEdge] ([xshift=3mm]VDB_L.south) -- (-13.7, 9.0) -- (-11.3, 9.0) -- ([xshift=-3mm]TopK_E.north);
+
+	    %% J. VDB_L -> RelText_L  (bus y=8.6, lech -3mm, sang trai den x=-16.0)
+	    \draw[solidEdge] ([xshift=-3mm]VDB_L.south) -- (-14.3, 8.6) -- (-16.0, 8.6) -- (RelText_L.north);
+
+	    %% K. KG -> TopK_E  (bus y=9.3, lech -6mm, sang trai den x=-10.7)
+	    \draw[solidEdge] ([xshift=-6mm]KG.south) -- (-0.6, 9.3) -- (-10.7, 9.3) -- ([xshift=3mm]TopK_E.north);
+
+	    %% L. KG -> RelRel  (bus y=8.0, lech -2mm, sang trai den x=-7.0)
+	    \draw[solidEdge] ([xshift=-2mm]KG.south) -- (-0.2, 8.0) -- (-7.0, 8.0) -- (RelRel.north);
+
+	    %% M. VDB_R -> TopK_R  (bus y=9.0, doi xung I)
+	    \draw[solidEdge] ([xshift=-3mm]VDB_R.south) -- (13.7, 9.0) -- (11.3, 9.0) -- ([xshift=3mm]TopK_R.north);
+
+	    %% N. VDB_R -> RelText_R  (bus y=8.6, doi xung J)
+	    \draw[solidEdge] ([xshift=3mm]VDB_R.south) -- (14.3, 8.6) -- (16.0, 8.6) -- (RelText_R.north);
+
+	    %% O. KG -> TopK_R  (bus y=9.3, doi xung K)
+	    \draw[solidEdge] ([xshift=6mm]KG.south) -- (0.6, 9.3) -- (10.7, 9.3) -- ([xshift=-3mm]TopK_R.north);
+
+	    %% P. KG -> RelEnt  (bus y=8.0, doi xung L)
+	    \draw[solidEdge] ([xshift=2mm]KG.south) -- (0.2, 8.0) -- (7.0, 8.0) -- (RelEnt.north);
+
+	    %% Q. TopK_E -> LocalCtx  (thang dung xuong)
+	    \draw[solidEdge] (TopK_E.south) -- (LocalCtx.north);
+
+	    %% R. RelText_L -> LocalCtx  (bus y=2.8, lech -5mm o LocalCtx)
+	    \draw[solidEdge] (RelText_L.south) -- (-16.0, 2.8) -- (-11.5, 2.8) -- ([xshift=-5mm]LocalCtx.north);
+
+	    %% S. RelRel -> LocalCtx  (bus y=2.6, lech +5mm o LocalCtx)
+	    \draw[solidEdge] (RelRel.south) -- (-7.0, 2.6) -- (-10.5, 2.6) -- ([xshift=5mm]LocalCtx.north);
+
+	    %% T. TopK_R -> GlobalCtx  (thang dung xuong, doi xung Q)
+	    \draw[solidEdge] (TopK_R.south) -- (GlobalCtx.north);
+
+	    %% U. RelText_R -> GlobalCtx  (bus y=2.8, doi xung R)
+	    \draw[solidEdge] (RelText_R.south) -- (16.0, 2.8) -- (11.5, 2.8) -- ([xshift=5mm]GlobalCtx.north);
+
+	    %% V. RelEnt -> GlobalCtx  (bus y=2.6, doi xung S)
+	    \draw[solidEdge] (RelEnt.south) -- (7.0, 2.6) -- (10.5, 2.6) -- ([xshift=-5mm]GlobalCtx.north);
+
+	    %% W. LocalCtx -> CombCtx  (xuong den y=-2.6, roi sang phai)
+	    \draw[solidEdge] (LocalCtx.south) -- (-11.0, -2.6) -- (CombCtx.west);
+
+	    %% X. GlobalCtx -> CombCtx  (xuong den y=-2.6, roi sang trai)
+	    \draw[solidEdge] (GlobalCtx.south) -- (11.0, -2.6) -- (CombCtx.east);
+
+	    %% Y. CombCtx -> SysPromptGen  (xuong den y=-3.6, roi sang phai)
+	    \draw[solidEdge] (CombCtx.south) -- (0.0, -3.6) -- (2.5, -3.6) -- (SysPromptGen.north);
+
+	    %% Z. SysTpl -> SysPromptGen  (ngang)
+	    \draw[solidEdge] (SysTpl.east) -- (SysPromptGen.west);
+
+	    %% AA. Query -> SysPromptExt  (luon qua khe y=-1.25 giua 2 khung)
+	    \draw[solidEdge] (Query.north) -- (-17.0, -1.25) -- (0.0, -1.25) -- (SysPromptExt.south);
+
+	    %% AB. Query -> SysPromptGen  (luon qua day y=-6.3)
+	    \draw[solidEdge] (Query.south) -- (-17.0, -6.3) -- (2.5, -6.3) -- (SysPromptGen.south);
+
+	    %% AC. SysPromptGen -> Response  (ra phai x=5.3, xuong y=-6.7, vao Response)
+	    \draw[solidEdge] (SysPromptGen.east) -- (5.3, -4.4) -- (5.3, -6.7) -- (0.0, -6.7) -- (Response.north);
+
+	\end{tikzpicture}
+	}
+	\caption{Cơ chế truy xuất tri thức và lọc ngữ cảnh hai tầng trong LightRAG}
+	\label{fig:lightrag_retrieval_internal}
+ \end{figure}
+
+Việc viết lại câu hỏi thành dạng độc lập kết hợp với từ khóa giúp khắc phục hiện tượng mất ngữ cảnh khi câu hỏi của sinh viên quá ngắn hoặc mơ hồ. Toàn bộ trạng thái hội thoại được lưu bền vững qua cơ chế checkpoint trên MongoDB, cho phép khôi phục đúng bước đang xử lý khi có gián đoạn.
 
 \indent Để gia tăng độ linh hoạt trong việc đáp ứng các nhu cầu tra cứu đa dạng, hệ thống cung cấp hai cấu hình truy vấn chuyên biệt bao gồm cấu hình truy vấn tốc độ cao và cấu hình truy vấn chuyên sâu. Cấu hình tốc độ cao ưu tiên tối ưu hóa thời gian phản hồi bằng cách giới hạn số lượng kết quả trả về từ cơ sở dữ liệu, trong khi cấu hình chuyên sâu tập trung khai thác triệt để các mối quan hệ phức tạp nhằm mang lại ngữ cảnh toàn diện nhất. Song song với đó, hệ thống tích hợp thêm một luồng tra cứu đồ thị trực tiếp bằng ngôn ngữ truy vấn cấu trúc. Luồng xử lý này cho phép hệ thống đếm số lượng thực thể hoặc kiểm chứng các sự kiện cụ thể một cách độc lập mà không cần phải ánh xạ qua không gian vector nhúng, qua đó giảm thiểu đáng kể chi phí tính toán.
 
@@ -1211,7 +1323,8 @@ Nhờ vậy, LightRAG bỏ qua được bước tự trích xuất từ khóa n�
 \indent Nhằm đảm bảo tính chuẩn xác tuyệt đối trước khi phản hồi người dùng, kiến trúc điều phối tích hợp một tác tử kiểm chứng học thuật hoạt động như một màng lọc cuối cùng. Tác tử này được thiết kế chuyên biệt để thẩm định tính xác thực đối với các nhóm câu hỏi hệ trọng như lộ trình học tập, môn tiên quyết hay quy định tín chỉ. Quá trình kiểm chứng liên tục đối chiếu chéo câu trả lời dự kiến với các quy chuẩn học thuật cốt lõi nhằm ngăn chặn tình trạng ảo giác thông tin của mô hình tạo sinh. Cuối cùng, hệ thống áp dụng cơ chế xử lý bất đồng bộ toàn diện, cho phép truyền phát dữ liệu theo dạng chuỗi luồng liên tục ngay khi có kết quả, đồng thời thực thi các tác vụ cập nhật bộ nhớ dài hạn dưới nền sau khi kết thúc phản hồi, qua đó mang lại trải nghiệm tương tác liền mạch và tối ưu nhất.
 
 \subsection{Thuật toán điều phối (Pseudocode)}
-\begin{algorithm}
+
+\begin{algorithm}[H]
 	\caption{Quy trình điều phối Agent}\label{alg:orchestration}
 	\begin{algorithmic}[1]
 		\Require $query,\ user\_id$ \Comment{Đầu vào từ sinh viên}
@@ -1271,7 +1384,7 @@ Tiếp nối quá trình tiền xử lý văn bản bằng công cụ MinerU, t�
 
 Nghiên cứu này chú trọng vào việc đo lường chất lượng nội tại của đồ thị (intrinsic graph quality) dựa trên mức độ trung thực so với văn bản gốc. Để thực hiện điều này, nghiên cứu áp dụng tổ hợp ba phương pháp đánh giá tiên tiến nhằm giải quyết ba vấn đề cốt lõi thường gặp khi trích xuất đồ thị tự động: tình trạng phân mảnh, hiện tượng ảo giác, và lỗi thiết kế lược đồ. 
 
-Đầu tiên là, nhằm giải quyết tình trạng phân mảnh thông tin - khi đồ thị tạo ra các thực thể rời rạc thay vì một mạng lưới liên kết, nghiên cứu áp dụng phương pháp đánh giá tính toàn vẹn cấu trúc (Graph Structure Health) theo đề xuất của Seo và cộng sự \cite{seo2022structural}. Cụ thể, phương pháp này đo lường số lượng các nút mồ côi (dangling nodes) và thống kê tỷ lệ bao phủ văn bản (chunk coverage). Nhờ đó, hệ thống có thể đảm bảo rằng hầu hết các thực thể trích xuất ra đều được kết nối chặt chẽ và không bỏ sót thông tin quan trọng từ tài liệu gốc. Kế tiếp để giảm thiểu hiện tượng ảo giác (hallucination) - tức tình trạng mô hình ngôn ngữ tự bịa đặt ra các mối quan hệ sai lệch (ví dụ: tự sáng tác ra môn học tiên quyết không tồn tại) - nghiên cứu sử dụng phương pháp đánh giá LLM-as-a-Judge do Edge và cộng sự (nhóm tác giả GraphRAG) \cite{edge2024} khởi xướng. Áp dụng phương pháp này, nghiên cứu lấy mẫu ngẫu nhiên các quan hệ sinh ra và yêu cầu mô hình Qwen2.5-72B đóng vai trò giám khảo độc lập. Mô hình sẽ đối chiếu trực tiếp từng mối quan hệ với đoạn văn bản gốc tương ứng để chấm điểm tính có căn cứ (groundedness). Phương pháp này giúp hệ thống cam kết độ tin cậy tuyệt đối của tri thức được trích xuất. Sau cùng là ngăn chặn tình trạng trôi dạt lược đồ (schema drift) và đảm bảo cấu trúc đồ thị thực sự phục vụ được mục tiêu truy vấn, nghiên cứu áp dụng chuẩn kiểm định tính hợp lệ lược đồ (Ontology Validation). Theo hướng tiếp cận của hệ thống OOPS! do Poveda-Villalón và cộng sự \cite{poveda2014oops} phát triển, kết hợp với các tiêu chuẩn thiết kế siêu dữ liệu của LightRAG \cite{guo2025lightrag}, phương pháp này tự động rà soát các lỗi logic trong thiết kế đồ thị và kiểm tra khả năng trả lời các câu hỏi năng lực (Competency Questions). Việc này giúp phát hiện sớm các cấu trúc đồ thị lỗi từ trong trứng nước trước khi đưa vào truy vấn thực tế.
+Đầu tiên là, nhằm giải quyết tình trạng phân mảnh thông tin - khi đồ thị tạo ra các thực thể rời rạc thay vì một mạng lưới liên kết, nghiên cứu áp dụng phương pháp đánh giá tính toàn vẹn cấu trúc (Graph Structure Health) theo đề xuất của Seo và cộng sự \cite{seo2022structural}. Cụ thể, phương pháp này đo lường số lượng các nút mồ côi (dangling nodes) và thống kê tỷ lệ bao phủ văn bản (chunk coverage). Nhờ đó, hệ thống có thể đảm bảo rằng hầu hết các thực thể trích xuất ra đều được kết nối chặt chẽ và không bỏ sót thông tin quan trọng từ tài liệu gốc. Kế tiếp để giảm thiểu hiện tượng ảo giác (hallucination) - tức tình trạng mô hình ngôn ngữ tự bịa đặt ra các mối quan hệ sai lệch (ví dụ: tự sáng tác ra môn học tiên quyết không tồn tại) - nghiên cứu sử dụng phương pháp đánh giá LLM-as-a-Judge do Edge và cộng sự (nhóm tác giả GraphRAG) \cite{edge2024} khởi xướng. Áp dụng phương pháp này, nghiên cứu lấy mẫu ngẫu nhiên các quan hệ sinh ra và yêu cầu mô hình Qwen2.5-72B đóng vai trò giám khảo độc lập. Mô hình sẽ đối chiếu trực tiếp từng mối quan hệ với đoạn văn bản gốc tương ứng để chấm điểm tính có căn cứ (groundedness). Phương pháp này giúp hệ thống cam kết độ tin cậy tuyệt đối của tri thức được trích xuất. Sau cùng là ngăn chặn tình trạng trôi dạt lược đồ (schema drift) và đảm bảo cấu trúc đồ thị thực sự phục vụ được mục tiêu truy vấn, nghiên cứu áp dụng chuẩn kiểm định tính hợp lệ lược đồ (Ontology Validation). Theo hướng tiếp cận của hệ thống OOPS! do Poveda-Villalón và cộng sự \cite{poveda2014oops} phát triển, kết hợp với các tiêu chuẩn thiết kế siêu dữ liệu của LightRAG \cite{guo2025lightrag}, phương pháp này tự động rà soát các lỗi logic trong thiết kế đồ thị và kiểm tra khả năng trả lời các câu hỏi năng lực (Competency Questions). Việc này giúp phát hiện sớm các cấu trúc đồ thị lỗi từ trong trứng nước trước khi đưa vào truy vấn thực tế. Về mặt phương pháp luận, quy trình kiểm định tính hợp lệ dựa trên danh mục bẫy lỗi (pitfalls) của OOPS! vẫn là một chuẩn mực cốt lõi được áp dụng xuyên suốt trong các nghiên cứu hiện đại. Minh chứng là trong một nghiên cứu y tế công bố năm 2026 \cite{franco2026meso}, phương pháp validation này đã được sử dụng thành công để kiểm thử tự động một hệ thống phân cấp tri thức y học phức tạp (MeSO). Bằng cách quét và phát hiện các lỗi cấu trúc như thiếu ràng buộc thuộc tính nghịch đảo hoặc sai lệch phân cấp, thực nghiệm năm 2026 đã chứng minh tính hiệu quả vượt thời gian của phương pháp này trong việc duy trì sự nhất quán logic và bảo vệ tính toàn vẹn của các mô hình đồ thị tri thức trước khi đưa vào vận hành.
 
 \subsubsection{Đánh giá chất lượng sinh văn bản và hiệu năng điều phối (RAG \& Agentic Metrics)}
 
