@@ -138,7 +138,95 @@ Các thông số định lượng đo lường từ quá trình thực nghiệm 
 Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý, song cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Về tỷ lệ điều phối đúng công cụ (Routing Accuracy), Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng chế độ truy xuất phù hợp (Local, Global hoặc Hybrid). Về tốc độ phản hồi (Average Latency), thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
 
 \section{Đánh giá hệ thống từ phía người dùng cuối}
-Quá trình thử nghiệm thực tế (beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru 40 câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
+Quá trình thử nghiệm thực tế (beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru các câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
+
+\subsection{Đánh giá trải nghiệm của người dùng}
+
+Để đánh giá tính thực tiễn, mức độ hiệu quả và chất lượng trải nghiệm người dùng đối với hệ thống trợ lý ảo hỗ trợ học vụ LearningPath, một khảo sát thực nghiệm đã được tiến hành. Khảo sát thu thập ý kiến phản hồi từ các sinh viên đang theo học tại Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM (HCMUS) sau khi trải nghiệm trực tiếp hệ thống trên cả hai nền tảng Website và Mobile. Mẫu khảo sát ghi nhận ý kiến đánh giá từ các khía cạnh: chất lượng nội dung phản hồi, hiệu năng giữa hai chế độ Flash/Pro, trải nghiệm cá nhân hóa sau khi đăng nhập, thiết kế giao diện UI/UX và mức độ hài lòng tổng thể.
+
+\subsubsection{Thiết lập khảo sát và đối tượng đánh giá}
+Khảo sát được triển khai dưới hình thức biểu mẫu trực tuyến (Google Forms) kết hợp với phỏng vấn nhanh một số sinh viên tham gia thử nghiệm. Tổng số lượng mẫu phản hồi ghi nhận hợp lệ dao động từ 21 đến 22 phản hồi. Đối tượng tham gia khảo sát là sinh viên thuộc các chuyên ngành khác nhau của Khoa Công nghệ thông tin (Hệ thống thông tin, Kỹ thuật phần mềm, Khoa học máy tính, Công nghệ thông tin, v.v.), là nhóm người dùng mục tiêu có nhu cầu tra cứu và định hướng học tập cao.
+
+\subsubsection{Đánh giá chất lượng phản hồi của trợ lý ảo AI}
+Khía cạnh chất lượng câu trả lời được đánh giá qua khả năng trả lời đúng trọng tâm, năng lực tìm kiếm và tổng hợp thông tin học vụ, và mức độ chính xác đối với các câu hỏi chuyên sâu. Kết quả khảo sát được thể hiện cụ thể tại Hình~\ref{fig:survey_feedback_part1}.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/fb/FB_1.png}
+        \footnotesize a) Chất lượng phản hồi và năng lực xử lý thông báo
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/fb/FB_2.png}
+        \footnotesize b) Độ chính xác thông tin trường học và so sánh mô hình
+    \end{minipage}
+    \caption{Kết quả khảo sát về chất lượng câu trả lời và so sánh hai chế độ phục vụ}
+    \label{fig:survey_feedback_part1}
+\end{figure}
+
+Đối với câu hỏi \textit{"AI có trả lời đúng trọng tâm câu hỏi của bạn không?"} (Hình~\ref{fig:survey_feedback_part1}a), kết quả ghi nhận sự đánh giá rất tích cực từ người dùng: có đến $57,1\%$ người dùng đánh giá ở mức điểm 4 (tốt) và $19\%$ ở mức điểm 5 (xuất sắc); chỉ có $4,8\%$ đánh giá ở mức điểm 2. Điều này chứng minh rằng việc kết hợp phân tích từ khóa đa tầng từ Analyze Agent và cơ chế truy xuất LightRAG đã giúp mô hình ngôn ngữ lớn xác định đúng ngữ cảnh cần trả lời, hạn chế tối đa việc đi chệch hướng hoặc đưa ra các thông tin không liên quan.
+
+Về \textit{"Năng lực tìm kiếm, tóm tắt và phân loại chủ đề các thông báo của hệ thống"} (Hình~\ref{fig:survey_feedback_part1}a), có $52,4\%$ người dùng cho điểm 4 và $14,3\%$ cho điểm 5. Khả năng này hỗ trợ sinh viên nhanh chóng nắm bắt các thông tin quan trọng từ các thông báo dài của nhà trường mà không mất nhiều thời gian đọc toàn văn.
+
+Đặc biệt, khi đối mặt với các câu hỏi chuyên sâu (như chi tiết học phần, thắc mắc lộ trình môn học của các chuyên ngành), trợ lý ảo chứng tỏ sự hữu ích vượt trội khi có đến $81\%$ ý kiến đánh giá rằng hệ thống \textit{"Cung cấp được các thông tin cơ bản, đủ hiểu"} và $14,3\%$ đánh giá ở mức cao nhất \textit{"Giải thích rõ ràng, chi tiết, dùng đúng thuật ngữ chuyên ngành"}. Đáng chú ý là không ghi nhận bất kỳ phản hồi nào đánh giá hệ thống \textit{"Không có kiến thức chuyên môn, trả lời sai lệch"}. Kết quả này củng cố tính thực tiễn của Đồ thị tri thức (Knowledge Graph) được xây dựng từ quy chế và chương trình đào tạo chính thống, đóng vai trò như một kho tri thức đáng tin cậy ngăn ngừa hiện tượng ảo giác (hallucination) thường gặp ở các LLM thông thường.
+
+Bên cạnh đó, khả năng giải đáp các thắc mắc liên quan đặc thù đến trường HCMUS (Hình~\ref{fig:survey_feedback_part1}b) cũng đạt mức độ hài lòng cao với $50\%$ điểm 4 và $22,7\%$ điểm 5.
+
+\subsubsection{So sánh hiệu năng giữa chế độ Flash và Pro}
+Hệ thống thiết lập hai chế độ hoạt động: Flash (sử dụng mô hình nhỏ gọn để phản hồi nhanh) và Pro (sử dụng mô hình lớn, suy luận sâu). Khảo sát thu thập ý kiến người dùng để làm rõ sự khác biệt thực tế giữa hai chế độ này.
+
+Về tốc độ phản hồi, có $31,8\%$ người dùng nhận thấy chế độ Flash phản hồi nhanh hơn rõ rệt so với Pro. Tuy nhiên, cũng có một bộ phận người dùng nhận định cả hai chế độ đều phản hồi chậm ($22,7\%$), điều này phản ánh hạn chế về mặt phần cứng và độ trễ mạng khi gọi các API của mô hình ngôn ngữ lớn từ xa.
+
+Về chất lượng và độ đúng trọng tâm, có đến $59,1\%$ ý kiến đồng ý rằng bản Pro trả lời sâu sắc, chi tiết và đi đúng trọng tâm hơn hẳn bản Flash (Hình~\ref{fig:survey_feedback_part1}b). Trong khi đó, chỉ có $9,1\%$ cho rằng bản Flash trả lời ngắn gọn và đúng ý hơn. Điều này chỉ ra rằng đối với các bài toán học vụ mang tính phức tạp cao (như tư vấn lộ trình học hay giải quyết các ràng buộc điều kiện tiên quyết), sinh viên sẵn sàng chấp nhận một khoảng thời gian chờ đợi lâu hơn để đổi lấy câu trả lời có chất lượng vượt trội từ chế độ Pro.
+
+\subsubsection{Đánh giá trải nghiệm cá nhân hóa và quản lý hội thoại}
+Trải nghiệm người dùng khi thực hiện đăng nhập và sử dụng tính năng lưu trữ lịch sử trò chuyện được minh họa tại Hình~\ref{fig:survey_feedback_part2}a.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/fb/FB_3.png}
+        \footnotesize a) Đánh giá trải nghiệm cá nhân hóa và quản lý lịch sử
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/fb/FB_4.png}
+        \footnotesize b) Đánh giá giao diện UI/UX và độ hài lòng tổng thể
+    \end{minipage}
+    \caption{Kết quả khảo sát về trải nghiệm hệ thống và mức độ hài lòng tổng thể}
+    \label{fig:survey_feedback_part2}
+\end{figure}
+
+Đối với câu hỏi so sánh chất lượng tư vấn trước và sau khi đăng nhập (tức là khi hệ thống bắt đầu kích hoạt Long-term Memory dựa trên hồ sơ học tập của sinh viên), phần lớn người dùng nhận thấy sự cải thiện rõ rệt: $31,8\%$ đánh giá ở mức điểm 3, $31,8\%$ ở mức điểm 4 và $22,7\%$ ở mức điểm 5 về khả năng hiểu đúng ý muốn và bối cảnh cá nhân của hệ thống. Tính năng duy trì mạch trò chuyện và lưu trữ lịch sử cũng nhận được phản hồi tốt với $54,5\%$ điểm 4 và $13,6\%$ điểm 5.
+
+\subsubsection{Đánh giá giao diện và mức độ hài lòng chung}
+Về mặt thiết kế mỹ thuật và trải nghiệm tương tác (UI/UX) (Hình~\ref{fig:survey_feedback_part2}b), hệ thống được đánh giá cao với $45,5\%$ điểm 5 (xuất sắc) và $27,3\%$ điểm 4 (tốt). Giao diện tối giản, phân bố cục rõ ràng trên cả hai nền tảng giúp sinh viên dễ dàng làm quen và thao tác ngay lần đầu sử dụng.
+
+Tổng kết lại, mức độ hài lòng chung của người dùng đối với trợ lý ảo hỗ trợ học vụ đạt kết quả khả quan với $54,5\%$ đánh giá mức 4 và $18,2\%$ đánh giá mức 5; chỉ có $4,5\%$ đánh giá ở mức thấp (điểm 2).
+
+\subsubsection{Tổng hợp phản hồi đóng góp và hướng cải thiện}
+Mặc dù hệ thống đáp ứng tốt các nhu cầu cơ bản, các phản hồi mở tự do từ người dùng (ghi nhận ở Hình~\ref{fig:survey_feedback_part2}b và Hình~\ref{fig:survey_feedback_part5}) đã chỉ ra một số điểm hạn chế cần khắc phục trong các giai đoạn phát triển tiếp theo:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/fb/FB_5.png}
+    \caption{Các phản hồi đóng góp ý kiến tự do từ người dùng khảo sát}
+    \label{fig:survey_feedback_part5}
+\end{figure}
+
+Trước hết là việc cải thiện tốc độ phản hồi và độ ổn định của hệ thống. Một số người dùng phản hồi rằng hệ thống đôi lúc gặp hiện tượng phản hồi chậm hoặc báo lỗi kết nối (đầu ra hiển thị "[error]") sau một vài lượt trò chuyện liên tiếp. Ngoài ra, tính năng dừng tạo câu trả lời ("stop response") đôi khi gây treo hoặc crash ứng dụng.
+
+Tiếp theo là yêu cầu mở rộng và làm phong phú kho tri thức học vụ. Người dùng nhận thấy một số câu hỏi quá chi tiết hoặc thuộc về các cập nhật quy chế rất mới chưa được AI trả lời đầy đủ, do dữ liệu nạp vào đồ thị tri thức tại thời điểm khảo sát vẫn còn giới hạn. Cần thiết lập cơ chế cập nhật tự động bằng cách cào dữ liệu định kỳ để làm mới kho tri thức liên tục.
+
+Hơn nữa, việc tối ưu hóa hình thức trình bày câu trả lời của trợ lý ảo cũng cần được lưu ý. Một số ý kiến đóng góp rằng định dạng tin nhắn của AI (chỉ sử dụng in đậm và khối highlight màu xám) đôi khi làm văn bản trở nên đơn điệu và khó theo dõi thông tin nổi bật. Vì vậy, hệ thống nên bổ sung thêm định dạng bảng biểu, liệt kê rõ ràng hơn và hỗ trợ hiển thị các sơ đồ trực quan.
+
+Cuối cùng, một số lỗi kỹ thuật liên quan đến đăng nhập cần được khắc phục triệt để. Một số người dùng gặp khó khăn khi đăng nhập bằng tài khoản email hoặc tính năng đăng nhập nhanh qua Google. Đây là các lỗi ở tầng phân quyền cần được cấu hình lại và kiểm thử kỹ lượng hơn trong tương lai.
+ 
 
 \section{Thiết kế và xây dựng ứng dụng}
 \label{Chapter4-ThietKe}
@@ -944,16 +1032,16 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \label{fig:ui_register_comparison}
 \end{figure}
 
-\indent \textbf{Mục đích:} Cung cấp biểu mẫu cho phép sinh viên khởi tạo tài khoản mới để đăng nhập và sử dụng hệ thống LearningPath trên cả thiết bị máy tính (Website) và thiết bị di động (Mobile).
+\indent Mục đích: Cung cấp biểu mẫu cho phép sinh viên khởi tạo tài khoản mới để đăng nhập và sử dụng hệ thống LearningPath trên cả thiết bị máy tính (Website) và thiết bị di động (Mobile).
 
-\indent \textbf{Thành phần giao diện:}
+\indent Thành phần giao diện:
 \begin{enumerate}
     \item Các trường nhập thông tin: Họ và tên (Full Name), Mã sinh viên (Student Code), địa chỉ Email học thuật, Mật khẩu (Password) và Xác nhận mật khẩu (Confirm Password). Khung nhập mật khẩu trên ứng dụng di động được tích hợp thêm nút ẩn/hiện mật khẩu để thuận tiện cho thao tác cảm ứng.
     \item Nút hành động: "Tạo tài khoản" (trên Website) hoặc "Sign up" (trên di động) để thực hiện gửi thông tin đăng ký lên hệ thống.
     \item Điều hướng nhanh: Liên kết chuyển hướng sang giao diện Đăng nhập dành cho người dùng đã sở hữu tài khoản, cùng với nút quay lại (mũi tên ở góc trái) trên thiết bị di động.
 \end{enumerate}
 
-\indent \textbf{Cách sử dụng:}
+\indent Cách sử dụng:
 \begin{enumerate}
     \item Sinh viên điền đầy đủ và chính xác các thông tin được yêu cầu vào biểu mẫu.
     \item Nhấn chọn nút "Tạo tài khoản" hoặc "Sign up". 
@@ -979,9 +1067,9 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \label{fig:ui_login_comparison}
 \end{figure}
 
-\indent \textbf{Mục đích:} Xác thực danh tính của sinh viên, đảm bảo bảo mật và cấp quyền truy cập vào các tính năng cá nhân hóa như lưu trữ lịch sử trò chuyện và đồng bộ hồ sơ học tập.
+\indent Mục đích: Xác thực danh tính của sinh viên, đảm bảo bảo mật và cấp quyền truy cập vào các tính năng cá nhân hóa như lưu trữ lịch sử trò chuyện và đồng bộ hồ sơ học tập.
 
-\indent \textbf{Thành phần giao diện:}
+\indent Thành phần giao diện:
 \begin{enumerate}
     \item Các trường nhập thông tin: Địa chỉ Email sinh viên và Mật khẩu (Password).
     \item Tiện ích bổ trợ: Hộp kiểm "Remember me" (Ghi nhớ phiên đăng nhập) giúp sinh viên không phải nhập lại mật khẩu trong những lần truy cập sau, và liên kết "Forgot password?" (Quên mật khẩu).
@@ -1023,9 +1111,9 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \label{fig:ui_forgot_comparison}
 \end{figure}
 
-\indent \textbf{Mục đích:} Hỗ trợ sinh viên cấp lại mật khẩu mới thông qua quy trình xác minh hộp thư điện tử đã đăng ký trên hệ thống.
+\indent Mục đích: Hỗ trợ sinh viên cấp lại mật khẩu mới thông qua quy trình xác minh hộp thư điện tử đã đăng ký trên hệ thống.
 
-\indent \textbf{Thành phần giao diện:}
+\indent Thành phần giao diện:
 \begin{enumerate}
     \item Trường nhập Email để nhận liên kết khôi phục mật khẩu.
     \item Nút hành động: "Gửi mã xác thực" (hoặc nút gửi trên giao diện di động).
@@ -1033,7 +1121,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \item Các nút điều hướng nhanh: "Quay lại đăng nhập", "Nhập email khác" hoặc "Gửi lại yêu cầu" trong trường hợp chưa nhận được email.
 \end{enumerate}
 
-\indent \textbf{Cách sử dụng:}
+\indent Cách sử dụng:
 \begin{enumerate}
     \item \textbf{Bước 1 - Gửi yêu cầu:} Sinh viên nhập Email đã đăng ký tài khoản vào ô dữ liệu, sau đó nhấn nút gửi. Hệ thống ghi nhận, tự động sinh mã Token khôi phục dùng một lần gửi tới email sinh viên, và chuyển giao diện sang Bước 2.
     \item \textbf{Bước 2 - Xác thực email:} Sinh viên nhấn nút "Mở Gmail" (hoặc tự truy cập hộp thư cá nhân). Kiểm tra kỹ các thư mục (bao gồm cả thư mục Spam/Thư rác). Nhấn vào liên kết xác thực được đính kèm trong email để được chuyển hướng đến biểu mẫu thiết lập mật khẩu mới.
@@ -1058,16 +1146,16 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \label{fig:ui_profile_comparison}
 \end{figure}
 
-\indent \textbf{Mục đích:} Cho phép sinh viên khai báo và cập nhật thông tin học tập hiện tại cùng định hướng cá nhân. Các dữ liệu này được lưu trữ vào bộ nhớ dài hạn (Long-term Memory) của AI Agent để phục vụ cho việc cá nhân hóa nội dung tư vấn môn học và lộ trình học tập.
+\indent Mục đích: Cho phép sinh viên khai báo và cập nhật thông tin học tập hiện tại cùng định hướng cá nhân. Các dữ liệu này được lưu trữ vào bộ nhớ dài hạn (Long-term Memory) của AI Agent để phục vụ cho việc cá nhân hóa nội dung tư vấn môn học và lộ trình học tập.
 
-\indent \textbf{Thành phần giao diện:}
+\indent Thành phần giao diện:
 \begin{enumerate}
     \item Danh sách chọn (Dropdown): "Ngành đào tạo" (chọn ngành học hiện tại) và "Năm học hiện tại" (chọn năm học thứ nhất đến thứ tư).
     \item Ô nhập văn bản tự do: "Định hướng nghề nghiệp" để sinh viên nhập các mục tiêu hoặc định hướng phát triển bản thân.
     \item Các nút chức năng: "Lưu thay đổi" (hoặc "Save details" trên di động) và nút "Đóng" (hoặc biểu tượng "X" để hủy bỏ thao tác).
 \end{enumerate}
 
-\indent \textbf{Cách sử dụng:}
+\indent Cách sử dụng:
 \begin{enumerate}
     \item Sinh viên mở biểu mẫu Hồ sơ học tập từ thanh công cụ hoặc màn hình chat.
     \item Lựa chọn đúng Ngành đào tạo và Năm học hiện tại từ các danh sách dropdown tương ứng.
@@ -1107,22 +1195,22 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 	\label{fig:ui_mobile_chat_states}
 \end{figure}
 
-\indent \textbf{Mục đích:} Cung cấp không gian tương tác trực tiếp bằng ngôn ngữ tự nhiên giữa sinh viên và AI Agent. Để tối ưu hóa trải nghiệm người dùng, hệ thống hỗ trợ cả chế độ Khách (chưa đăng nhập) và chế độ Thành viên (đã đăng nhập).
+\indent Mục đích: Cung cấp không gian tương tác trực tiếp bằng ngôn ngữ tự nhiên giữa sinh viên và AI Agent. Để tối ưu hóa trải nghiệm người dùng, hệ thống hỗ trợ cả chế độ Khách (chưa đăng nhập) và chế độ Thành viên (đã đăng nhập).
 
-\indent \textbf{Thành phần giao diện:}
+\indent Thành phần giao diện:
 \begin{enumerate}
 	\item Khu vực lịch sử trò chuyện (Sidebar trên Website hoặc Drawer Menu trên Mobile): Nơi hiển thị danh sách các cuộc hội thoại cũ đã được AI tự động tóm tắt tiêu đề. Có nút "+ Đoạn chat mới" (New Chat) và nút xóa đoạn chat.
 	\item Khung hiển thị nội dung trò chuyện (ở trung tâm): Hiển thị luồng tin nhắn giữa sinh viên và AI. Đối với người dùng chưa đăng nhập (chế độ Khách), hệ thống sẽ hiển thị một khung cảnh báo màu cam nhắc nhở đăng nhập để lưu trữ lịch sử cuộc gọi lâu dài.
 	\item Khu vực nhập câu hỏi (phía dưới): Bao gồm ô nhập liệu văn bản, danh sách thả xuống để chọn chế độ phản hồi (Mode) và nút gửi câu hỏi.
 \end{enumerate}
 
-\indent \textbf{Cách sử dụng:}
+\indent Cách sử dụng:
 \begin{enumerate}
-	\item \textbf{Trò chuyện với AI Agent:} Sinh viên nhập câu hỏi vào ô dưới cùng, lựa chọn chế độ xử lý phù hợp và nhấn nút gửi.
+	\item Trò chuyện với AI Agent: Sinh viên nhập câu hỏi vào ô dưới cùng, lựa chọn chế độ xử lý phù hợp và nhấn nút gửi.
 	\begin{itemize}
 		\item Chế độ Flash: Tốc độ phản hồi nhanh, độ trễ thấp; phù hợp cho các câu hỏi đơn giản, hỏi đáp quy chế thông thường, sử dụng mô hình gọn nhẹ giúp tiết kiệm tài nguyên.
 		\item Chế độ Pro: Tốc độ phản hồi chậm hơn nhưng chất lượng câu trả lời cao hơn, thực hiện các bước suy luận sâu hơn để giải quyết các câu hỏi phức tạp hoặc có nhiều ràng buộc.
 	\end{itemize}
-	\item \textbf{Chế độ Khách:} Người dùng chưa đăng nhập có thể chat thử nghiệm trực tiếp, tuy nhiên lịch sử trò chuyện chỉ được lưu tạm trên bộ nhớ đệm ứng dụng và sẽ mất đi khi đóng tab trình duyệt hoặc thoát ứng dụng di động.
-	\item \textbf{Quản lý lịch sử hội thoại (Chỉ dành cho Thành viên):} Sinh viên đã đăng nhập có thể xem lại, tải lại nội dung chat cũ từ MongoDB hoặc xóa vĩnh viễn các cuộc hội thoại không cần thiết thông qua thanh Sidebar/Drawer.
+	\item Chế độ Khách: Người dùng chưa đăng nhập có thể chat thử nghiệm trực tiếp, tuy nhiên lịch sử trò chuyện chỉ được lưu tạm trên bộ nhớ đệm ứng dụng và sẽ mất đi khi đóng tab trình duyệt hoặc thoát ứng dụng di động.
+	\item Quản lý lịch sử hội thoại (Chỉ dành cho Thành viên): Sinh viên đã đăng nhập có thể xem lại, tải lại nội dung chat cũ từ MongoDB hoặc xóa vĩnh viễn các cuộc hội thoại không cần thiết thông qua thanh Sidebar/Drawer.
 \end{enumerate}
