@@ -137,6 +137,59 @@ Các thông số định lượng đo lường từ quá trình thực nghiệm 
 
 Việc phân rã hệ thống thành cấu trúc đa tác nhân điều phối thông qua LangGraph giúp tăng tính linh hoạt xử lý, song cũng làm thay đổi các đặc tính vận hành về mặt thời gian và tài nguyên tính toán. Về tỷ lệ điều phối đúng công cụ (Routing Accuracy), Tác nhân Orchestrator đạt độ chính xác cao trong việc phân loại ý định người dùng và điều hướng đến đúng chế độ truy xuất phù hợp (Local, Global hoặc Hybrid). Về tốc độ phản hồi (Average Latency), thời gian xử lý trung bình từ khi hệ thống tiếp nhận truy vấn cho đến khi hoàn thành việc xuất câu trả lời là khoảng 7.32 giây trên một câu hỏi. Độ trễ này phản ánh tổng chi phí thời gian của chuỗi tác vụ phức hợp bao gồm bước chuẩn hóa câu hỏi qua Query Expansion, quá trình duyệt tìm dữ liệu trên đồ thị LightRAG và năng lực lập luận sinh văn bản từ mô hình ngôn ngữ lớn.
 
+\section{Đánh giá tài nguyên triển khai và ước lượng khả năng chịu tải}
+\label{sec:capacity_estimation}
+
+\subsection{Môi trường triển khai và hiện trạng sử dụng tài nguyên}
+Hệ thống được triển khai thực tế trên một máy chủ ảo (VPS) có cấu hình 2 vCPU và 3 GB RAM (dung lượng khả dụng thực tế khoảng 2.9 GB). Trên máy chủ này, hai tiến trình dịch vụ được vận hành song song trong cùng một môi trường Python: (1) máy chủ LightRAG đảm nhiệm việc lưu trữ Đồ thị tri thức, kho vector và thực thi truy vấn RAG; (2) dịch vụ Chat API đảm nhiệm luồng điều phối đa tác nhân LangGraph, xác thực người dùng và chuyển tiếp (proxy) truy vấn đến máy chủ LightRAG. Một điểm quan trọng trong kiến trúc triển khai là cả mô hình ngôn ngữ lớn (Qwen3-14B) lẫn mô hình nhúng (multilingual-e5-large) đều được gọi thông qua API bên ngoài, do đó máy chủ VPS không phải gánh chi phí suy luận mô hình mà chủ yếu đảm nhiệm việc tìm kiếm vector, duyệt đồ thị và điều phối các luồng xử lý bất đồng bộ.
+
+Kết quả đo đạc trên môi trường vận hành cho thấy ở trạng thái chờ (đã nạp toàn bộ dữ liệu nhưng chưa có truy vấn), hệ thống chiếm khoảng 1.75 GB RAM, tức phần dư địa còn lại cho việc phục vụ truy vấn chỉ vào khoảng 1.1 GB. Phần lớn bộ nhớ này dùng để lưu trú thường trực dữ liệu tri thức: Đồ thị tri thức gồm 3,822 thực thể và 10,493 quan hệ, cùng khoảng 15,200 vector nhúng 1,024 chiều. Qua thực nghiệm nạp lại toàn bộ tập tin lưu trữ, riêng phần dữ liệu này chiếm xấp xỉ 450 MB bộ nhớ, phần còn lại thuộc về thư viện Python và bộ nhớ đệm của hai tiến trình. Bảng \ref{tab:resource_usage} tổng hợp hiện trạng sử dụng tài nguyên của hệ thống.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \caption{Hiện trạng sử dụng tài nguyên của hệ thống trên máy chủ VPS}
+    \label{tab:resource_usage}
+    \begin{tabular}{|p{4.7cm}|p{3cm}|p{4.75cm}|}
+        \hline
+        \textbf{Hạng mục} & \textbf{Giá trị} & \textbf{Ghi chú} \\ \hline
+        CPU & 2 vCPU & Chủ yếu xử lý truy xuất và điều phối I/O \\ \hline
+        RAM khả dụng & 2.9 GB & Tổng dung lượng của VPS \\ \hline
+        RAM chiếm dụng khi chờ & 1.75 GB & Hai tiến trình dịch vụ và hệ điều hành \\ \hline
+        Dữ liệu tri thức nạp RAM & $\approx$ 450 MB & Đồ thị, kho vector và các kho khóa-giá trị \\ \hline
+        Dư địa phục vụ truy vấn & $\approx$ 1.1 GB & Dùng cho ngữ cảnh và bộ đệm mỗi truy vấn \\ \hline
+        Song song hóa lời gọi mô hình & 4 luồng & \texttt{MAX\_ASYNC} cho cả LLM và mô hình nhúng \\ \hline
+        Độ trễ trung bình mỗi truy vấn & 7.32 giây & Đo tại Mục \ref{sec:agentic_metrics} \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Phương pháp và kết quả ước lượng khả năng chịu tải}
+Để ước lượng số lượng người dùng đồng thời mà hệ thống có thể phục vụ, nhóm áp dụng định luật Little \cite{little1961proof} trong lý thuyết hàng đợi, với công thức $N = \lambda \times R$, trong đó $N$ là số truy vấn đang được xử lý đồng thời, $\lambda$ là tốc độ truy vấn đến hệ thống và $R$ là thời gian phản hồi trung bình. Mô hình hành vi người dùng được thiết lập từ quan sát thực tế trong quá trình vận hành thử nghiệm: một sinh viên đang hoạt động (active user) gửi trung bình một câu hỏi mỗi 60--90 giây (bao gồm thời gian gõ câu hỏi và đọc câu trả lời), và mỗi truy vấn chiếm $R = 7.32$ giây xử lý theo số liệu đo tại Mục \ref{sec:agentic_metrics}.
+
+Việc ước lượng được xem xét trên ba giới hạn tài nguyên. Thứ nhất, về bộ nhớ, mỗi truy vấn đang xử lý cần khoảng 15--30 MB cho việc dựng ngữ cảnh truy xuất (tối đa 6,000 token), bộ đệm luồng phản hồi và phiên kết nối; với dư địa 1.1 GB và biên an toàn 50\%, hệ thống chịu được khoảng 20--30 truy vấn đồng thời trước khi có rủi ro tràn bộ nhớ. Thứ hai, về CPU, chi phí tính toán trên máy chủ cho mỗi truy vấn tương đối thấp (tìm kiếm vector trên 15,200 vector chỉ mất vài mili giây, tổng chi phí CPU khoảng 0.3--0.5 giây/truy vấn) nên với 2 vCPU, đây không phải là nút thắt cổ chai ở quy mô hiện tại. Thứ ba, về mức độ song song hóa các lời gọi mô hình, môi trường vận hành được cấu hình đồng bộ ở mức 4 cho cả lời gọi mô hình ngôn ngữ lớn (\texttt{MAX\_ASYNC=4}) lẫn lời gọi mô hình nhúng: tại một thời điểm, máy chủ LightRAG xử lý song song tối đa 4 lượt sinh câu trả lời, các truy vấn đến thêm phải xếp hàng chờ tại khâu này. Do khâu sinh câu trả lời chiếm phần lớn thời gian (khoảng 5 giây trong tổng độ trễ 7.32 giây của mỗi truy vấn), đây chính là giới hạn quyết định thông lượng của toàn hệ thống.
+
+Với 4 luồng sinh song song và mỗi lượt sinh kéo dài khoảng 5 giây, thông lượng tối đa theo tính toán của hệ thống đạt khoảng 40--50 truy vấn/phút. Tuy nhiên, trong điều kiện vận hành thực tế, năng lực này bị suy giảm bởi nhiều yếu tố không hiện diện trong mô hình lý tưởng: độ trễ mạng biến động khi gọi API mô hình từ xa, độ dài câu hỏi và câu trả lời không đồng đều giữa các người dùng, các truy vấn đến dồn theo cụm (burst) thay vì rải đều, cùng chi phí duy trì kết nối streaming. Do đó, nhóm áp dụng hệ số suy hao 30--40\% lên con số tính toán để phản ánh năng lực phục vụ thực tế, thu được thông lượng bền vững khoảng 25--35 truy vấn/phút. Áp dụng định luật Little với chu kỳ gửi câu hỏi 60--90 giây của mỗi người dùng, hệ thống phục vụ ổn định khoảng \textbf{25--40 người dùng hoạt động đồng thời} với độ trễ giữ ở mức 7--12 giây. Khi số người dùng đồng thời vượt ngưỡng khoảng 50--70 người, các truy vấn bắt đầu xếp hàng tại khâu sinh câu trả lời và độ trễ tăng gấp 2--3 lần; hiệu ứng xếp hàng này chính là nguyên nhân của hiện tượng phản hồi chậm mà một bộ phận người dùng ghi nhận trong quá trình vận hành ở những thời điểm nhiều người cùng truy cập. Nếu quy đổi theo tỷ lệ truy cập đồng thời thông thường của ứng dụng web (5--10\% tổng số người dùng hoạt động trong ngày), cấu hình hiện tại phục vụ được nhóm khoảng 250--400 sinh viên sử dụng mỗi ngày, phù hợp với quy mô triển khai hiện tại ở phạm vi một khoa. Đáng chú ý, do chi phí suy luận mô hình đã được đưa ra API bên ngoài, hệ thống vẫn còn dư địa mở rộng trên chính phần cứng hiện tại: nếu nâng \texttt{MAX\_ASYNC} lên mức 8--12, năng lực phục vụ (sau khi trừ suy hao) tăng lên khoảng 50--80 người dùng đồng thời, khi đó giới hạn bộ nhớ (20--30 truy vấn đồng thời trong 1.1 GB dư địa) cùng với hạn mức tần suất của nhà cung cấp API mới trở thành trần chịu tải thực tế của máy chủ. Bảng \ref{tab:capacity_estimate} tổng hợp năng lực phục vụ theo từng kịch bản.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \caption{Năng lực phục vụ thực tế của hệ thống theo từng kịch bản cấu hình (đã áp dụng hệ số suy hao 30--40\%)}
+    \label{tab:capacity_estimate}
+    \begin{tabular}{|p{4.4cm}|p{2.6cm}|p{2.4cm}|p{2.8cm}|}
+        \hline
+        \textbf{Kịch bản} & \textbf{Người dùng đồng thời} & \textbf{Thông lượng} & \textbf{Độ trễ} \\ \hline
+        Vận hành hiện tại (\texttt{MAX\_ASYNC=4}) & 25--40 & 25--35 truy vấn/phút & 7--12 giây \\ \hline
+        Hiện tại, quá tải & 50--70 & 25--35 truy vấn/phút & 15--25 giây \\ \hline
+        Tinh chỉnh \texttt{MAX\_ASYNC=8--12} & 50--80 & 40--60 truy vấn/phút & 8--15 giây \\ \hline
+        Giới hạn phần cứng (RAM) & $\approx$ 80--100 & $\approx$ 60--70 truy vấn/phút & Tăng nhanh khi vượt ngưỡng \\ \hline
+    \end{tabular}
+\end{table}
+
+Các con số trên được xây dựng từ số liệu đo đạc trực tiếp trên môi trường vận hành đang phục vụ người dùng thực (độ trễ trung bình 7.32 giây, mức chiếm dụng RAM 1.75 GB, cấu hình song song mức 4) và đã trừ hệ số suy hao 30--40\% cho các điều kiện vận hành thực tế, do đó phản ánh sát năng lực phục vụ của hệ thống trong giai đoạn triển khai hiện tại. Để bảo vệ năng lực này trước các hành vi sử dụng bất thường, hệ thống được trang bị cơ chế giới hạn tần suất truy cập (rate limiting) ở mức 30 yêu cầu/phút cho người dùng đã đăng nhập và 10 yêu cầu/phút cho khách, ngăn một người dùng đơn lẻ chiếm dụng toàn bộ năng lực xử lý.
+
+\subsection{Nhận xét và đề xuất tối ưu hóa}
+Từ kết quả ước lượng, nhóm rút ra một số nhận xét về khả năng mở rộng của hệ thống. Do toàn bộ suy luận mô hình đã được đưa ra API bên ngoài, nút thắt thông lượng hiện tại nằm ở mức song song hóa lời gọi mô hình (đang đặt đồng bộ ở mức 4 cho cả LLM và mô hình nhúng) chứ chưa chạm đến giới hạn phần cứng; vì vậy, việc nâng dần \texttt{MAX\_ASYNC} kết hợp theo dõi mức tiêu thụ bộ nhớ là biện pháp cải thiện có chi phí thấp nhất và nên được thực hiện trước tiên khi lượng người dùng tăng. Về bộ nhớ, cần bổ sung phân vùng swap để phòng ngừa tình trạng tiến trình bị hệ điều hành chấm dứt đột ngột (OOM) khi tải tăng đột biến, đồng thời lưu ý rằng bộ nhớ đệm phản hồi LLM và lịch sử hội thoại sẽ tăng dần theo thời gian vận hành. Về dài hạn, việc thay thế các phương án lưu trữ dạng tệp JSON trong bộ nhớ (NanoVectorDB, NetworkX) bằng các hệ cơ sở dữ liệu chuyên dụng như PostgreSQL, Qdrant hoặc Redis sẽ vừa giảm áp lực RAM, vừa cho phép nhân bản dịch vụ theo chiều ngang (horizontal scaling) khi triển khai ở quy mô toàn trường. Cuối cùng, quá trình nạp và lập chỉ mục tài liệu mới -- vốn tiêu tốn nhiều bộ nhớ và lời gọi LLM -- nên được lên lịch vào các khung giờ thấp điểm để tránh cạnh tranh tài nguyên với luồng phục vụ người dùng.
+
 \section{Đánh giá hệ thống từ phía người dùng cuối}
 Quá trình thử nghiệm thực tế (beta testing) được tiến hành với sự tham gia của các sinh viên Khoa Công nghệ Thông tin. Hệ thống đã giải quyết trơn tru các câu hỏi chuẩn, cung cấp lộ trình học tập logic, mở ra cơ hội ứng dụng mạnh mẽ các mô hình ngôn ngữ lớn vào giáo dục \cite{kasneci2023chatgpt}. 
 
