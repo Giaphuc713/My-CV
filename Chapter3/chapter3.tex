@@ -313,14 +313,15 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.85, transform shape]
+	\vspace{-0.5cm}
+	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.8, transform shape]
 		% Nodes
 		\node (in) [startstop] {Văn bản Markdown đồng nhất};
-		\node (md5) [process, below=of in] {Tính toán mã băm MD5};
-		\node (check) [decision, below=1.5cm of md5] {MD5 đã tồn tại?};
+		\node (md5) [process, right=1.0cm of in] {Tính toán mã băm MD5};
+		\node (check) [decision, right=1.0cm of md5] {MD5 đã tồn tại?};
 		
-		\node (stop) [startstop, right=2cm of check] {Bỏ qua (Trùng lặp)};
-		\node (chunk) [process, below=1.5cm of check] {Chuyển sang phân đoạn \\ (Chunking)};
+		\node (stop) [startstop, right=1.0cm of check] {Bỏ qua (Trùng lặp)};
+		\node (chunk) [process, below=1.1cm of check] {Chuyển sang phân đoạn \\ (Chunking)};
 		
 		% Arrows
 		\draw [arrow] (in) -- (md5);
@@ -328,6 +329,7 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 		\draw [arrow] (check) -- node[anchor=south, font=\footnotesize] {CÓ} (stop);
 		\draw [arrow] (check) -- node[anchor=west, font=\footnotesize] {KHÔNG} (chunk);
 	\end{tikzpicture}
+	\vspace{-0.3cm}
 	\caption{Luồng logic kiểm tra trùng lặp bằng cơ chế băm nội dung}
 	\label{fig:flow_deduplication}
 \end{figure}
@@ -336,29 +338,43 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, transform shape]
+	\vspace{-0.6cm}
+	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.78, transform shape]
+		% Nodes
 		\node (input) [startstop] {URL Mục tiêu};
-		\node (dom) [process, below=of input] {Nhận diện cấu trúc DOM};
-		\node (check) [decision, below=of dom, text width=3cm] {Đã tồn tại trong \\ Registry hệ thống?};
+		\node (dom) [process, right=1.0cm of input] {Nhận diện cấu trúc DOM};
+		\node (check) [decision, right=1.0cm of dom, text width=3cm] {Đã tồn tại trong \\ Registry hệ thống?};
 		
-		\node (llm) [process, left=2.8cm of check, yshift=-1.5cm, text width=3.5cm] {Phân tích LLM \\ (Logic tô pô DOM)};
-		\node (gen) [process, below=1cm of llm] {Tạo bộ chọn \\ CSS/JS tối ưu};
-		\node (save) [process, below=1cm of gen] {Cập nhật Registry \\ (Lưu trữ bộ chọn)};
+		% KHÔNG (Mới) branch
+		\node (llm) [process, below=1.2cm of dom, text width=3.5cm] {Phân tích LLM \\ (Logic tô pô DOM)};
+		\node (gen) [process, left=1.0cm of llm, text width=3.2cm] {Tạo bộ chọn \\ CSS/JS tối ưu};
+		\node (save) [process, below=1.2cm of gen, text width=3.5cm] {Cập nhật Registry \\ (Lưu trữ bộ chọn)};
 		
-		\node (exe) [process, right=2.8cm of check, yshift=-1.5cm, text width=4cm] {Thực thi Scraper Engine \\ (Playwright \& Stealth)};
-		\node (clean) [process, below=1.5cm of exe] {Làm sạch Markdown};
-		\node (out) [startstop, below=4cm of check, yshift=-2cm] {Đầu ra Markdown cuối cùng};
+		% CÓ (Đã biết) branch
+		\node (exe) [process, below=1.2cm of check, text width=4cm] {Thực thi Scraper Engine \\ (Playwright \& Stealth)};
+		\node (clean) [process, below=1.2cm of exe, text width=3.2cm] {Làm sạch Markdown};
 		
+		% Terminal node
+		\node (out) [startstop] at (dom |- save) {Đầu ra Markdown cuối cùng};
+		
+		% Arrows
 		\draw [arrow] (input) -- (dom);
 		\draw [arrow] (dom) -- (check);
-		\draw [arrow] (check) -| node [anchor=south, xshift=-1.4cm, font=\footnotesize] {KHÔNG (Mới)} (llm);
-		\draw [arrow] (check) -| node [anchor=south, xshift=1.4cm, font=\footnotesize] {CÓ (Đã biết)} (exe);
+		
+		% Split from check
+		\draw [arrow] (check) -- node [above, sloped, font=\footnotesize] {KHÔNG (Mới)} (llm);
+		\draw [arrow] (check) -- node [left, font=\footnotesize] {CÓ (Đã biết)} (exe);
+		
+		% Left flow
 		\draw [arrow] (llm) -- (gen);
 		\draw [arrow] (gen) -- (save);
-		\draw [arrow] (save) |- ($(out.north west)!0.3!(out.north)$);
+		\draw [arrow] (save) -- (out);
+		
+		% Right flow
 		\draw [arrow] (exe) -- (clean);
-		\draw [arrow] (clean) |- ($(out.north east)!0.3!(out.north)$);
+		\draw [arrow] (clean) -- (out);
 	\end{tikzpicture}
+	\vspace{-0.3cm}
 	\caption{Quy trình thu thập tri thức từ trang web với Smart Scraper}
 	\label{fig:flow_scrap_web}
 \end{figure}
@@ -474,19 +490,27 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.6cm, auto, scale=0.85, transform shape]
+	\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.85, transform shape]
 		% Nodes
 		\node (input) [startstop] {Phân đoạn văn bản (Chunk)};
-		\node (prompt) [process, below=1.1cm of input] {Tạo Prompt trích xuất \\ (NER + RE Schema)};
-		\node (llm1) [process, below=1.1cm of prompt] {LLM Trích xuất lần 1};
+		\node (prompt) [process, right=1.2cm of input] {Tạo Prompt trích xuất \\ (NER + RE Schema)};
+		\node (llm1) [process, right=1.2cm of prompt] {LLM Trích xuất lần 1};
 		
-		\node (loop_box) [groupbox, below=1.3cm of llm1, minimum width=11cm, minimum height=4.8cm] (loop) {};
-		\node [above right=1mm of loop.north west, anchor=south west, font=\small\bfseries] {Quy trình Gleaning (Thu nhặt bổ sung)};
+		% Gleaning loop nodes
+		\node (check) [decision, below=1.6cm of llm1] {Còn tri thức sót?};
+		\node (llm_extra) [process, below=1.0cm of check] {Trích xuất bổ sung};
 		
-		\node (check) [decision, yshift=-1.2cm] at (loop.north) {Còn tri thức sót?};
-		\node (llm_extra) [process, below=0.8cm of check] {Trích xuất bổ sung};
+		% Coordinate for loop path to fit in the box
+		\coordinate (loop_turn) at ($(llm_extra.east) + (1.2cm, 0)$);
 		
-		\node (final) [startstop, below=1.2cm of loop] {Danh sách Thực thể \& Quan hệ cuối cùng};
+		% Group box for Gleaning loop
+		\begin{scope}[on background layer]
+			\node (loop) [groupbox, fit=(check) (llm_extra) (loop_turn), inner sep=12pt] {};
+			\node [above right=1mm of loop.north west, anchor=south west, font=\small\bfseries] {Quy trình Gleaning (Thu nhặt bổ sung)};
+		\end{scope}
+		
+		% Final output node
+		\node (final) [startstop] at (input |- check) {Danh sách Thực thể \\ \& Quan hệ cuối cùng};
 		
 		% Arrows
 		\draw [arrow] (input) -- (prompt);
@@ -494,9 +518,11 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 		\draw [arrow] (llm1) -- (check);
 		\draw [arrow] (check) -- node[anchor=west, font=\footnotesize] {CÓ} (llm_extra);
 		
-		\draw [arrow] (llm_extra.east) -- ++(1cm,0) |- (check.east);
+		% Loop back arrow from llm_extra to check
+		\draw [arrow] (llm_extra.east) -- ++(1.0cm,0) |- (check.east);
 		
-		\draw [arrow] (check.west) -- ++(-1.5cm,0) node[anchor=south, xshift=0.8cm, font=\footnotesize] {KHÔNG} |- (final.west);
+		% Arrow from check to final
+		\draw [arrow] (check) -- node[anchor=south, font=\footnotesize] {KHÔNG} (final);
 		
 	\end{tikzpicture}
 	\caption{Luồng logic quy trình trích xuất tri thức và cơ chế Gleaning}
@@ -567,39 +593,60 @@ Luồng xử lý tự động (Hybrid-Auto-Engine) Chế độ \texttt{-b hybrid
 
 \begin{figure}[H]
 	\centering
-	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.8, transform shape]
+	\vspace{-0.4cm}
+	\begin{tikzpicture}[node distance=1.2cm, auto, scale=0.72, transform shape]
 		% Nodes
-		\node (in) [startstop, text width=5.5cm] {Thực thể \& Quan hệ trích xuất \\ \footnotesize(theo từng phân đoạn)};
-		\node (g1) [decision, below=1cm of in, text width=3cm] {Kiểm tra \texttt{chunk\_id} đã tồn tại?};
-		\node (proceed) [smallbox, below left=1.1cm and 1.3cm of g1, text width=3.6cm] {PROCEED \\ \footnotesize(phân đoạn mới, tính bậc cộng dồn)};
-		\node (reingest) [smallbox, below right=1.1cm and 1.3cm of g1, text width=3.6cm] {RE\_INGEST \\ \footnotesize(đã tồn tại: nạp lại, tính bậc theo max)};
+		\node (in) [startstop, text width=5.2cm] {Thực thể \& Quan hệ trích xuất \\ \footnotesize(theo từng phân đoạn)};
+		\node (g1) [decision, right=2.0cm of in, text width=2.4cm] {chunk\_id\\tồn tại?};
+		\node (proceed) [smallbox, right=2.2cm of g1, yshift=1.4cm, text width=3.6cm] {PROCEED \\ \footnotesize(phân đoạn mới, tính bậc cộng dồn)};
+		\node (reingest) [smallbox, right=2.2cm of g1, yshift=-1.4cm, text width=3.6cm] {RE\_INGEST \\ \footnotesize(đã tồn tại: nạp lại, tính bậc theo max)};
 
-		\node (g2box) [groupbox, below=3.7cm of g1, minimum width=11cm, minimum height=2.6cm] (g2) {};
+		% Groupbox Row 2
+		\node (g2box) [groupbox, below=3.8cm of g1, xshift=0.9cm, minimum width=11.4cm, minimum height=2.6cm] (g2) {};
 		\node [above right=1mm of g2.north west, anchor=south west, font=\small\bfseries] {Kiểm tra cấu trúc \& Đối chiếu bằng chứng};
-		\node (shapes) [smallbox, text width=4.6cm] at ($(g2.center)+(-2.7cm,0)$) {SHACL Shapes \\ \footnotesize(name, type, isolated, provenance, weight, foreign-script)};
-		\node (ground) [smallbox, text width=4.6cm] at ($(g2.center)+(2.7cm,0)$) {Grounding xác định \\ \footnotesize(exact + fuzzy $\ge$ 0.9, span bằng chứng)};
+		\node (shapes) [smallbox, text width=4.6cm] at ($(g2.center)+(2.8cm,0)$) {SHACL Shapes \\ \footnotesize(name, type, isolated, provenance, weight, foreign-script)};
+		\node (ground) [smallbox, text width=4.6cm] at ($(g2.center)+(-2.8cm,0)$) {Grounding xác định \\ \footnotesize(exact + fuzzy $\ge$ 0.9, span bằng chứng)};
 
-		\node (dec) [decision, below=1.5cm of g2, text width=3.2cm] {\texttt{shacl\_pass} \& grounded?};
+		\node (dec) [decision, left=0.8cm of g2, text width=3.2cm] {\texttt{shacl\_pass} \& grounded?};
 
-		\node (approved) [startstop, below left=1.4cm and 1.2cm of dec, text width=2.8cm, fill=white] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
-		\node (pending) [startstop, below=1.5cm of dec, text width=3cm, fill=white] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
-		\node (rejected) [startstop, below right=1.4cm and 1.2cm of dec, text width=2.8cm, fill=white] {REJECTED \\ \footnotesize(Loại bỏ)};
+		% Row 3
+		\node (approved) [startstop, below=1.8cm of dec, text width=2.8cm, fill=white] {APPROVED \\ \footnotesize(Hợp nhất Đồ thị)};
+		\node (pending) [startstop, right=2.2cm of approved, text width=3cm, fill=white] {PENDING\_REVIEW \\ \footnotesize(Gắn cờ shacl\_review)};
+		\node (rejected) [startstop, right=2.2cm of pending, text width=2.8cm, fill=white] {REJECTED \\ \footnotesize(Loại bỏ)};
+		
+		% Row 4
 		\node (staging) [smallbox, below=1.2cm of pending, text width=4cm, fill=white] {Staging Area \\ \footnotesize(Giao diện Admin \& API rà soát)};
 
 		% Arrows
 		\draw [arrow] (in) -- (g1);
-		\draw [arrow] (g1) -| node[anchor=south, pos=0.25, font=\footnotesize] {KHÔNG} (proceed);
-		\draw [arrow] (g1) -| node[anchor=south, pos=0.25, font=\footnotesize] {CÓ} (reingest);
-		\draw [arrow] (proceed.south) -- ([xshift=-2.7cm]g2.north);
-		\draw [arrow] (reingest.south) -- ([xshift=2.7cm]g2.north);
-		\draw [arrow] (g2) -- (dec);
-		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Đủ bằng chứng} (approved);
-		\draw [arrow] (dec) -- node[anchor=west, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending);
-		\draw [arrow] (dec) -| node[anchor=south, pos=0.25, font=\footnotesize] {Lỗi cấu trúc} (rejected);
+		\draw [arrow] (g1.north) |- node[anchor=south, pos=0.75, font=\footnotesize] {KHÔNG} (proceed.west);
+		\draw [arrow] (g1.south) |- node[anchor=north, pos=0.75, font=\footnotesize] {CÓ} (reingest.west);
+		
+		% Route proceed around reingest to avoid crossing it
+		\coordinate (gap) at ($(in.east)!0.4!(g1.west)$);
+		\coordinate (y_top) at ($(proceed.north) + (0,0.5)$);
+		\coordinate (y_mid) at ($(g1.south)!0.5!(g2.north)$);
+		
+		\coordinate (top_left) at (gap |- y_top);
+		\coordinate (bottom_left) at (gap |- y_mid);
+		\coordinate (bottom_right) at (ground.north |- y_mid);
+		
+		\draw [arrow] (proceed.north) |- (top_left) -- (bottom_left) -- (bottom_right) -- (ground.north);
+		\draw [arrow] (reingest.south) -- ++(0,-0.4) -| (shapes.north);
+		
+		\draw [arrow] (g2.west) -- (dec.east);
+		
+		% Tree-like branching to avoid crossing the groupbox
+		\coordinate (mid) at ($(dec.south) + (0,-0.8)$);
+		\draw [arrow] (dec.south) -- node[anchor=east, font=\footnotesize] {Đủ bằng chứng} (approved.north);
+		\draw [arrow] (mid) -| node[anchor=south, pos=0.4, font=\footnotesize] {Thiếu BC, LLM$\ge$0.8} (pending.north);
+		\draw [arrow] (mid) -| node[anchor=south, pos=0.75, font=\footnotesize] {Lỗi cấu trúc} (rejected.north);
+		
 		\draw [arrow] (pending) -- (staging);
 		\draw [arrow, dashed, rounded corners] (staging.west) -| node[anchor=north, pos=0.25, font=\footnotesize] {Admin duyệt} (approved.south);
 		\draw [arrow, dashed, rounded corners] (staging.east) -| node[anchor=north, pos=0.25, font=\footnotesize] {Admin bác bỏ} (rejected.south);
 	\end{tikzpicture}
+	\vspace{-0.3cm}
 	\caption{Quy trình kiểm chứng tri thức SHACL và đối chiếu bằng chứng xác định}
 	\label{fig:flow_shacl_3guard}
 \end{figure}
@@ -635,102 +682,91 @@ nhất đồ thị.
 % ---- TIKZ DIAGRAM ----
 \begin{figure}[H]
 \centering
+\begin{tikzpicture}[
+    node distance=1.2cm, auto, scale=0.8, transform shape,
+    every node/.style={font=\small},
+    inputbox/.style={
+        rectangle, rounded corners=4pt,
+        draw=black, fill=gray!10,
+        text width=3.5cm, align=center,
+        minimum height=0.9cm, inner sep=6pt
+    },
+    stagebox/.style={
+        rectangle, rounded corners=5pt,
+        draw=black, fill=white,
+        text width=4.4cm, align=center,
+        inner sep=8pt
+    },
+    decisionbox/.style={
+        diamond, draw=black, fill=white,
+        text width=2.4cm, align=center,
+        aspect=2, inner sep=2pt
+    },
+    skipbox/.style={
+        rectangle, rounded corners=3pt,
+        draw=black, fill=white, dashed,
+        text width=3.0cm, align=center,
+        minimum height=0.8cm, inner sep=5pt
+    },
+    outputbox/.style={
+        rectangle, rounded corners=4pt,
+        draw=black, fill=gray!15,
+        text width=4.0cm, align=center,
+        minimum height=0.9cm, inner sep=6pt
+    },
+    arrow/.style={-{Stealth[length=3mm]}, thick},
+    dasharrow/.style={-{Stealth[length=3mm]}, thick, dashed}
+]
+
+%% Row 1
+\node[inputbox] (input) {%
+    Thực thể đầu vào\\
+    \small\{tên, mô tả, loại\}
+};
+
+\node[stagebox, right=1.0cm of input] (s1) {%
+    Giai đoạn 1: Candidate Retrieval\\
+    \footnotesize(Truy vấn Vector Store\\tìm top-K láng giềng $\ge \tau$)
+};
+
+\node[decisionbox, right=1.0cm of s1] (dec) {
+    Tìm được\\ứng viên\\tiềm năng?
+};
+
+\node[skipbox, right=1.0cm of dec] (skip) {%
+    Thực thể mới\\hoàn toàn\\$\rightarrow$ Tạo nút mới
+};
+
+%% Row 2
+\node[stagebox, below=1.8cm of dec] (s2) {%
+    Giai đoạn 2: LLM Decision\\
+    \footnotesize(LLM phân tích ngữ nghĩa sâu\\và đưa ra phán quyết)
+};
+
+\node[outputbox, left=1.2cm of s2] (output) {%
+    Kết quả phân giải:\\
+    Ánh xạ đồng nhất\\hoặc tạo nút độc lập
+};
+
+%% ARROWS
+\draw[arrow] (input)  -- (s1);
+\draw[arrow] (s1)     -- (dec);
+
+\draw[arrow] (dec)    -- node[left, font=\footnotesize]{Có} (s2);
+\draw[dasharrow] (dec) -- node[above, font=\footnotesize]{Không} (skip);
+
+\draw[arrow] (s2)     -- (output);
+
+% Route skip around s2 to output.south
+\draw[dasharrow, rounded corners] (skip.south) |- ($(output.south) + (0,-0.6)$) -- (output.south);
+
+\end{tikzpicture}
 \caption{Kiến trúc hai giai đoạn của module phân giải thực thể.
 Giai đoạn Candidate Retrieval sử dụng embedding similarity để truy hồi
 các thực thể ngữ nghĩa tương đồng từ vector store. Giai đoạn LLM
 Decision chỉ được kích hoạt khi có ứng viên vượt ngưỡng $\tau$,
 giúp tiết kiệm chi phí gọi LLM cho những thực thể hoàn toàn mới.}
 \label{fig:entity-resolution-flow}
-\begin{tikzpicture}[
-    node distance=0.55cm and 1.5cm,
-    every node/.style={font=\small},
-    %
-    inputbox/.style={
-        rectangle, rounded corners=4pt,
-        draw=black, fill=gray!10,
-        text width=9cm, align=center,
-        minimum height=0.9cm, inner sep=6pt
-    },
-    stagebox/.style={
-        rectangle, rounded corners=5pt,
-        draw=black, fill=white,
-        text width=9cm, align=left,
-        inner sep=10pt
-    },
-    decisionbox/.style={
-        diamond, draw=black, fill=white,
-        text width=2.6cm, align=center,
-        aspect=2.8, inner sep=2pt
-    },
-    skipbox/.style={
-        rectangle, rounded corners=3pt,
-        draw=black, fill=white, dashed,
-        text width=3.2cm, align=center,
-        minimum height=0.8cm, inner sep=5pt
-    },
-    outputbox/.style={
-        rectangle, rounded corners=4pt,
-        draw=black, fill=gray!15,
-        text width=9cm, align=center,
-        minimum height=0.9cm, inner sep=6pt
-    },
-    arrow/.style={-Stealth, thick, color=black},
-    dasharrow/.style={-Stealth, thick, dashed, color=black}
-]
-
-%% INPUT
-\node[inputbox] (input) {%
-    Thực thể đầu vào từ giai đoạn trích xuất\\
-    \small\{tên thực thể, mô tả ngữ nghĩa, loại thực thể\}
-};
-
-%% STAGE 1 — Candidate Retrieval
-\node[stagebox, below=0.55cm of input] (s1) {%
-    Giai đoạn 1 : Candidate Retrieval\\[6pt]
-    Mỗi thực thể đầu vào được biểu diễn dưới dạng một vector embedding
-    bằng cách kết hợp tên và mô tả ngữ nghĩa. Vector này được dùng
-    để truy vấn vector store nhằm tìm tối đa $K$ thực thể đã tồn
-    tại có ngữ nghĩa gần nhất. Chỉ những ứng viên có cosine
-    similarity vượt ngưỡng $\tau$ mới được chuyển sang giai đoạn
-    tiếp theo.
-};
-
-%% DECISION
-\node[decisionbox, below=0.55cm of s1] (dec) {
-    \footnotesize Tìm được\\ứng viên\\tiềm năng?
-};
-
-%% SKIP
-\node[skipbox, right=1.4cm of dec] (skip) {%
-    \centering\small Thực thể mới\\hoàn toàn\\$\rightarrow$ Tạo nút mới
-};
-
-%% STAGE 2 — LLM Decision
-\node[stagebox, below=0.55cm of dec] (s2) {%
-    Giai đoạn 2 : LLM Decision\\[6pt]
-    Mô hình ngôn ngữ lớn nhận đồng thời thông tin của thực thể
-    mục tiêu và danh sách ứng viên. Dựa trên phân tích ngữ nghĩa
-    tổng hợp, bao gồm so sánh tên gọi, mô tả, và các quy tắc
-    phân biệt tường minh, LLM đưa ra phán quyết cuối cùng: hai
-    thực thể có đồng nhất hay không, và nếu có, thực thể nào là
-    dạng chuẩn (\textit{canonical form}).
-};
-
-%% OUTPUT
-\node[outputbox, below=0.55cm of s2] (output) {%
-    Kết quả phân giải:
-    ánh xạ đồng nhất hoặc tạo nút mới độc lập
-};
-
-%% ARROWS
-\draw[arrow] (input)  -- (s1);
-\draw[arrow] (s1)     -- (dec);
-\draw[arrow] (dec)    -- node[left, font=\footnotesize]{Có} (s2);
-\draw[dasharrow] (dec) -- node[above, font=\footnotesize]{Không} (skip);
-\draw[arrow] (s2)     -- (output);
-\draw[arrow] (skip.south) |- (output.east);
-
-\end{tikzpicture}
 \end{figure}
 
 Giai đoạn 1: Candidate Retrieval.

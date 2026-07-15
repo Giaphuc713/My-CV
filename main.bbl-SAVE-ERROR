@@ -1072,6 +1072,37 @@
       \verb https://ieeexplore.ieee.org/document/9039685
       \endverb
     \endentry
+    \entry{little1961proof}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=d08572c62f0d23fe6ab1aa7998419177}{%
+           family={Little},
+           familyi={L\bibinitperiod},
+           given={John\bibnamedelimb D.\bibnamedelimi C.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{fullhash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{fullhashraw}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{bibnamehash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{authorbibnamehash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{authornamehash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{authorfullhash}{d08572c62f0d23fe6ab1aa7998419177}
+      \strng{authorfullhashraw}{d08572c62f0d23fe6ab1aa7998419177}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Operations Research}
+      \field{number}{3}
+      \field{title}{A Proof for the Queuing Formula: $L = \lambda W$}
+      \field{volume}{9}
+      \field{year}{1961}
+      \field{pages}{383\bibrangedash 387}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1287/opre.9.3.383
+      \endverb
+    \endentry
     \entry{owlsemweb2004}{report}{}{}
       \name{author}{2}{}{%
         {{hash=1c75e12800e4181c2aae0a6753d2d812}{%
@@ -1752,6 +1783,299 @@
       \field{title}{Judging {LLM}-as-a-judge with {MT-Bench} and {Chatbot Arena}}
       \field{volume}{36}
       \field{year}{2023}
+    \endentry
+  \enddatalist
+\endrefsection
+
+\refsection{1}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{graphrag2024}{article}{}{}
+      \name{author}{8}{}{%
+        {{hash=189e08257df5e44d50272dc5a180d62e}{%
+           family={Edge},
+           familyi={E\bibinitperiod},
+           given={Darren},
+           giveni={D\bibinitperiod}}}%
+        {{hash=1cdb209fd7252d698a536e2910b4a964}{%
+           family={Trinh},
+           familyi={T\bibinitperiod},
+           given={Hai},
+           giveni={H\bibinitperiod}}}%
+        {{hash=28a8e51797a8d75496cb5c753ba8f14c}{%
+           family={Cheng},
+           familyi={C\bibinitperiod},
+           given={Nan},
+           giveni={N\bibinitperiod}}}%
+        {{hash=b1e59767af8678e20bb707a5b3c8b82b}{%
+           family={Bradley},
+           familyi={B\bibinitperiod},
+           given={Jonathan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=dd15086451465719641101890732c9c1}{%
+           family={Chao},
+           familyi={C\bibinitperiod},
+           given={Alex},
+           giveni={A\bibinitperiod}}}%
+        {{hash=51eec0e4d9cc0304cad3dc1704e38d18}{%
+           family={Mody},
+           familyi={M\bibinitperiod},
+           given={Apurva},
+           giveni={A\bibinitperiod}}}%
+        {{hash=0569001cdb7082046697bf8c8ac11504}{%
+           family={Truitt},
+           familyi={T\bibinitperiod},
+           given={Steven},
+           giveni={S\bibinitperiod}}}%
+        {{hash=da850c112844eabedbdfd20aa8f8e0d6}{%
+           family={Larson},
+           familyi={L\bibinitperiod},
+           given={Joshua},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{3ed2bef9783d9e58731f105d6eec07ac}
+      \strng{fullhash}{2f899b41096ee0eb6cf1fa6f9f1c8cf9}
+      \strng{fullhashraw}{2f899b41096ee0eb6cf1fa6f9f1c8cf9}
+      \strng{bibnamehash}{3ed2bef9783d9e58731f105d6eec07ac}
+      \strng{authorbibnamehash}{3ed2bef9783d9e58731f105d6eec07ac}
+      \strng{authornamehash}{3ed2bef9783d9e58731f105d6eec07ac}
+      \strng{authorfullhash}{2f899b41096ee0eb6cf1fa6f9f1c8cf9}
+      \strng{authorfullhashraw}{2f899b41096ee0eb6cf1fa6f9f1c8cf9}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2404.16130}
+      \field{title}{From Local to Global: A Graph RAG Approach to Query-Focused Summarization}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2404.16130
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2404.16130
+      \endverb
+    \endentry
+    \entry{ragas2023}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=d8dead04bec0d1ebb462dd6ac4504a36}{%
+           family={Es},
+           familyi={E\bibinitperiod},
+           given={Shahul},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5ebf432f1942f224b50ebd01708c854c}{%
+           family={James},
+           familyi={J\bibinitperiod},
+           given={Jithin},
+           giveni={J\bibinitperiod}}}%
+        {{hash=3d36fadaa097eea8962c0e05d187b8a2}{%
+           family={Espinosa-Anke},
+           familyi={E\bibinithyphendelim A\bibinitperiod},
+           given={Luis},
+           giveni={L\bibinitperiod}}}%
+        {{hash=b66c934ea85e43f75cae6e977ceaca03}{%
+           family={Schockaert},
+           familyi={S\bibinitperiod},
+           given={Steven},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{c1c4ea85e78c313d8c00616419b5c4d6}
+      \strng{fullhash}{6f9b389c1f3fc11e9601e665bb932466}
+      \strng{fullhashraw}{6f9b389c1f3fc11e9601e665bb932466}
+      \strng{bibnamehash}{6f9b389c1f3fc11e9601e665bb932466}
+      \strng{authorbibnamehash}{6f9b389c1f3fc11e9601e665bb932466}
+      \strng{authornamehash}{c1c4ea85e78c313d8c00616419b5c4d6}
+      \strng{authorfullhash}{6f9b389c1f3fc11e9601e665bb932466}
+      \strng{authorfullhashraw}{6f9b389c1f3fc11e9601e665bb932466}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2309.15217}
+      \field{title}{{RAGAS}: Automated Evaluation of Retrieval Augmented Generation}
+      \field{year}{2023}
+    \endentry
+    \entry{rag_survey2023}{article}{}{}
+      \name{author}{10}{}{%
+        {{hash=572def57560315de76cedfc3e17c2eb2}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Yunfan},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=bdc1e50b7faa4f8d1a9844199179e6c2}{%
+           family={Xiong},
+           familyi={X\bibinitperiod},
+           given={Yun},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=03e7985fe5e84b74e9f01c4cdbaaee9c}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Xinyu},
+           giveni={X\bibinitperiod}}}%
+        {{hash=1323e158133aeccd50d492ffcfe03358}{%
+           family={Jia},
+           familyi={J\bibinitperiod},
+           given={Kang},
+           giveni={K\bibinitperiod}}}%
+        {{hash=c9c9bdcb034c9555ec789eb5e5d4470a}{%
+           family={Pan},
+           familyi={P\bibinitperiod},
+           given={Jin},
+           giveni={J\bibinitperiod}}}%
+        {{hash=efef66e4d4bad100544cfae4a2b3104b}{%
+           family={Bi},
+           familyi={B\bibinitperiod},
+           given={Yuxi},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=2989bd8fa3f2ef6ce8282ec529556dbc}{%
+           family={Dai},
+           familyi={D\bibinitperiod},
+           given={Yuhong},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=5541cd69dde50ba09f8968212da6602c}{%
+           family={Sun},
+           familyi={S\bibinitperiod},
+           given={Jiawei},
+           giveni={J\bibinitperiod}}}%
+        {{hash=00b734eb3fb588e4c6c94e4271080d0b}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Meng},
+           giveni={M\bibinitperiod}}}%
+        {{hash=9cca37a322a37778f7e30f057e2c2f90}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Haofen},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{f1678cfa142d8029151d4faacf40f176}
+      \strng{fullhash}{cfe3f393cddd56503a621bdadbd93fdb}
+      \strng{fullhashraw}{cfe3f393cddd56503a621bdadbd93fdb}
+      \strng{bibnamehash}{f1678cfa142d8029151d4faacf40f176}
+      \strng{authorbibnamehash}{f1678cfa142d8029151d4faacf40f176}
+      \strng{authornamehash}{f1678cfa142d8029151d4faacf40f176}
+      \strng{authorfullhash}{cfe3f393cddd56503a621bdadbd93fdb}
+      \strng{authorfullhashraw}{cfe3f393cddd56503a621bdadbd93fdb}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2312.10997}
+      \field{title}{Retrieval-Augmented Generation for Large Language Models: A Survey}
+      \field{year}{2023}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2312.10997
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2312.10997
+      \endverb
+    \endentry
+    \entry{graphrepo}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=d325b73f3d6a8ab23d936798621803b4}{%
+           family={Nguyen},
+           familyi={N\bibinitperiod},
+           given={Thu},
+           giveni={T\bibinitperiod}}}%
+        {{hash=90875c2f725d64b870a17bcb912db82d}{%
+           family={Vu},
+           familyi={V\bibinitperiod},
+           given={Ngoc},
+           giveni={N\bibinitperiod}}}%
+        {{hash=080990acddf1898259e8c603865d8195}{%
+           family={Ly},
+           familyi={L\bibinitperiod},
+           given={Binh},
+           giveni={B\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{a2791f0aead4f24e5e503c3a2f64db0d}
+      \strng{fullhash}{f1fe6730504d5294e450a0370fb8a291}
+      \strng{fullhashraw}{f1fe6730504d5294e450a0370fb8a291}
+      \strng{bibnamehash}{f1fe6730504d5294e450a0370fb8a291}
+      \strng{authorbibnamehash}{f1fe6730504d5294e450a0370fb8a291}
+      \strng{authornamehash}{a2791f0aead4f24e5e503c3a2f64db0d}
+      \strng{authorfullhash}{f1fe6730504d5294e450a0370fb8a291}
+      \strng{authorfullhashraw}{f1fe6730504d5294e450a0370fb8a291}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2022 IEEE International Conference on Big Data (Big Data)}
+      \field{title}{An approach to constructing a graph data repository for course recommendation based on IT career goals in the context of big data}
+      \field{year}{2022}
+      \true{nocite}
+      \field{pages}{301\bibrangedash 307}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1109/BigData55660.2022
+      \endverb
+    \endentry
+    \entry{stepchain2025}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{1}{}{%
+        {{hash=342a32403260d64342a93e524a35e306}{%
+           family={Xu},
+           familyi={X\bibinitperiod},
+           given={Z.},
+           giveni={Z\bibinitperiod}}}%
+      }
+      \strng{namehash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{fullhash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{fullhashraw}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{bibnamehash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{authorbibnamehash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{authornamehash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{authorfullhash}{7c454b720d7841f5b1c7c6293d839294}
+      \strng{authorfullhashraw}{7c454b720d7841f5b1c7c6293d839294}
+      \field{sortinit}{X}
+      \field{sortinithash}{1965c258adceecf23ce3d67b05113442}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2510.02827}
+      \field{title}{StepChain GraphRAG: Reasoning over Knowledge Graphs for Multi-Hop Question Answering}
+      \field{year}{2025}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2510.02827
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2510.02827
+      \endverb
+    \endentry
+    \entry{lightrag2024}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{1}{}{%
+        {{hash=a4d26e2d0202a48b6ffd8dfcaf357a9b}{%
+           family={Zhu},
+           familyi={Z\bibinitperiod},
+           given={Hongyu},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{fullhash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{fullhashraw}{4b95069c95e343cb5a59789d16b09226}
+      \strng{bibnamehash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{authorbibnamehash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{authornamehash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{authorfullhash}{4b95069c95e343cb5a59789d16b09226}
+      \strng{authorfullhashraw}{4b95069c95e343cb5a59789d16b09226}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2410.05779}
+      \field{title}{LightRAG: Simple and Fast Retrieval-Augmented Generation}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2410.05779
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2410.05779
+      \endverb
     \endentry
   \enddatalist
 \endrefsection
