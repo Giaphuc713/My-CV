@@ -457,7 +457,8 @@ Hệ thống có một phân hệ chính là Sinh viên, tương tác với hệ
 - Hệ thống cấp phát JWT token và chuyển hướng đến trang chính.
 	 \\ \hline
 	Dòng sự kiện phụ & A1. Rẽ nhánh tại bước 4, thông tin không hợp lệ: Hệ thống hiển thị thông báo lỗi và yêu cầu sinh viên nhập lại.\par\medskip
-	A2. Quên mật khẩu: Sinh viên chọn ``Quên mật khẩu'', hệ thống gửi email chứa liên kết khôi phục. \\ \hline
+	A2. Quên mật khẩu: Sinh viên chọn ``Quên mật khẩu'', hệ thống gửi email chứa liên kết khôi phục.\par\medskip
+	A3. Đăng nhập qua Google: Sinh viên chọn đăng nhập bằng Google, hệ thống chuyển hướng xác thực và cấp token JWT tương ứng. \\ \hline
 	Hậu điều kiện & Sinh viên đăng nhập thành công và có thể sử dụng đầy đủ chức năng hệ thống. \\ \hline
 \end{longtable}
 
@@ -524,6 +525,9 @@ Tầng Nghiệp vụ được xây dựng trên Spring Boot, đảm nhận nhi�
 Mọi yêu cầu từ phía Client trước tiên đều phải đi qua lớp bảo mật Spring Security kết hợp với cơ chế xác thực JWT (JSON Web Token). Giúp kiểm tra tính hợp lệ của token và phân quyền truy cập trước khi cho phép yêu cầu đi tiếp vào bên trong hệ thống.
 
 Sau khi xác thực thành công, yêu cầu được định tuyến đến Controller rồi chuyển xuống lớp Services để thực thi logic nghiệp vụ. Lớp Data Access sử dụng Spring Data JPA và Hibernate để ánh xạ đối tượng và giao tiếp với cơ sở dữ liệu PostgreSQL thông qua giao thức JPA/JDBC.
+
+Đối với phương thức đăng nhập bằng Google, hệ thống áp dụng giao thức OAuth2 dưới dạng xác thực liên kết. Thiết bị client (Next.js hoặc Flutter) sau khi tương tác với dịch vụ Google Identity sẽ nhận về một mã thông báo danh tính (ID Token). Mã thông báo này được gửi trực tiếp lên máy chủ Spring Boot thông qua một endpoint bảo mật. Tại đây, lớp xử lý trung gian sẽ sử dụng bộ thư viện chính thức của Google để kiểm tra chữ ký số, thời hạn sử dụng và tính toàn vẹn của dữ liệu. Nếu kết quả xác thực thành công, hệ thống tiến hành đối chiếu thông tin email của người dùng trong cơ sở dữ liệu. Trường hợp thông tin tài khoản chưa tồn tại, hệ thống sẽ tự động khởi tạo hồ sơ sinh viên mới dựa trên các thuộc tính do Google cung cấp. Sau đó, máy chủ tạo sinh và phản hồi lại cặp mã JWT (Access Token và Refresh Token) tương tự như quy trình đăng nhập truyền thống để duy trì trạng thái làm việc cho các yêu cầu tiếp theo.
+
 
 \subsubsection{Tầng Điều phối AI (AI Processing Layer)}
 
@@ -1128,7 +1132,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \item Tiện ích bổ trợ: Hộp kiểm "Remember me" (Ghi nhớ phiên đăng nhập) giúp sinh viên không phải nhập lại mật khẩu trong những lần truy cập sau, và liên kết "Forgot password?" (Quên mật khẩu).
     \item Nút hành động: "Login" hoặc "Đăng nhập" để gửi thông tin xác thực.
     \item Điều hướng nhanh: Liên kết chuyển hướng nhanh đến biểu mẫu Đăng ký nếu chưa có tài khoản.
-    \item Thực hiện đăng nhập với google.
+    \item Nút liên kết đăng nhập nhanh bằng tài khoản Google.
 \end{enumerate}
 
 \indent \textbf{Cách sử dụng:}
@@ -1136,7 +1140,7 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
     \item Sinh viên điền Email và Mật khẩu đăng nhập.
     \item Tích chọn ô "Remember me" (nếu muốn hệ thống lưu phiên đăng nhập qua Token).
     \item Nhấn nút "Login" hoặc "Đăng nhập" để hệ thống đối chiếu cơ sở dữ liệu. Nếu thông tin chính xác, sinh viên được chuyển hướng trực tiếp vào giao diện làm việc chính.
-    \item Sinh viên có thể đăng nhập với google.
+    \item Sinh viên chọn phương thức đăng nhập bằng Google, hệ thống sẽ mở cửa sổ xác thực của Google và tự động chuyển tiếp vào trang chủ sau khi thành công.
     \item Trong trường hợp gặp sự cố về mật khẩu, sinh viên nhấn vào liên kết "Forgot password?" để bắt đầu quy trình khôi phục.
 \end{enumerate}
 
@@ -1178,8 +1182,8 @@ các mũi tên thể hiện quan hệ ngữ nghĩa với nhãn keywords tương 
 
 \indent Cách sử dụng:
 \begin{enumerate}
-    \item \textbf{Bước 1 - Gửi yêu cầu:} Sinh viên nhập Email đã đăng ký tài khoản vào ô dữ liệu, sau đó nhấn nút gửi. Hệ thống ghi nhận, tự động sinh mã Token khôi phục dùng một lần gửi tới email sinh viên, và chuyển giao diện sang Bước 2.
-    \item \textbf{Bước 2 - Xác thực email:} Sinh viên nhấn nút "Mở Gmail" (hoặc tự truy cập hộp thư cá nhân). Kiểm tra kỹ các thư mục (bao gồm cả thư mục Spam/Thư rác). Nhấn vào liên kết xác thực được đính kèm trong email để được chuyển hướng đến biểu mẫu thiết lập mật khẩu mới.
+    \item Bước 1 - Gửi yêu cầu: Sinh viên nhập Email đã đăng ký tài khoản vào ô dữ liệu, sau đó nhấn nút gửi. Hệ thống ghi nhận, tự động sinh mã Token khôi phục dùng một lần gửi tới email sinh viên, và chuyển giao diện sang Bước 2.
+    \item Bước 2 - Xác thực email: Sinh viên nhấn nút "Mở Gmail" (hoặc tự truy cập hộp thư cá nhân). Kiểm tra kỹ các thư mục (bao gồm cả thư mục Spam/Thư rác). Nhấn vào liên kết xác thực được đính kèm trong email để được chuyển hướng đến biểu mẫu thiết lập mật khẩu mới.
 \end{enumerate}
 
 \subsubsection{Màn hình Hồ sơ học tập cá nhân}
