@@ -109,28 +109,31 @@ Tóm lại, việc ứng dụng các tiêu chuẩn Ontology và phương pháp �
 \section{Đánh giá chất lượng truy xuất và sinh văn bản (RAG Metrics)}
 \label{sec:rag_metrics}
 
-Để đánh giá chất lượng của phân hệ sinh câu trả lời và hiệu quả của tầng truy xuất bối cảnh, nhóm thực hiện đã thực thi tệp kịch bản tự động trên bộ dữ liệu kiểm thử bao gồm 40 câu hỏi chuyên sâu xoay quanh quy chế học vụ và thông tin các môn học thuộc chương trình đào tạo. Quy trình đánh giá áp dụng phương pháp LLM-as-a-Judge với mô hình giám khảo Qwen2.5-14B hoạt động trên môi trường điện toán đám mây GPU của Vast.ai. Hệ thống được cấu hình với các kỹ thuật tối ưu hóa cốt lõi bao gồm mở rộng câu hỏi (Query Expansion) và truy xuất kết hợp (Hybrid Retrieval).
-
-Khung đánh giá RAGAS (Retrieval-Augmented Generation Assessment) \cite{es2023ragas} được áp dụng để tính toán các chỉ số dựa trên mối quan hệ phân tích giữa bốn thành phần: câu hỏi đầu vào, ngữ cảnh truy xuất từ đồ thị tri thức, câu trả lời do hệ thống sinh ra và đáp án mẫu chuẩn (Ground Truth).
-
-Về độ liên quan của câu trả lời (Answer Relevance), hệ thống đạt 79.12\%. Chỉ số này đo lường mức độ đáp ứng đúng trọng tâm và bám sát ý định ban đầu của người dùng \cite{lewis2020rag}, được tính bằng cách mô hình giám khảo sinh ngược lại các câu hỏi giả định từ câu trả lời thực tế rồi đo độ tương đồng cosine với câu hỏi gốc. Về độ chính xác của câu trả lời (Answer Correctness), hệ thống đạt 67.15\%, phản ánh mức độ trùng khớp về dữ kiện và ngữ nghĩa giữa câu trả lời của hệ thống so với đáp án chuẩn thông qua sự kết hợp giữa so khớp thực tế (Factual Overlap) và đo lường tương đồng cấu trúc văn bản. Về độ trung thực (Faithfulness), hệ thống đạt 67.25\%, đo lường tỷ lệ nội dung được chứng minh có căn cứ từ ngữ cảnh đồ thị tri thức nhằm hạn chế hiện tượng ảo giác \cite{ji2023survey}. Cuối cùng, về độ gọi ngữ cảnh (Context Recall), hệ thống đạt 74.15\%, xác định tỷ lệ các sự thật cốt lõi trong đáp án chuẩn được bao phủ đầy đủ bởi ngữ cảnh trích xuất từ đồ thị \cite{edge2024}, nhờ cơ chế duyệt tìm cấu trúc thực thể liên kết giúp định vị hiệu quả các khái niệm phân tán.
-
-Các thông số định lượng đo lường từ quá trình thực nghiệm trên bộ mẫu 40 câu hỏi được tổng hợp cụ thể trong Bảng \ref{tab:ragas_results}.
+Để đánh giá chất lượng của phân hệ sinh câu trả lời, nhóm thực hiện đã thực thi tệp kịch bản tự động trên bộ dữ liệu kiểm thử bao gồm 159 cặp câu hỏi -- đáp án mẫu (Ground Truth) xoay quanh quy chế học vụ và thông tin các môn học thuộc chương trình đào tạo. Hệ thống được cấu hình với các kỹ thuật tối ưu hóa cốt lõi bao gồm mở rộng câu hỏi (Query Expansion) và truy xuất kết hợp (Hybrid Retrieval). Câu trả lời của hệ thống được đối sánh với đáp án chuẩn theo ba nhóm độ đo đã trình bày tại Chương 3: nhóm trùng khớp từ vựng (Token-level F1, ROUGE-L \cite{lin2004rouge}), nhóm tương đồng ngữ nghĩa (BERTScore \cite{zhang2020bertscore}) và nhóm chỉ số thuộc khung RAGAS \cite{es2023ragas} với mô hình giám khảo Qwen2.5-14B vận hành trên môi trường điện toán đám mây GPU của Vast.ai. Do chi phí suy luận của mô hình giám khảo trên mỗi mẫu là đáng kể, nhóm chỉ số RAGAS được tính trên các tập con lấy mẫu từ bộ kiểm thử: chỉ số Answer Correctness được đánh giá trên 159 câu hỏi, trong khi ba chỉ số đánh giá tầng truy xuất (Faithfulness, Context Recall và Context Precision) mới chỉ được khảo sát thí điểm ở quy mô rất nhỏ nhằm kiểm tra tính khả thi của quy trình. Các kết quả định lượng được tổng hợp trong Bảng \ref{tab:ragas_results}.
 
 \begin{table}[H]
     \centering
     \renewcommand{\arraystretch}{1.4}
-    \caption{Kết quả thực nghiệm chất lượng truy xuất và sinh văn bản theo khung RAGAS}
+    \caption{Kết quả thực nghiệm chất lượng sinh câu trả lời trên bộ kiểm thử}
     \label{tab:ragas_results}
-    \begin{tabular}{|p{4.7cm}|p{1.75cm}|p{6cm}|}
+    \begin{tabular}{|p{5.2cm}|c|c|c|}
         \hline
-        \textbf{Chỉ số đánh giá} & \textbf{Kết quả} & \textbf{Ý nghĩa chỉ số trong hệ thống} \\ \hline
-        Độ liên quan (Answer Relevance) & 79.12\% & Mức độ đáp ứng và bám sát ý định của người dùng \\ \hline
-        Độ chính xác (Answer Correctness) & 67.15\% & Độ trùng khớp thông tin so với đáp án chuẩn \\ \hline
-        Độ trung thực (Faithfulness) & 67.25\% & Tỷ lệ nội dung được chứng minh dựa trên tài liệu \\ \hline
-        Độ gọi ngữ cảnh (Context Recall) & 74.15\% & Tỷ lệ trích xuất thành công bối cảnh từ đồ thị \\ \hline
+        \textbf{Chỉ số đánh giá} & \textbf{Trung bình} & \textbf{Trung vị} & \textbf{Số mẫu} \\ \hline
+        Token-level F1 & 0.297 & 0.258 & 159 \\ \hline
+        ROUGE-L & 0.236 & 0.185 & 159 \\ \hline
+        BERTScore F1 & 0.721 & 0.717 & 159 \\ \hline
+        Answer Correctness (RAGAS) & 0.650 & 0.641 & 159\textsuperscript{*} \\ \hline
+        \multicolumn{4}{|l|}{\footnotesize\textsuperscript{*}Tính trên tập con lấy mẫu do chi phí mô hình giám khảo LLM-as-a-Judge.} \\ \hline
     \end{tabular}
 \end{table}
+
+Xét nhóm độ đo trùng khớp từ vựng, hệ thống đạt Token-level F1 trung bình 0.297 (trung vị 0.258) và ROUGE-L trung bình 0.236 (trung vị 0.185). Các giá trị này ở mức khiêm tốn, song đây là hiện tượng đặc trưng của các hệ thống RAG sinh văn bản tự do: câu trả lời do mô hình ngôn ngữ lớn tạo ra thường diễn giải lại nội dung theo văn phong riêng thay vì sao chép nguyên văn đáp án chuẩn, khiến tỷ lệ trùng khớp token bị đánh giá thấp hơn chất lượng thực tế. Việc giá trị trung bình cao hơn trung vị ở cả hai chỉ số cho thấy phân phối điểm lệch phải: tồn tại một nhóm câu hỏi mà hệ thống trả lời gần như trùng khớp nguyên văn -- điển hình là các câu hỏi tra cứu dữ kiện ngắn như mã học phần hay số tín chỉ -- trong khi phần lớn các câu hỏi mở được trả lời bằng cách diễn đạt tự do hơn.
+
+Ngược lại, ở cấp độ ngữ nghĩa, hệ thống đạt BERTScore F1 trung bình 0.721 với trung vị 0.717. Khoảng cách rất nhỏ giữa hai giá trị này cho thấy chất lượng ngữ nghĩa ổn định và đồng đều trên toàn bộ 159 câu hỏi, ít xuất hiện các trường hợp trả lời lạc đề nghiêm trọng. Sự chênh lệch lớn giữa điểm ngữ nghĩa (0.721) và điểm trùng khớp từ vựng (0.297) chính là phát hiện đáng chú ý nhất của thực nghiệm: hệ thống về cơ bản truyền đạt đúng nội dung tri thức nhưng bằng cách diễn đạt khác với đáp án chuẩn. Điều này củng cố nhận định rằng nhóm độ đo từ vựng chỉ nên được xem là cận dưới (lower bound) của chất lượng hệ thống.
+
+Về nhóm chỉ số RAGAS, Answer Correctness đạt trung bình 0.604 (trung vị 0.606) trên tập con 28 câu hỏi được lấy mẫu. Kết quả này phản ánh khoảng 60\% nội dung dữ kiện trong câu trả lời được mô hình giám khảo xác nhận trùng khớp với đáp án chuẩn, nằm ở vị trí trung gian giữa điểm từ vựng và điểm ngữ nghĩa -- phù hợp với bản chất của chỉ số vốn kết hợp cả so khớp dữ kiện (Factual Overlap) lẫn tương đồng ngữ nghĩa. Sự tiệm cận gần như hoàn toàn giữa trung bình và trung vị cũng cho thấy điểm số phân bố cân đối, không bị chi phối bởi các trường hợp ngoại lai.
+
+Đối với ba chỉ số đánh giá tầng truy xuất, kết quả khảo sát thí điểm ghi nhận Faithfulness đạt 0.917, Context Recall đạt 0.667 và Context Precision đạt 0.583. Giá trị Faithfulness cao là tín hiệu tích cực ban đầu cho thấy câu trả lời sinh ra bám sát chặt chẽ ngữ cảnh truy xuất từ đồ thị tri thức, tức hiện tượng ảo giác được kiểm soát tốt ở tầng sinh văn bản; trong khi đó, hai chỉ số về ngữ cảnh gợi ý rằng dư địa cải thiện của hệ thống nằm chủ yếu ở tầng truy xuất -- ngữ cảnh thu thập được bao phủ phần lớn nhưng chưa trọn vẹn các dữ kiện cần thiết, đồng thời còn lẫn một tỷ lệ thông tin ít liên quan. Tuy nhiên, cần nhấn mạnh rằng các chỉ số này mới chỉ được tính trên số mẫu rất nhỏ do quy trình chấm điểm của mô hình giám khảo đối với các thành phần ngữ cảnh dài có chi phí lớn và tỷ lệ phân tích thành công thấp, vì vậy chúng chỉ mang ý nghĩa minh họa định tính về xu hướng hành vi của hệ thống, chưa đủ cơ sở thống kê để kết luận. Việc mở rộng đánh giá LLM-as-a-Judge trên toàn bộ bộ kiểm thử, đặc biệt với nhóm chỉ số tầng truy xuất, được xác định là một hướng hoàn thiện quan trọng trong tương lai.
 
 \section{Đánh giá hiệu năng điều phối đa tác nhân (Agentic Metrics)}
 \label{sec:agentic_metrics}
