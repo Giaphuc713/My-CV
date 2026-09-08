@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.22)  3 SEP 2026 10:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.22)  7 SEP 2026 14:20
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -284,9 +284,9 @@ Here is how much of TeX's memory you used:
  38400 multiletter control sequences out of 15000+600000
  673908 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,5n,79p,384b,547s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,5n,79p,384b,523s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <D:/MikTex/fonts/type1/public/amsfonts/cm/cmsy10.pfb><D:/MikTex/fonts/type1/urw/arial/ua1b8a.pfb><D:/MikTex/fonts/type1/urw/arial/ua1r8a.pfb><D:/MikTex/fonts/type1/urw/arial/ua1ri8a.pfb>
-Output written on main.pdf (2 pages, 51552 bytes).
+Output written on main.pdf (2 pages, 51588 bytes).
 PDF statistics:
  51 PDF objects out of 1000 (max. 8388607)
  10 named destinations out of 1000 (max. 500000)
