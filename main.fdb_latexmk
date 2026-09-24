@@ -1,9 +1,10 @@
 # Fdb version 4
-["pdflatex"] 1789972459.12617 "d:/report_main/main.tex" "main.pdf" "main" 1789972460.04444 0
+["pdflatex"] 1790235111.94953 "d:/report_main/main.tex" "main.pdf" "main" 1790235112.7537 0
   "C:/Users/PC/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1787195858 90256 16fe3db849e00ffffdc8dd71df545d7d ""
   "C:/Users/PC/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1782123133 13316643 dc28856bb18f81f4b624d1d9e6540a7d ""
   "D:/MikTex/fonts/enc/dvips/base/8r.enc" 1458473887 4993 80dc9bab7f31fb78a000ccfed0e27cab ""
   "D:/MikTex/fonts/tfm/jknappen/ec/ecrm1000.tfm" 993062122 3148 7e594c8240c71e432203f65ab5f95a51 ""
+  "D:/MikTex/fonts/tfm/urw/arial/ua1b8c.tfm" 1142912520 1356 1ec335d7dd8104afbe99e650b37dd8ea ""
   "D:/MikTex/fonts/tfm/urw/arial/ua1b8r.tfm" 1142912520 8244 69e19cb84eccefe3db74ef387a2d067f ""
   "D:/MikTex/fonts/tfm/urw/arial/ua1b8t.tfm" 1142912520 16316 d13a0a32e9cf0f4437dcbd1364953f1e ""
   "D:/MikTex/fonts/tfm/urw/arial/ua1r8c.tfm" 1142912520 1364 10e9c24ec206a5b8c36aea76d8c11bbc ""
@@ -15,6 +16,7 @@
   "D:/MikTex/fonts/type1/urw/arial/ua1b8a.pfb" 1094452332 32743 df45be08f8e1672becd5cc984651b4e1 ""
   "D:/MikTex/fonts/type1/urw/arial/ua1r8a.pfb" 1094452332 31874 7d62ff01215df7bb7c7cbe24541d0870 ""
   "D:/MikTex/fonts/type1/urw/arial/ua1ri8a.pfb" 1094452332 34612 556810d51f38e5497024b77e83334870 ""
+  "D:/MikTex/fonts/vf/urw/arial/ua1b8c.vf" 1142912520 3416 ce47a59e74484f5c1956f7a0d44491b3 ""
   "D:/MikTex/fonts/vf/urw/arial/ua1b8t.vf" 1142912520 2352 db4ff4deb1fcca79d1b640241e13b1a4 ""
   "D:/MikTex/fonts/vf/urw/arial/ua1r8c.vf" 1142912520 3416 709df2cfa932385cde5729adc91690e1 ""
   "D:/MikTex/fonts/vf/urw/arial/ua1r8t.vf" 1142912520 2356 d0c38e225ce222ed39e5940d8f32d9b5 ""
@@ -60,12 +62,13 @@
   "D:/MikTex/tex/latex/l3backend/l3backend-pdftex.def" 1761202581 30662 bfd6e864f4ffc5018b0e2b6260c3181c ""
   "D:/MikTex/tex/latex/refcount/refcount.sty" 1576433952 9878 9e94e8fa600d95f9c7731bb21dfb67a4 ""
   "D:/MikTex/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1751104012 9684 a33a14b82ce60d6e77cb9be689d79ee6 ""
+  "D:/MikTex/tex/latex/titlesec/titlesec.sty" 1736608268 48766 87a17a4ef312a39cd43896e34a679a56 ""
   "D:/MikTex/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "D:/MikTex/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "d:/report_main/main.tex" 1789972458 6190 c18e9ba249dd70d72b731d662b5c64f8 ""
-  "main.aux" 1789972459 162 55205a9e8a8eca30d36afb389b0617bf "pdflatex"
-  "main.out" 1789972459 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main.tex" 1789972458 6190 c18e9ba249dd70d72b731d662b5c64f8 ""
+  "d:/report_main/main.tex" 1790235109 6409 4a8eb03ecea2fcc9fddc901ed05b86dd ""
+  "main.aux" 1790235112 162 55205a9e8a8eca30d36afb389b0617bf "pdflatex"
+  "main.out" 1790235112 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main.tex" 1790235109 6409 4a8eb03ecea2fcc9fddc901ed05b86dd ""
   (generated)
   "main.aux"
   "main.log"

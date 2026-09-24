@@ -87,6 +87,8 @@ INPUT D:\MikTex\tex\latex\graphics\mathcolor.ltx
 INPUT D:\MikTex\tex\latex\graphics\mathcolor.ltx
 INPUT D:\MikTex\tex\latex\enumitem\enumitem.sty
 INPUT D:\MikTex\tex\latex\enumitem\enumitem.sty
+INPUT D:\MikTex\tex\latex\titlesec\titlesec.sty
+INPUT D:\MikTex\tex\latex\titlesec\titlesec.sty
 INPUT D:\MikTex\tex\latex\arial\t1ua1.fd
 INPUT D:\MikTex\tex\latex\arial\t1ua1.fd
 INPUT D:\MikTex\tex\latex\arial\t1ua1.fd
@@ -112,7 +114,6 @@ INPUT D:\MikTex\tex\context\base\mkii\supp-pdf.mkii
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1r8t.tfm
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8t.tfm
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1r8t.tfm
-INPUT D:\MikTex\fonts\tfm\urw\arial\ua1r8t.tfm
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8t.tfm
 INPUT D:\MikTex\tex\latex\arial\ts1ua1.fd
 INPUT D:\MikTex\tex\latex\arial\ts1ua1.fd
@@ -120,6 +121,7 @@ INPUT D:\MikTex\tex\latex\arial\ts1ua1.fd
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1r8c.tfm
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8t.tfm
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1ri8t.tfm
+INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8c.tfm
 INPUT D:\MikTex\fonts\vf\urw\arial\ua1b8t.vf
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8r.tfm
 INPUT C:\Users\PC\AppData\Local\MiKTeX\fonts\map\pdftex\pdftex.map
@@ -135,6 +137,7 @@ INPUT D:\MikTex\fonts\vf\urw\arial\ua1b8t.vf
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1b8r.tfm
 INPUT D:\MikTex\fonts\vf\urw\arial\ua1ri8t.vf
 INPUT D:\MikTex\fonts\tfm\urw\arial\ua1ri8r.tfm
+INPUT D:\MikTex\fonts\vf\urw\arial\ua1b8c.vf
 INPUT main.aux
 INPUT .\main.out
 INPUT .\main.out

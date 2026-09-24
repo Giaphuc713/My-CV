@@ -3,12 +3,17 @@
 \usepackage[T1]{fontenc}
 \usepackage{uarial}
 \renewcommand{\familydefault}{\sfdefault}
-\usepackage[top=0.25in, bottom=0.25in, left=0.35in, right=0.35in]{geometry}
+\usepackage[top=0.22in, bottom=0.22in, left=0.35in, right=0.35in]{geometry}
 \usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{titlesec}
 
-% Reduce spacing of all itemize bullet lists to match reference design
+% Section title formatting & spacing adjustment
+\titleformat{\section}{\large\bfseries\uppercase}{}{0pt}{}
+\titlespacing*{\section}{0pt}{4pt}{2pt}
+
+% Reduce spacing of all itemize bullet lists
 \setlist[itemize]{itemsep=0pt, parsep=0pt, topsep=1pt, partopsep=0pt, leftmargin=1.2em}
 
 \pagestyle{empty}
@@ -16,21 +21,21 @@
 \begin{document}
 
 \begin{center}
-    {\Huge \textbf{HA GIA PHUC}} \\[0.15cm]
-    {\large QA/QC Engineer} \\[0.15cm]
-    +(84) 846 2526 39 \ $|$ \ \href{mailto:Phucha2639@gmail.com}{\textcolor{black}{\underline{Phucha2639@gmail.com}}} \ $|$ \ \href{https://github.com/Giaphuc713}{\textcolor{black}{\underline{github.com/Giaphuc713}}} \\[0.15cm]
+    {\Large \textbf{HA GIA PHUC}} \\[0.05cm]
+    {\large QA/QC Engineer} \\[0.05cm]
+    +(84) 846 2526 39 \ $|$ \ \href{mailto:Phucha2639@gmail.com}{\textcolor{black}{\underline{Phucha2639@gmail.com}}} \ $|$ \ \href{https://github.com/Giaphuc713}{\textcolor{black}{\underline{github.com/Giaphuc713}}} \\[0.05cm]
     DOB: 2004 \ $|$ \ Gender: Male \ $|$ \ Thu Duc, Ho Chi Minh City
 \end{center}
+\vspace{-0.2cm}
 
 \section*{SUMMARY}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
-Recent Software Engineering graduate pursuing a career in QA, with knowledge of Functional and Manual Testing. Currently developing a Forum Platform project with automated testing to build practical QA and automation skills.
-\vspace{-0.3cm}
+QA/QC-oriented Software Engineering graduate with around 1 year of hands-on software development experience and practical testing experience across Web, API, and automation projects. Experienced in writing and executing functional, negative, regression, and integration test scenarios.
 
 \section*{EDUCATION}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
 \begin{itemize}
@@ -38,29 +43,25 @@ Recent Software Engineering graduate pursuing a career in QA, with knowledge of 
     \item \textbf{Major: Information Technology (Information Systems)} \hfill \textbf{GPA: 3.4 / 4}
 \end{itemize}
 
-\vspace{-0.3cm}
-
 \section*{EXPERIENCE}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
 
 \noindent
-\textbf{Daoukiwoom Innovation Vietnam} -- Frontend Developer and Testing \hfill Aug 2025 -- Now
+\textbf{Daoukiwoom Innovation Vietnam} -- Frontend Developer and Testing \hfill Aug 2025 -- July 2026
 \begin{itemize}
     \item Participated in a \textbf{cross-functional team of 8 members} to develop a \textbf{securities trading system}, providing stable and user-friendly financial IT solutions for the Southeast Asian market.
+    \item Developed user-friendly interfaces using ReactJS, implementing UI components based on functional requirements and integrating RESTful APIs.
     \item Operated under an \textbf{Agile framework}, managing tasks via \textbf{Redmine} and streamlining version control through \textbf{Bitbucket}.
-    \item Built and integrated backend services using \textbf{JavaScript(NodeJs), RESTful APIs}, focusing on API routing, service-to-service communication, authentication, authorization, and scalable backend design.
     \item Learned and applied \textbf{SOLID principles} to maintain a clean, decoupled, and maintainable architecture.
+    \item Reproduced and investigated deployment-related issues, communicated findings with the development team, and supported retesting.
     \item Designed and executed \textbf{test cases} based on functional requirements and deployment issues, covering positive and negative scenarios.
     \item Gained practical experience in \textbf{containerization with Docker} and automated \textbf{CI/CD pipelines via Jenkins}.
 \end{itemize}
 
-\vspace{-0.3cm}
-
-
 \section*{SKILLS}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
 \begin{itemize}
@@ -72,17 +73,13 @@ Recent Software Engineering graduate pursuing a career in QA, with knowledge of 
     \item \textbf{Testing Tools}: Jira, Postman, Playwright, Selenium
 \end{itemize}
 
-\vspace{-0.3cm}
-
-
 \section*{TECHNICAL PROJECTS}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
 
-
 \noindent
-\textbf{Ecommerce Website } -- Personal Project \hfill 09/2026 -- 09/2026 \\
+\textbf{Ecommerce Website} -- Personal Project \hfill 09/2026 -- 09/2026 \\
 \textit{Tech Stack: Java, Selenium WebDriver, Cucumber, TestNG, Jenkins}
 \begin{itemize}
     \item Implemented end-to-end automation test scenarios covering the user flow from login, product search, cart validation, and order placement.
@@ -93,7 +90,7 @@ Recent Software Engineering graduate pursuing a career in QA, with knowledge of 
     \item GitHub: \href{https://github.com/GiaPhuc1703/TestAutomation-Ecommerce.git}{github.com/TestAutomation-Ecommerce}
 \end{itemize}
 
-\vspace{0.02cm}
+\vspace{0.1cm}
 
 \noindent
 \textbf{Forum Platform} -- Team Project \hfill 12/2025 -- 04/2026 \\
@@ -103,22 +100,20 @@ Recent Software Engineering graduate pursuing a career in QA, with knowledge of 
     \item Built RESTful APIs using \textbf{Java} and \textbf{Spring Boot} for authentication, post creation, search, filtering, comments, and community membership.
     \item Developed a responsive and user-friendly forum interface using \textbf{Next.js}, \textbf{TypeScript}, and \textbf{Tailwind CSS}.
     \item Designed test case for core features (login, register, CRUD comments, posts)
-    \item Integrated automated tests  using \textbf{PlayWright} into CI/CD pipelines and generated tests reports to detect regressions early.
+    \item Integrated automated tests using \textbf{PlayWright} into CI/CD pipelines and generated tests reports to detect regressions early.
     \item Created functional, negative, regression, and integration test scenarios to validate API status codes, response payloads
     \item GitHub: \href{https://github.com/mrDanh11/Academic-Advisor-Backend}{github.com/forum-platform}
 \end{itemize}
 
-\vspace{-0.3cm}
-
 \section*{CERTIFICATIONS}
-\vspace{-0.7em}
+\vspace{-0.5em}
 \hrule
 \vspace{0.2em}
 \begin{itemize}
     \item \textbf{TOEIC Speaking \& Writing:} 250 \hfill \textit{Jun 2025}
     \item \textbf{TOEIC Listening \& Reading:} 650 \hfill \textit{Dec 2024}
     \item \textbf{Udemy Javascript From The Beginning 2.0:} \href{https://www.udemy.com/certificate/UC-0f8f70ce-96fa-44e2-b836-cf4e8c49c22f/}{JavaScript From The Beginning 2.0} \hfill \textit{Aug 2025}
-    \item \textbf{Udemy Specialize in QA Manual Testing:} \href{https://www.udemy.com/certificate/UC-8e645d16-af92-4994-8a57-cecfb336d952/}{Specialize in QA Manual Testing} \hfill \textit{September 2026}
+    \item \textbf{ISTQB® Certified Tester - Foundation Level - 2026:} \href{https://www.udemy.com/certificate/UC-8e645d16-af92-4994-8a57-cecfb336d952/}{Specialize in QA Manual Testing} \hfill \textit{September 2026}
 \end{itemize}
 \end{document}
 
